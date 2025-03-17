@@ -49,6 +49,7 @@ export default function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           "If your email exists in our system, you'll receive a password reset link",
       });
     } catch (error) {
+      console.error("Error sending password reset email:", error);
       toast.error("Something went wrong", {
         description: "Please try again later",
       });
@@ -66,13 +67,13 @@ export default function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
         <div className="space-y-2">
           <h3 className="text-xl font-semibold">Check your email</h3>
           <p className="text-muted-foreground">
-            We've sent a password reset link to{" "}
+            We&apos;ve sent a password reset link to{" "}
             <span className="font-medium text-foreground">{email}</span>
           </p>
         </div>
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            Didn't receive the email? Check your spam folder or try again.
+            Didn&apos;t receive the email? Check your spam folder or try again.
           </p>
           <Button
             variant="outline"
@@ -105,7 +106,7 @@ export default function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           <h3 className="text-lg font-semibold">Reset your password</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your
+          Enter your email address and we&apos;ll send you a link to reset your
           password.
         </p>
       </div>

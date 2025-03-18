@@ -1,7 +1,12 @@
 import Link from "next/link";
 
+interface NavLinksProps {
+  isMobile?: boolean;
+  onClick?: () => void;
+}
+
 // Reusable Navigation Links Component
-const NavLinks = ({ isMobile = false }) => {
+const NavLinks: React.FC<NavLinksProps> = ({ isMobile = false, onClick }) => {
   const links = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About" },
@@ -17,8 +22,9 @@ const NavLinks = ({ isMobile = false }) => {
           key={link.href}
           href={link.href}
           className={`block ${
-            isMobile ? "py-2 text-lg font-medium" : "text-sm font-medium"
+            isMobile ? "text-lg font-medium" : "text-sm font-medium"
           } transition-colors hover:text-primary`}
+          onClick={onClick} // Close the menu when clicked
         >
           {link.label}
         </Link>

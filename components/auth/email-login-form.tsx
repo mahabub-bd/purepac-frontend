@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function EmailLoginForm({
   onForgotPassword,
@@ -16,6 +17,7 @@ export default function EmailLoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +48,7 @@ export default function EmailLoginForm({
     }
 
     // Simulate login
+    router.push("/dashboard");
     toast.success("Success", {
       description: "You have successfully signed in",
     });

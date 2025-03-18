@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
 
 export default function MobileLoginForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [showOtpForm, setShowOtpForm] = useState(false);
+  const router = useRouter();
 
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow numbers
@@ -67,6 +69,7 @@ export default function MobileLoginForm() {
     }
 
     // Simulate OTP verification
+    router.push("/dashboard");
     toast.success("Success", {
       description: "You have successfully signed in",
     });

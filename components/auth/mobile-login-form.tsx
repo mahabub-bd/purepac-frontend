@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,23 @@ export default function MobileLoginForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [showOtpForm, setShowOtpForm] = useState(false);
+  const [otpExpired, setOtpExpired] = useState(false);
+  const [timer, setTimer] = useState(180); // 3 minutes
   const router = useRouter();
 
+  useEffect(() => {
+    let countdown: string | number | NodeJS.Timeout | undefined;
+    if (showOtpForm && timer > 0) {
+      countdown = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (timer === 0) {
+      setOtpExpired(true);
+    }
+    return () => clearInterval(countdown);
+  }, [showOtpForm, timer]);
+
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numbers
     const value = e.target.value.replace(/\D/g, "");
     setPhoneNumber(value);
   };
@@ -31,24 +44,21 @@ export default function MobileLoginForm() {
       return;
     }
 
-    // Simulate sending OTP
     toast.success("OTP Sent", {
       description: "A verification code has been sent to your mobile number",
     });
 
     setShowOtpForm(true);
+    setOtpExpired(false);
+    setTimer(180); // Reset timer
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    // Only allow numbers
     value = value.replace(/\D/g, "");
-
-    // Update the OTP array
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Auto-focus next input if value is entered
     if (value && index < 5) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       if (nextInput) {
@@ -59,16 +69,12 @@ export default function MobileLoginForm() {
 
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const otpValue = otp.join("");
-    if (otpValue.length !== 6) {
+    if (otp.join("").length !== 6) {
       toast.error("Invalid OTP", {
         description: "Please enter the complete 6-digit verification code",
       });
       return;
     }
-
-    // Simulate OTP verification
     router.push("/dashboard");
     toast.success("Success", {
       description: "You have successfully signed in",
@@ -97,7 +103,7 @@ export default function MobileLoginForm() {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Enter your 10-digit mobile number without the country code
+              Enter your 11-digit mobile number without the country code
             </p>
           </div>
           <Button type="submit" className="w-full">
@@ -108,7 +114,7 @@ export default function MobileLoginForm() {
         <form onSubmit={handleVerifyOtp} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="otp-0">Enter Verification Code</Label>
-            <p className="text-xs text-muted-foreground mb-2">
+            <p className="text-sm text-muted-foreground mb-2">
               We&apos;ve sent a 6-digit code to +880 {phoneNumber}
             </p>
             <div className="flex gap-2 justify-between">
@@ -140,17 +146,13 @@ export default function MobileLoginForm() {
               type="button"
               variant="link"
               className="p-0 h-auto"
-              onClick={() => {
-                toast.success("OTP Resent", {
-                  description:
-                    "A new verification code has been sent to your mobile number",
-                });
-              }}
+              onClick={handleSendOtp}
+              disabled={!otpExpired}
             >
-              Resend OTP
+              {otpExpired ? "Resend OTP" : `Resend in ${timer}s`}
             </Button>
           </div>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full ">
             Verify & Sign In
           </Button>
         </form>

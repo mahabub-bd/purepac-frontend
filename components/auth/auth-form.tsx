@@ -45,7 +45,7 @@ export default function AuthForm() {
           {showForgotPassword
             ? "Forgot Password"
             : isSignUp
-            ? "Create Account"
+            ? "Welcome to Purepac"
             : "Sign In"}
         </CardTitle>
         {!showForgotPassword && (
@@ -135,7 +135,7 @@ export default function AuthForm() {
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <Button
               variant="link"
-              className="p-0 h-auto font-medium"
+              className="p-0 h-auto font-medium "
               onClick={handleToggleSignUp}
             >
               {isSignUp ? "Sign in" : "Sign up"}

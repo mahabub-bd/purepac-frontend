@@ -12,11 +12,14 @@ import {
   DropdownMenuItem,
 } from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import AuthBtn from "../auth/auth-button";
 
 export default function UserActions() {
   const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
   const cartItemCount = 3; // Example: Replace with real cart data
-  const wishlistItemCount = 5; // Example: Replace with real wishlist data
+  const wishlistItemCount = 5;
+  const router = useRouter(); // Example: Replace with real wishlist data
 
   return (
     <div className="flex items-center space-x-4">
@@ -55,57 +58,8 @@ export default function UserActions() {
       </Link>
 
       {/* User Account Dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-            aria-label="Account"
-          >
-            <User className="size-6 text-gray-700" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          className="w-40 bg-white border border-gray-200 rounded-lg shadow-lg"
-        >
-          <DropdownMenuLabel className="px-4 py-2 font-semibold text-gray-900">
-            My Account
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator className="border-t border-gray-200" />
-          {isSignedIn ? (
-            <>
-              <DropdownMenuItem className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                Orders
-              </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="border-t border-gray-200" />
-              <DropdownMenuItem
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                onClick={() => setIsSignedIn(false)}
-              >
-                Sign out
-              </DropdownMenuItem>
-            </>
-          ) : (
-            <>
-              <DropdownMenuItem
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                onClick={() => setIsSignedIn(true)}
-              >
-                Sign in
-              </DropdownMenuItem>
-              <DropdownMenuItem className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                Register
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <AuthBtn />
     </div>
   );
 }

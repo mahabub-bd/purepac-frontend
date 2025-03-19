@@ -56,7 +56,7 @@ export default function AuthBtn() {
           size="icon"
           className="rounded-full p-2 hover:bg-gray-100 transition-colors"
           aria-label="Account"
-          onClick={() => router.push("/auth/sign-in")}
+          onClick={() => router.push("/auth")}
         >
           <User className="size-6 text-gray-700" />
         </Button>

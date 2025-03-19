@@ -22,7 +22,7 @@ const NavLinks: React.FC<NavLinksProps> = ({ isMobile = false, onClick }) => {
           key={link.href}
           href={link.href}
           className={`block ${
-            isMobile ? "text-lg font-medium" : "text-sm font-medium"
+            isMobile ? "text-lg font-medium" : "text-md font-medium"
           } transition-colors hover:text-primary`}
           onClick={onClick} // Close the menu when clicked
         >

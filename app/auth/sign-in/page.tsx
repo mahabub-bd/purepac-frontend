@@ -5,66 +5,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PhoneIcon, MailIcon } from "lucide-react";
-import MobileLoginForm from "./mobile-login-form";
-import EmailLoginForm from "./email-login-form";
-import SignUpForm from "./sign-up-form";
-import ForgotPasswordForm from "./forgot-password-form";
+import ForgotPasswordForm from "@/components/auth/forgot-password-form";
+import MobileLoginForm from "@/components/auth/mobile-login-form";
+import EmailLoginForm from "@/components/auth/email-login-form";
+import Link from "next/link";
 
-export default function AuthForm() {
+export default function SignInForm() {
   const [activeTab, setActiveTab] = useState("mobile");
-  const [isSignUp, setIsSignUp] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const handleForgotPassword = () => {
-    setShowForgotPassword(true);
-  };
-
-  const handleBackFromForgotPassword = () => {
-    setShowForgotPassword(false);
-    setActiveTab("email");
-  };
-
-  // Reset forgot password state when switching to sign up
-  const handleToggleSignUp = () => {
-    setIsSignUp(!isSignUp);
-    setShowForgotPassword(false);
-  };
+  const handleForgotPassword = () => setShowForgotPassword(true);
+  const handleBackFromForgotPassword = () => setShowForgotPassword(false);
 
   return (
     <Card className="w-sm md:w-md lg:w-lg mx-auto">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
-          {showForgotPassword
-            ? "Forgot Password"
-            : isSignUp
-            ? "Welcome to Purepac"
-            : "Sign In"}
+          {showForgotPassword ? "Forgot Password" : "Sign In"}
         </CardTitle>
         {!showForgotPassword && (
           <CardDescription className="text-center">
-            {isSignUp
-              ? "Fill in your details to create a new account"
-              : "Choose your preferred sign in method"}
+            Choose your preferred sign-in method
           </CardDescription>
         )}
       </CardHeader>
       <CardContent className="p-6">
         {showForgotPassword ? (
           <ForgotPasswordForm onBack={handleBackFromForgotPassword} />
-        ) : isSignUp ? (
-          <SignUpForm />
         ) : (
           <>
             <Tabs
-              defaultValue="mobile"
               value={activeTab}
               onValueChange={setActiveTab}
               className="w-full"
@@ -129,20 +106,14 @@ export default function AuthForm() {
           </>
         )}
       </CardContent>
-      <CardFooter className="flex justify-center">
-        {!showForgotPassword && (
-          <p className="text-sm text-muted-foreground">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <Button
-              variant="link"
-              className="p-0 h-auto font-medium "
-              onClick={handleToggleSignUp}
-            >
-              {isSignUp ? "Sign in" : "Sign up"}
-            </Button>
-          </p>
-        )}
-      </CardFooter>
+      <p className="text-sm text-muted-foreground text-center">
+        Don&apos;t have an account?{" "}
+        <Link href="/auth/sign-up" className="ml-1">
+          <Button variant="link" className="p-0 h-auto font-medium">
+            Sign up
+          </Button>
+        </Link>
+      </p>
     </Card>
   );
 }

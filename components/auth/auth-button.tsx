@@ -15,7 +15,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function AuthBtn() {
-  const [isLogin, setIsLogin] = useState(false); // Replace with actual authentication logic
+  const [isLogin, setIsLogin] = useState<boolean>(false);
   const router = useRouter();
 
   const handleSignOut = () => {
@@ -32,7 +32,7 @@ export default function AuthBtn() {
             <Button className="flex items-center space-x-2 text-white w-full sm:w-auto px-4 py-2">
               <CircleUserRound className="w-5 h-5 sm:w-6 sm:h-6" />
               <span className="text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">
-                User
+                Mahabub Hossain
               </span>
             </Button>
           </DropdownMenuTrigger>
@@ -56,7 +56,7 @@ export default function AuthBtn() {
           size="icon"
           className="rounded-full p-2 hover:bg-gray-100 transition-colors"
           aria-label="Account"
-          onClick={() => router.push("/auth")}
+          onClick={() => router.push("/auth/sign-in")}
         >
           <User className="size-6 text-gray-700" />
         </Button>

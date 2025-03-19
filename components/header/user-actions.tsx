@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, Heart, ShoppingBag } from "lucide-react";
+import { User, Heart, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 
 export default function UserActions() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
   const cartItemCount = 3; // Example: Replace with real cart data
   const wishlistItemCount = 5; // Example: Replace with real wishlist data
 

@@ -9,6 +9,8 @@ import NavLinks from "./nav-links";
 import MobileMenu from "./mobile-menu";
 import UserActions from "./user-actions";
 import { PurePacLogo } from "@/public/images";
+// Remove the problematic import
+// import { PurePacLogo } from "@/public/images"
 
 export function Header() {
   return (
@@ -16,12 +18,24 @@ export function Header() {
       <div className="container flex items-center justify-between mx-auto px-4 md:py-4 py-2">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
-          <Image src={PurePacLogo} alt="Company logo" width={120} height={80} />
+          {/* Use a direct path to the logo image instead */}
+          <Image
+            src={PurePacLogo}
+            alt="Company logo"
+            width={120}
+            height={80}
+            // Add fallback for development
+            onError={(e) => {
+              // If the image fails to load, use a placeholder
+              const target = e.target as HTMLImageElement;
+              target.src = "/placeholder.svg?height=80&width=120";
+            }}
+          />
         </Link>
 
         {/* Desktop Navigation and Search */}
         <div className="hidden md:flex md:items-center md:space-x-6">
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Only Main Menu */}
           <nav className="flex items-center space-x-6">
             <NavLinks />
           </nav>
@@ -42,10 +56,14 @@ export function Header() {
       {/* Mobile Search and Actions */}
       <div className="container flex items-center justify-between mx-auto px-4 py-2 md:hidden">
         {/* Search Bar - Mobile */}
-        <SearchBar className="flex-1 mr-4" />
+        <div className="w-[75%]">
+          <SearchBar />
+        </div>
 
         {/* User Actions - Mobile */}
-        <UserActions />
+        <div className="w-[25%] flex justify-end">
+          <UserActions isMobile />
+        </div>
       </div>
     </header>
   );

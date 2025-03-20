@@ -1,53 +1,45 @@
 "use client";
 
-import Link from "next/link";
 import { Heart, ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
 import AuthBtn from "../auth/auth-button";
+import { IconButton } from "../ui/icon-button";
 
-export default function UserActions() {
-  const cartItemCount = 3; // Example: Replace with real cart data
+interface UserActionsProps {
+  isMobile?: boolean;
+}
+
+export default function UserActions({ isMobile = false }: UserActionsProps) {
+  // Example: Replace with real data from your state management
+  const cartItemCount = 3;
   const wishlistItemCount = 5;
 
   return (
-    <div className="flex items-center space-x-4">
+    <div
+      className={`flex items-center ${
+        isMobile ? "justify-between w-full" : "space-x-4"
+      }`}
+    >
       {/* Wishlist Button with Badge */}
-      <Link href="/wishlist" className="relative group">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-          aria-label="Wishlist"
-        >
+      <IconButton
+        href="/wishlist"
+        icon={
           <Heart className="size-6 text-gray-700 group-hover:text-primary" />
-        </Button>
-        {wishlistItemCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-            {wishlistItemCount}
-          </span>
-        )}
-      </Link>
+        }
+        label="Wishlist"
+        count={wishlistItemCount}
+      />
 
       {/* Cart Button with Badge */}
-      <Link href="/cart" className="relative group">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-          aria-label="Cart"
-        >
+      <IconButton
+        href="/cart"
+        icon={
           <ShoppingBag className="size-6 text-gray-700 group-hover:text-primary" />
-        </Button>
-        {cartItemCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-            {cartItemCount}
-          </span>
-        )}
-      </Link>
+        }
+        label="Cart"
+        count={cartItemCount}
+      />
 
-      {/* User Account Dropdown */}
-
+      {/* User Account Button/Dropdown */}
       <AuthBtn />
     </div>
   );

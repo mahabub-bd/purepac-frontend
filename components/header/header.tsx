@@ -54,14 +54,14 @@ export function Header() {
       </div>
 
       {/* Mobile Search and Actions */}
-      <div className="container flex items-center justify-between mx-auto px-4 py-2 md:hidden">
+      <div className="container flex gap-6 items-center justify-between mx-auto px-4 py-2 md:hidden">
         {/* Search Bar - Mobile */}
-        <div className="w-[75%]">
+        <div className="w-[70%]">
           <SearchBar />
         </div>
 
         {/* User Actions - Mobile */}
-        <div className="w-[25%] flex justify-end">
+        <div className="w-[30%] flex justify-end">
           <UserActions isMobile />
         </div>
       </div>

@@ -9,40 +9,62 @@ import SearchBar from "./search";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex items-center justify-between mx-auto px-4 md:py-4 py-2">
-        {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <Image src={PurePacLogo} alt="Company logo" width={120} height={80} />
-        </Link>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto">
+        {/* Desktop Header */}
+        <div className="hidden md:flex items-center justify-between h-16 px-4">
+          {/* Logo */}
+          <Link href="/" className="flex items-center mr-6">
+            <Image
+              src={PurePacLogo || "/placeholder.svg"}
+              alt="PurePac logo"
+              width={120}
+              height={80}
+              className="h-auto w-auto"
+              priority
+            />
+          </Link>
 
-        {/* Desktop Navigation and Search */}
-        <div className="hidden md:flex md:items-center md:space-x-6">
-          {/* Desktop Navigation */}
-          <nav className="flex items-center space-x-6">
+          {/* Main Navigation */}
+          <nav className="flex items-center space-x-8">
             <NavLinks />
           </nav>
 
-          {/* Search Bar - Desktop */}
-          <SearchBar className="ml-4 md:w-[500px]" />
+          {/* Search and User Actions */}
+          <div className="flex items-center space-x-4">
+            <SearchBar className="w-[320px]" />
+            <UserActions />
+          </div>
         </div>
 
-        {/* Desktop User Actions */}
-        <div className="hidden md:block">
-          <UserActions />
+        {/* Mobile Header */}
+        <div className="md:hidden flex flex-col">
+          {/* Top Row: Logo, Search Icon, User Actions */}
+          <div className="flex items-center justify-between h-14 px-4">
+            {/* Mobile Menu */}
+            <MobileMenu />
+
+            {/* Logo */}
+            <Link href="/" className="flex items-center mx-auto">
+              <Image
+                src={PurePacLogo || "/placeholder.svg"}
+                alt="PurePac logo"
+                width={100}
+                height={60}
+                className="h-auto w-auto"
+                priority
+              />
+            </Link>
+
+            {/* User Actions (compact version) */}
+            <UserActions compact />
+          </div>
+
+          {/* Bottom Row: Full Search Bar */}
+          <div className="px-4 pb-2">
+            <SearchBar />
+          </div>
         </div>
-
-        {/* Mobile Menu Button - Only visible on mobile */}
-        <MobileMenu />
-      </div>
-
-      {/* Mobile Search and Actions */}
-      <div className="container flex items-center justify-between mx-auto px-4 py-2 md:hidden">
-        {/* Search Bar - Mobile */}
-        <SearchBar className="flex-1 mr-4" />
-
-        {/* User Actions - Mobile */}
-        <UserActions />
       </div>
     </header>
   );

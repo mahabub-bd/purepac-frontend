@@ -6,20 +6,26 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuLabel,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserTypes } from "@/utils/types";
-import { LogOut, Settings, User, UserCircle } from "lucide-react";
+import { LogOut, Settings, User, UserCircle, Heart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-export default function AuthButton({ user }: { user: UserTypes | null }) {
+interface AuthBtnProps {
+  user: UserTypes | null;
+  compact?: boolean;
+}
+
+export default function AuthBtn({ user, compact = false }: AuthBtnProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -55,15 +61,23 @@ export default function AuthButton({ user }: { user: UserTypes | null }) {
             <Button
               variant="ghost"
               size="sm"
-              className="relative h-9 w-9 rounded-full border p-0 hover:bg-muted/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className={cn(
+                "relative rounded-full border p-0 hover:bg-muted/50 focus-visible:ring-0 focus-visible:ring-offset-0",
+                compact ? "h-8 w-8" : "h-9 w-9"
+              )}
               disabled={isLoggingOut}
               aria-label="User menu"
             >
-              <Avatar className="h-9 w-9">
+              <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
                 {user.image ? (
                   <AvatarImage src={user.image} alt={user.name} />
                 ) : null}
-                <AvatarFallback className="text-xs font-medium">
+                <AvatarFallback
+                  className={cn(
+                    "text-xs font-medium",
+                    compact ? "text-[10px]" : "text-xs"
+                  )}
+                >
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
@@ -101,6 +115,17 @@ export default function AuthButton({ user }: { user: UserTypes | null }) {
                   <span>Settings</span>
                 </Link>
               </DropdownMenuItem>
+              {compact && (
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/wishlist"
+                    className="flex cursor-pointer items-center"
+                  >
+                    <Heart className="mr-2 h-4 w-4" />
+                    <span>Wishlist</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -115,13 +140,18 @@ export default function AuthButton({ user }: { user: UserTypes | null }) {
         </DropdownMenu>
       ) : (
         <Button
-          variant="outline"
+          variant={compact ? "ghost" : "outline"}
           size="sm"
-          className="flex items-center gap-2 rounded-full px-4"
+          className={cn(
+            compact
+              ? "h-8 w-8 p-0 rounded-full"
+              : "flex items-center gap-2 rounded-full px-4"
+          )}
           onClick={() => router.push("/auth/sign-in")}
         >
-          <User className="h-4 w-4" />
-          <span>Sign in</span>
+          <User className={cn(compact ? "h-5 w-5" : "h-4 w-4")} />
+          {!compact && <span>Sign in</span>}
+          <span className="sr-only">Sign in</span>
         </Button>
       )}
     </>

@@ -1,54 +1,51 @@
-import Link from "next/link";
 import { Heart, ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-import AuthBtn from "../auth/auth-button";
+import AuthBtn from "../auth/auth-button"; // Fixed import name to match original
 import { getUser } from "@/actions/auth";
+import { IconButton } from "../ui/icon-button";
+import { cn } from "@/lib/utils";
 
-export default async function UserActions() {
+interface UserActionsProps {
+  compact?: boolean;
+}
+
+export default async function UserActions({
+  compact = false,
+}: UserActionsProps) {
   const user = await getUser();
   const cartItemCount = 3; // Example: Replace with real cart data
   const wishlistItemCount = 5;
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className={cn("flex items-center gap-1", compact ? "gap-0" : "gap-2")}>
       {/* Wishlist Button with Badge */}
-      <Link href="/wishlist" className="relative group">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-          aria-label="Wishlist"
-        >
-          <Heart className="size-6 text-gray-700 group-hover:text-primary" />
-        </Button>
-        {wishlistItemCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-            {wishlistItemCount}
-          </span>
-        )}
-      </Link>
+      {!compact && (
+        <IconButton
+          href="/wishlist"
+          icon={
+            <Heart className="size-[22px] text-gray-700 group-hover:text-primary transition-colors" />
+          }
+          label="Wishlist"
+          count={wishlistItemCount}
+        />
+      )}
 
       {/* Cart Button with Badge */}
-      <Link href="/cart" className="relative group">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-          aria-label="Cart"
-        >
-          <ShoppingBag className="size-6 text-gray-700 group-hover:text-primary" />
-        </Button>
-        {cartItemCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-            {cartItemCount}
-          </span>
-        )}
-      </Link>
+      <IconButton
+        href="/cart"
+        icon={
+          <ShoppingBag
+            className={cn(
+              "text-gray-700 group-hover:text-primary transition-colors",
+              compact ? "size-5" : "size-[22px]"
+            )}
+          />
+        }
+        label={compact ? "" : "Cart"}
+        count={cartItemCount}
+      />
 
-      {/* User Account Dropdown */}
-
-      <AuthBtn user={user} />
+      <AuthBtn user={user} compact={compact} />
     </div>
   );
 }

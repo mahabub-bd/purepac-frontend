@@ -7,13 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { mobileLogin, verifyOtp } from "@/actions/auth";
 
-export default function MobileLoginForm() {
+export default function MobileLoginFormWithServerActions() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [showOtpForm, setShowOtpForm] = useState(false);
   const [otpExpired, setOtpExpired] = useState(false);
   const [timer, setTimer] = useState(180); // 3 minutes
+  const [isLoading, setIsLoading] = useState(false);
+  const [otpExpiresAt, setOtpExpiresAt] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export default function MobileLoginForm() {
     setPhoneNumber(value);
   };
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (phoneNumber.length !== 10 || !phoneNumber.startsWith("1")) {
@@ -44,13 +48,32 @@ export default function MobileLoginForm() {
       return;
     }
 
-    toast.success("OTP Sent", {
-      description: "A verification code has been sent to your mobile number",
-    });
+    try {
+      setIsLoading(true);
 
-    setShowOtpForm(true);
-    setOtpExpired(false);
-    setTimer(180); // Reset timer
+      const formattedNumber = `+880${phoneNumber}`;
+
+      const response = await mobileLogin(formattedNumber);
+
+      if (response.otpExpiresAt) {
+        setOtpExpiresAt(response.otpExpiresAt);
+      }
+
+      toast.info("OTP Sent", {
+        description: `OTP Send to ${formattedNumber}`,
+      });
+
+      setShowOtpForm(true);
+      setOtpExpired(false);
+      setTimer(180); // Reset timer
+    } catch (error) {
+      toast.error("Failed to send OTP", {
+        description:
+          error instanceof Error ? error.message : "Please try again later",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -67,18 +90,41 @@ export default function MobileLoginForm() {
     }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.join("").length !== 6) {
+
+    const otpCode = otp.join("");
+    if (otpCode.length !== 6) {
       toast.error("Invalid OTP", {
         description: "Please enter the complete 6-digit verification code",
       });
       return;
     }
-    router.push("/dashboard");
-    toast.success("Success", {
-      description: "You have successfully signed in",
-    });
+
+    try {
+      setIsLoading(true);
+
+      const formattedNumber = `+880${phoneNumber}`;
+
+      await verifyOtp({
+        mobileNumber: formattedNumber,
+        otp: otpCode,
+        otpExpiresAt: otpExpiresAt,
+      });
+
+      toast.success("Success", {
+        description: "You have successfully signed in",
+      });
+
+      router.push("/user/dashboard");
+    } catch (error) {
+      toast.error("Verification failed", {
+        description:
+          error instanceof Error ? error.message : "Please try again",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -98,16 +144,24 @@ export default function MobileLoginForm() {
                 className="rounded-l-none"
                 value={phoneNumber}
                 onChange={handlePhoneNumberChange}
-                maxLength={11}
+                maxLength={10}
                 required
+                disabled={isLoading}
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Enter your 11-digit mobile number without the country code
+              Enter your 10-digit mobile number without the country code
             </p>
           </div>
-          <Button type="submit" className="w-full">
-            Send OTP
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending OTP...
+              </>
+            ) : (
+              "Send OTP"
+            )}
           </Button>
         </form>
       ) : (
@@ -129,6 +183,7 @@ export default function MobileLoginForm() {
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   className="w-12 h-12 text-center text-lg"
                   required
+                  disabled={isLoading}
                 />
               ))}
             </div>
@@ -139,6 +194,7 @@ export default function MobileLoginForm() {
               variant="link"
               className="p-0 h-auto"
               onClick={() => setShowOtpForm(false)}
+              disabled={isLoading}
             >
               Change Number
             </Button>
@@ -147,13 +203,20 @@ export default function MobileLoginForm() {
               variant="link"
               className="p-0 h-auto"
               onClick={handleSendOtp}
-              disabled={!otpExpired}
+              disabled={!otpExpired || isLoading}
             >
               {otpExpired ? "Resend OTP" : `Resend in ${timer}s`}
             </Button>
           </div>
-          <Button type="submit" className="w-full ">
-            Verify & Sign In
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Verify & Sign In"
+            )}
           </Button>
         </form>
       )}

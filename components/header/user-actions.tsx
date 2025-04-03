@@ -1,25 +1,14 @@
-"use client";
-
 import Link from "next/link";
-import { User, Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
-} from "@radix-ui/react-dropdown-menu";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import AuthBtn from "../auth/auth-button";
 
-export default function UserActions() {
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+import AuthBtn from "../auth/auth-button";
+import { getUser } from "@/actions/auth";
+
+export default async function UserActions() {
+  const user = await getUser();
   const cartItemCount = 3; // Example: Replace with real cart data
   const wishlistItemCount = 5;
-  const router = useRouter(); // Example: Replace with real wishlist data
 
   return (
     <div className="flex items-center space-x-4">
@@ -59,7 +48,7 @@ export default function UserActions() {
 
       {/* User Account Dropdown */}
 
-      <AuthBtn />
+      <AuthBtn user={user} />
     </div>
   );
 }

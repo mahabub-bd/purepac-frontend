@@ -1,14 +1,11 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { Search } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
 import NavLinks from "./nav-links";
 import MobileMenu from "./mobile-menu";
 import UserActions from "./user-actions";
 import { PurePacLogo } from "@/public/images";
+import SearchBar from "./search";
 
 export function Header() {
   return (
@@ -48,18 +45,5 @@ export function Header() {
         <UserActions />
       </div>
     </header>
-  );
-}
-
-function SearchBar({ className = "" }: { className?: string }) {
-  return (
-    <div className={`relative ${className}`}>
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-      <Input
-        type="search"
-        placeholder="Search products..."
-        className="w-full rounded-md pl-8"
-      />
-    </div>
   );
 }

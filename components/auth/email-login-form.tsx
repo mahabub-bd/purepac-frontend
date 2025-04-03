@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { login } from "@/actions/auth";
 
 export default function EmailLoginForm({
   onForgotPassword,
@@ -17,16 +18,19 @@ export default function EmailLoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     // Basic validation
     if (!email || !password) {
       toast.error("Missing fields", {
         description: "Please fill in all required fields",
       });
+      setIsLoading(false);
       return;
     }
 
@@ -36,6 +40,7 @@ export default function EmailLoginForm({
       toast.error("Invalid email", {
         description: "Please enter a valid email address",
       });
+      setIsLoading(false);
       return;
     }
 
@@ -44,17 +49,32 @@ export default function EmailLoginForm({
       toast.error("Weak password", {
         description: "Password should be at least 8 characters long",
       });
+      setIsLoading(false);
       return;
     }
 
-    // Simulate login
-    router.push("/dashboard");
-    toast.success("Success", {
-      description: "You have successfully signed in",
-    });
+    try {
+      const result = await login({ email, password });
+      console.log(result);
 
-    // Here you would typically sign in with Supabase or your auth provider
-    // const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (result.success) {
+        toast.success("Success", {
+          description: "You have successfully signed in",
+        });
+        router.push(result.redirect || "/dashboard");
+      } else {
+        toast.error("Login failed", {
+          description: result.message || "Invalid credentials",
+        });
+      }
+    } catch (error) {
+      throw error;
+      toast.error("Error", {
+        description: "An unexpected error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,6 +88,7 @@ export default function EmailLoginForm({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={isLoading}
         />
       </div>
       <div className="space-y-2">
@@ -78,6 +99,7 @@ export default function EmailLoginForm({
             variant="link"
             className="p-0 h-auto text-xs"
             onClick={onForgotPassword}
+            disabled={isLoading}
           >
             Forgot password?
           </Button>
@@ -91,6 +113,7 @@ export default function EmailLoginForm({
             onChange={(e) => setPassword(e.target.value)}
             className="pr-10"
             required
+            disabled={isLoading}
           />
           <Button
             type="button"
@@ -98,6 +121,7 @@ export default function EmailLoginForm({
             size="icon"
             className="absolute right-0 top-0 h-full px-3"
             onClick={() => setShowPassword(!showPassword)}
+            disabled={isLoading}
           >
             {showPassword ? (
               <EyeOffIcon className="h-4 w-4 text-muted-foreground" />
@@ -110,8 +134,8 @@ export default function EmailLoginForm({
           </Button>
         </div>
       </div>
-      <Button type="submit" className="w-full">
-        Sign In with Email
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Signing In..." : "Sign In with Email"}
       </Button>
     </form>
   );

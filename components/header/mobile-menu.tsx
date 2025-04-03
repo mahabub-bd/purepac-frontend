@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import NavLinks from "./nav-links";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";

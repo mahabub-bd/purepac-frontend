@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "A modern authentication system with multiple sign-in methods",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -22,7 +22,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Header />
-        {children}
+        <div className="min-h-screen ">{children}</div>
+
         <Toaster position="top-right" richColors />
       </body>
     </html>

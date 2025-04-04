@@ -90,18 +90,20 @@ export async function login(formData: LoginFormData) {
 
     if (response?.data?.accessToken) {
       const tokenData = getUserFromToken(response.data.accessToken);
-
       const userData = {
         ...response,
         ...tokenData,
       };
 
       await setUserCookies(userData);
+      const user = await getUser();
+
+      const redirectPath = user?.isAdmin ? "/admin" : "/user";
 
       return {
         success: true,
         message: "Login successful",
-        redirect: tokenData?.isAdmin ? "/admin/dashboard" : "/user/dashboard",
+        redirect: redirectPath,
       };
     }
 

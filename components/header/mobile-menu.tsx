@@ -8,13 +8,14 @@ import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import NavLinks from "./nav-links";
+
 import CategoryLinks from "./category-links";
 import { PurePacLogo } from "@/public/images";
+import { NavLinks } from "./nav-links";
 
 type TabType = "main" | "categories";
 
-export default function MobileMenu() {
+export default function MobileMenu({ isAdmin }: { isAdmin?: boolean }) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabType>("main");
 
@@ -40,13 +41,9 @@ export default function MobileMenu() {
               <Image
                 src={PurePacLogo || "/placeholder.svg"}
                 alt="PurePac Logo"
-                width={100}
+                width={80}
                 height={60}
-                className="h-auto w-auto"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "/placeholder.svg?height=60&width=100";
-                }}
+                className="h-auto w-auto p-2"
               />
             </Link>
           </div>
@@ -82,16 +79,12 @@ export default function MobileMenu() {
           </div>
 
           {/* Menu Content */}
-          <div
-            className="flex-1 overflow-auto p-6"
-            role="tabpanel"
-            aria-label={activeTab === "main" ? "Main Menu" : "Categories Menu"}
-          >
+          <div className="flex-1 overflow-auto p-6">
             <div className="space-y-6">
               {activeTab === "main" ? (
-                <NavLinks isMobile onClick={handleClose} />
+                <NavLinks isAdmin={isAdmin} isMobile onClick={handleClose} />
               ) : (
-                <CategoryLinks onClick={handleClose} />
+                !isAdmin && <CategoryLinks onClick={handleClose} />
               )}
             </div>
           </div>

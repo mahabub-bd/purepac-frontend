@@ -1,22 +1,40 @@
 "use client";
 
-import type React from "react";
-
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 interface NavLinksProps {
+  isAdmin?: boolean;
   isMobile?: boolean;
   onClick?: () => void;
 }
 
-const NavLinks: React.FC<NavLinksProps> = ({ isMobile = false, onClick }) => {
-  const links = [
+export function NavLinks({ isAdmin, isMobile, onClick }: NavLinksProps) {
+  // Common links for all users
+  const commonLinks = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About" },
-    { href: "/product", label: "Product" },
-    { href: "/brand", label: "Brand" },
     { href: "/contact", label: "Contact" },
   ];
+
+  // Regular user links
+  const userLinks = [
+    { href: "/products", label: "Products" },
+    { href: "/services", label: "Services" },
+  ];
+
+  // Admin-specific links
+  const adminLinks = [
+    { href: "/admin/dashboard", label: "Dashboard" },
+    { href: "/admin/users", label: "Users" },
+    { href: "/admin/products", label: "Products" },
+    { href: "/admin/orders", label: "Orders" },
+  ];
+
+  // Combine links based on user role
+  const links = isAdmin
+    ? [...commonLinks, ...adminLinks]
+    : [...commonLinks, ...userLinks];
 
   return (
     <>
@@ -24,11 +42,10 @@ const NavLinks: React.FC<NavLinksProps> = ({ isMobile = false, onClick }) => {
         <Link
           key={link.href}
           href={link.href}
-          className={`${
-            isMobile
-              ? "block text-base font-medium "
-              : "text-md font-medium"
-          } transition-colors hover:text-primary`}
+          className={cn(
+            "text-sm font-medium transition-colors hover:text-primary",
+            isMobile ? "block py-2" : ""
+          )}
           onClick={onClick}
         >
           {link.label}
@@ -36,6 +53,4 @@ const NavLinks: React.FC<NavLinksProps> = ({ isMobile = false, onClick }) => {
       ))}
     </>
   );
-};
-
-export default NavLinks;
+}

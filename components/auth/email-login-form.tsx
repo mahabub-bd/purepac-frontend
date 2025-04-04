@@ -25,7 +25,6 @@ export default function EmailLoginForm({
     e.preventDefault();
     setIsLoading(true);
 
-    // Basic validation
     if (!email || !password) {
       toast.error("Missing fields", {
         description: "Please fill in all required fields",
@@ -55,23 +54,26 @@ export default function EmailLoginForm({
 
     try {
       const result = await login({ email, password });
-      console.log(result);
 
       if (result.success) {
         toast.success("Success", {
           description: "You have successfully signed in",
         });
-        router.push(result.redirect || "/dashboard");
+
+        // Redirect after showing the toast
+        setTimeout(() => {
+          router.push(result.redirect || "/dashboard"); // default fallback
+        }, 500); // 1 second delay to allow toast to be seen
       } else {
         toast.error("Login failed", {
           description: result.message || "Invalid credentials",
         });
       }
     } catch (error) {
-      throw error;
       toast.error("Error", {
         description: "An unexpected error occurred",
       });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

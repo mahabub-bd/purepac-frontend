@@ -1,14 +1,14 @@
 "use client";
 
-import type React from "react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { login } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { login } from "@/actions/auth";
+import type React from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function EmailLoginForm({
   onForgotPassword,
@@ -57,16 +57,15 @@ export default function EmailLoginForm({
 
       if (result.success) {
         toast.success("Success", {
-          description: "You have successfully signed in",
+          description: result?.message,
         });
 
-        // Redirect after showing the toast
         setTimeout(() => {
           router.push(result.redirect || "/dashboard"); // default fallback
         }, 500); // 1 second delay to allow toast to be seen
       } else {
         toast.error("Login failed", {
-          description: result.message || "Invalid credentials",
+          description: result.message,
         });
       }
     } catch (error) {

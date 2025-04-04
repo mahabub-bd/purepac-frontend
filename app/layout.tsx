@@ -1,10 +1,10 @@
-import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import type React from "react";
 import { Toaster } from "sonner";
 
-import "./globals.css";
 import { Header } from "@/components/header/header";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 

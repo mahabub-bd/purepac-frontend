@@ -1,10 +1,10 @@
 "use server";
 
-import { getUserFromToken } from "./jwt-utils";
-import { z } from "zod";
 import { postData } from "@/utils/api-utils";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
+import { getUserFromToken } from "./jwt-utils";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -102,20 +102,19 @@ export async function login(formData: LoginFormData) {
 
       return {
         success: true,
-        message: "Login successful",
+        message: response?.message,
         redirect: redirectPath,
       };
     }
 
     return {
       success: false,
-      message: response?.message || "Login failed. Invalid credentials",
+      message: response?.message,
     };
   } catch (error) {
-    console.error("Login error:", error);
     return {
       success: false,
-      message: "An error occurred. Please try again later.",
+      message: "Invalid credentials",
     };
   }
 }

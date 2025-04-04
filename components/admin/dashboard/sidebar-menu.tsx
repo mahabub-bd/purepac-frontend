@@ -1,33 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  ShoppingCart,
-  Package,
-  Tag,
-  LayoutGrid,
-  ImageIcon,
-  Users,
-  ChevronLeft,
-  Menu,
-  X,
-  Home,
-  Settings,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { cn } from "@/lib/utils";
+import { UserTypes } from "@/utils/types";
+import {
+  ChevronLeft,
+  Clock,
+  Heart,
+  HelpCircle,
+  Home,
+  ImageIcon,
+  LayoutGrid,
+  LogOut,
+  Menu,
+  Package,
+  Settings,
+  ShoppingCart,
+  Tag,
+  User,
+  Users,
+  X,
+} from "lucide-react";
 import Image from "next/image";
-import { PurePacLogo } from "@/public/images";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface SidebarProps {
   className?: string;
+  user: UserTypes;
+  logo?: string;
 }
 
-export function SidebarMenu({ className }: SidebarProps) {
+export function SidebarMenu({ className, logo, user }: SidebarProps) {
   const pathname = usePathname();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -37,7 +43,7 @@ export function SidebarMenu({ className }: SidebarProps) {
     setMobileOpen(false);
   }, [pathname]);
 
-  const menuItems = [
+  const adminMenuItems = [
     {
       name: "Dashboard",
       href: "/admin",
@@ -80,12 +86,49 @@ export function SidebarMenu({ className }: SidebarProps) {
     },
   ];
 
+  const userMenuItems = [
+    {
+      name: "Home",
+      href: "/",
+      icon: Home,
+    },
+    {
+      name: "Shop",
+      href: "/shop",
+      icon: ShoppingCart,
+    },
+    {
+      name: "My Orders",
+      href: "/orders",
+      icon: Clock,
+    },
+    {
+      name: "Wishlist",
+      href: "/wishlist",
+      icon: Heart,
+    },
+    {
+      name: "Profile",
+      href: "/profile",
+      icon: User,
+    },
+    {
+      name: "Help",
+      href: "/help",
+      icon: HelpCircle,
+    },
+  ];
+
+  // Select menu items based on role
+  const menuItems = user?.isAdmin ? adminMenuItems : userMenuItems;
+  const sidebarTitle = user?.isAdmin ? "Admin Panel" : "My Account";
+
   return (
     <>
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -100,22 +143,22 @@ export function SidebarMenu({ className }: SidebarProps) {
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
-      {/* Add a proper header for mobile view */}
-      <div className="flex h-16 items-center justify-center border-b md:hidden fixed top-0 left-0 right-0 bg-background z-40">
-        <span className="font-semibold">Admin Panel</span>
+      {/* Mobile Header */}
+      <div className="flex h-16 items-center justify-center md:hidden fixed top-0 left-0 right-0 bg-background z-40">
+        <span className="font-semibold">{sidebarTitle}</span>
       </div>
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-30 pt-16 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
           collapsed ? "w-[70px]" : "w-[260px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           className
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex h-16 items-center justify-between border-b px-4">
+        <div className="flex h-16 items-center justify-between  px-4">
           <div
             className={cn(
               "flex items-center gap-2",
@@ -124,16 +167,33 @@ export function SidebarMenu({ className }: SidebarProps) {
           >
             {collapsed ? (
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <Package className="h-5 w-5 text-primary-foreground" />
+                {user?.isAdmin ? (
+                  <Package className="h-5 w-5 text-primary-foreground" />
+                ) : (
+                  <User className="h-5 w-5 text-primary-foreground" />
+                )}
               </div>
             ) : (
-              <Image
-                src={PurePacLogo || "/placeholder.svg"}
-                alt="Logo"
-                width={80}
-                height={40}
-                className="h-auto w-auto"
-              />
+              <div className="flex items-center gap-2">
+                {logo ? (
+                  <Image
+                    src={logo || "/placeholder.svg"}
+                    alt="Logo"
+                    width={80}
+                    height={40}
+                    className="h-auto w-auto"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
+                    {user?.isAdmin ? (
+                      <Package className="h-5 w-5 text-primary-foreground" />
+                    ) : (
+                      <User className="h-5 w-5 text-primary-foreground" />
+                    )}
+                  </div>
+                )}
+                <span className="font-medium">{sidebarTitle}</span>
+              </div>
             )}
           </div>
           <Button
@@ -187,6 +247,26 @@ export function SidebarMenu({ className }: SidebarProps) {
             })}
           </nav>
         </ScrollArea>
+
+        {user?.isAdmin && (
+          <div className="border-t p-4">
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50",
+                collapsed && "justify-center"
+              )}
+            >
+              <LogOut className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />
+              {!collapsed && <span>Logout</span>}
+              {collapsed && (
+                <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
+                  Logout
+                </div>
+              )}
+            </Button>
+          </div>
+        )}
       </aside>
     </>
   );

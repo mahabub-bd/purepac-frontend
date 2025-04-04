@@ -1,14 +1,14 @@
 "use client";
 
-import type React from "react";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { mobileLogin, verifyOtp } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { mobileLogin, verifyOtp } from "@/actions/auth";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function MobileLoginFormWithServerActions() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -103,20 +103,25 @@ export default function MobileLoginFormWithServerActions() {
 
     try {
       setIsLoading(true);
-
       const formattedNumber = `+880${phoneNumber}`;
 
-      await verifyOtp({
+      const result = await verifyOtp({
         mobileNumber: formattedNumber,
         otp: otpCode,
         otpExpiresAt: otpExpiresAt,
       });
 
-      toast.success("Success", {
-        description: "You have successfully signed in",
-      });
+      if (result?.success) {
+        toast.success("Success", {
+          description: "You have successfully signed in",
+        });
 
-      router.push("/user/dashboard");
+        setTimeout(() => {
+          router.push(result.redirect || "/user");
+        }, 100);
+      } else {
+        toast.error(result?.message || "Verification failed");
+      }
     } catch (error) {
       toast.error("Verification failed", {
         description:

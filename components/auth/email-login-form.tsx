@@ -61,8 +61,8 @@ export default function EmailLoginForm({
         });
 
         setTimeout(() => {
-          router.push(result.redirect || "/dashboard"); // default fallback
-        }, 500); // 1 second delay to allow toast to be seen
+          router.push(result.redirect || "/dashboard");
+        }, 500);
       } else {
         toast.error("Login failed", {
           description: result.message,

@@ -20,6 +20,7 @@ import {
   Tag,
   User,
   Users,
+  UsersRound,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -78,6 +79,11 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
       name: "Customer",
       href: "/admin/customer",
       icon: Users,
+    },
+    {
+      name: "User",
+      href: "/admin/user",
+      icon: UsersRound,
     },
     {
       name: "Settings",
@@ -152,13 +158,13 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-30 pt-16 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
-          collapsed ? "w-[70px]" : "w-[260px]",
+          collapsed ? "w-[70px]" : "w-[240px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           className
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex h-16 items-center justify-between  px-4">
+        <div className="flex  items-center justify-between  px-4">
           <div
             className={cn(
               "flex items-center gap-2",
@@ -166,7 +172,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
             )}
           >
             {collapsed ? (
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
+              <div className="flex  items-center justify-center rounded-md bg-primary">
                 {user?.isAdmin ? (
                   <Package className="h-5 w-5 text-primary-foreground" />
                 ) : (
@@ -174,7 +180,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 py-2">
                 {logo ? (
                   <Image
                     src={logo || "/placeholder.svg"}
@@ -184,7 +190,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                     className="h-auto w-auto"
                   />
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary py-3">
                     {user?.isAdmin ? (
                       <Package className="h-5 w-5 text-primary-foreground" />
                     ) : (
@@ -212,7 +218,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
         </div>
 
         {/* Sidebar Content */}
-        <ScrollArea className="flex-1 py-4 mt-16 md:mt-0">
+        <ScrollArea className="flex-1 py-2 ">
           <nav className="grid gap-1 px-2">
             {menuItems.map((item) => {
               const isActive =

@@ -1,6 +1,27 @@
-import type { NextConfig } from "next";
+module.exports = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "www.pickaboo.com/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com/**",
+      },
 
-const nextConfig: NextConfig = {};
-
-export default nextConfig;
-//
+      {
+        protocol: "https",
+        hostname: "img.freepik.com/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.freepik.com/**",
+      },
+      {
+        protocol: "https",
+        hostname: "example.com/**",
+      },
+    ],
+  },
+};

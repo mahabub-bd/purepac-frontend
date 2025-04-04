@@ -185,22 +185,30 @@ export async function verifyOtp(data: {
 }) {
   try {
     const response = await postData("auth/verify-otp", data);
+
     if (response?.data?.accessToken) {
       const tokenData = getUserFromToken(response.data.accessToken);
-
       const userData = {
         ...response,
         ...tokenData,
       };
 
       await setUserCookies(userData);
+      const user = await getUser();
+
+      const redirectPath = user?.isAdmin ? "/admin" : "/user";
 
       return {
         success: true,
-        message: "Login successful",
-        redirect: tokenData?.isAdmin ? "/admin/dashboard" : "/user/dashboard",
+        message: response?.message,
+        redirect: redirectPath,
       };
     }
+
+    return {
+      success: false,
+      message: response?.message || "OTP verification failed",
+    };
   } catch (error) {
     console.error("OTP verification error:", error);
     return {

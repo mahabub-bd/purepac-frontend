@@ -24,7 +24,6 @@ export function decodeJwt(token: string) {
 export function getUserFromToken(token: string) {
   const decoded = decodeJwt(token);
   if (!decoded) return null;
-  console.log(decoded);
 
   return {
     id: decoded.sub,

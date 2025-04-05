@@ -23,9 +23,10 @@ import { cn } from "@/lib/utils";
 interface AuthBtnProps {
   user: UserTypes | null;
   compact?: boolean;
+  className?: string;
 }
 
-export default function AuthBtn({ user, compact = false }: AuthBtnProps) {
+export default function AuthBtn({ user, compact = false, className }: AuthBtnProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -35,125 +36,140 @@ export default function AuthBtn({ user, compact = false }: AuthBtnProps) {
       await logout();
       toast.success("Logged out successfully");
       router.push("/auth");
+      router.refresh(); // Ensure client state updates
     } catch (error) {
       toast.error("Failed to log out");
-      console.error(error);
+      console.error("Logout error:", error);
     } finally {
       setIsLoggingOut(false);
     }
   };
 
-  // Get user initials for avatar fallback
-  const getInitials = (name: string) => {
+  const getInitials = (name: string): string => {
     return name
       .split(" ")
-      .map((n) => n[0])
+      .map((n) => n[0]?.toUpperCase() ?? '')
       .join("")
-      .toUpperCase()
       .substring(0, 2);
   };
 
+  if (!user) {
+    return (
+      <Button
+        variant={compact ? "ghost" : "outline"}
+        size="sm"
+        className={cn(
+          compact
+            ? "h-8 w-8 rounded-full p-0"
+            : "flex items-center gap-2 rounded-full px-4",
+          className
+        )}
+        onClick={() => router.push("/auth/sign-in")}
+        aria-label="Sign in"
+      >
+        <User className={cn(compact ? "h-5 w-5" : "h-4 w-4")} />
+        {!compact && <span>Sign in</span>}
+      </Button>
+    );
+  }
+
   return (
-    <>
-      {user ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "relative rounded-full border p-0 hover:bg-muted/50 focus-visible:ring-0 focus-visible:ring-offset-0",
-                compact ? "h-8 w-8" : "h-9 w-9"
-              )}
-              disabled={isLoggingOut}
-              aria-label="User menu"
-            >
-              <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
-                {user.image ? (
-                  <AvatarImage src={user.image} alt={user.name} />
-                ) : null}
-                <AvatarFallback
-                  className={cn(
-                    "text-xs font-medium",
-                    compact ? "text-[10px]" : "text-xs"
-                  )}
-                >
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-1 ring-white" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.name}</p>
-                {user.email && (
-                  <p className="text-xs leading-none text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                )}
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <Link
-                  href="/profile"
-                  className="flex cursor-pointer items-center"
-                >
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href="/settings"
-                  className="flex cursor-pointer items-center"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </Link>
-              </DropdownMenuItem>
-              {compact && (
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/wishlist"
-                    className="flex cursor-pointer items-center"
-                  >
-                    <Heart className="mr-2 h-4 w-4" />
-                    <span>Wishlist</span>
-                  </Link>
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="text-red-600 focus:bg-red-50 focus:text-red-600"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>{isLoggingOut ? "Signing out..." : "Sign out"}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
-          variant={compact ? "ghost" : "outline"}
+          variant="ghost"
           size="sm"
           className={cn(
-            compact
-              ? "h-8 w-8 p-0 rounded-full"
-              : "flex items-center gap-2 rounded-full px-4"
+            "relative rounded-full border p-0 hover:bg-muted/50 focus-visible:ring-0 focus-visible:ring-offset-0",
+            compact ? "h-8 w-8" : "h-9 w-9",
+            className
           )}
-          onClick={() => router.push("/auth/sign-in")}
+          disabled={isLoggingOut}
+          aria-label="User menu"
         >
-          <User className={cn(compact ? "h-5 w-5" : "h-4 w-4")} />
-          {!compact && <span>Sign in</span>}
-          <span className="sr-only">Sign in</span>
+          <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
+            {user.image && (
+              <AvatarImage 
+                src={user.image} 
+                alt={user.name || "User avatar"} 
+                referrerPolicy="no-referrer"
+              />
+            )}
+            <AvatarFallback
+              className={cn(
+                "text-xs font-medium",
+                compact ? "text-[10px]" : "text-xs"
+              )}
+            >
+              {user.name ? getInitials(user.name) : "US"}
+            </AvatarFallback>
+          </Avatar>
+          <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-1 ring-white" />
         </Button>
-      )}
-    </>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        className="w-56" 
+        align="end" 
+        forceMount
+        onCloseAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
+      >
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none truncate">
+              {user.name || "User"}
+            </p>
+            {user.email && (
+              <p className="text-xs leading-none text-muted-foreground truncate">
+                {user.email}
+              </p>
+            )}
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link
+              href="/profile"
+              className="flex cursor-pointer items-center"
+              prefetch={false}
+            >
+              <UserCircle className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              href={user?.isAdmin ? "/admin" : "/user"}
+              className="flex cursor-pointer items-center"
+              prefetch={false}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Dashboard
+            </Link>
+          </DropdownMenuItem>
+          {compact && (
+            <DropdownMenuItem asChild>
+              <Link
+                href="/wishlist"
+                className="flex cursor-pointer items-center"
+                prefetch={false}
+              >
+                <Heart className="mr-2 h-4 w-4" />
+                <span>Wishlist</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="text-red-600 focus:bg-red-50 focus:text-red-600"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>{isLoggingOut ? "Signing out..." : "Sign out"}</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

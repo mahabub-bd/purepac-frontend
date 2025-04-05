@@ -404,14 +404,13 @@ export function ProductList() {
                     {filteredProducts.map((product) => (
                       <TableRow key={product.id}>
                         <TableCell>
-                          <div className="size-32 rounded-md overflow-hidden">
+                          <div className=" rounded-md overflow-hidden">
                             <Image
                               src={product.imageUrl || "/placeholder.svg"}
                               alt={product.name}
-                              width={200}
-                              height={80}
-                              priority
-                              className="w-full h-full object-contain"
+                              width={64}
+                              height={64}
+                              className=" object-contain"
                             />
                           </div>
                         </TableCell>

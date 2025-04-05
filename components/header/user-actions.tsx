@@ -1,9 +1,9 @@
 import { Heart, ShoppingBag } from "lucide-react";
 
-import AuthBtn from "../auth/auth-button"; // Fixed import name to match original
 import { getUser } from "@/actions/auth";
-import { IconButton } from "../ui/icon-button";
 import { cn } from "@/lib/utils";
+import AuthBtn from "../auth/auth-button"; // Fixed import name to match original
+import { IconButton } from "../ui/icon-button";
 
 interface UserActionsProps {
   compact?: boolean;
@@ -45,7 +45,7 @@ export default async function UserActions({
         count={cartItemCount}
       />
 
-      <AuthBtn user={user} compact={compact} />
+      <AuthBtn user={user} compact className="custom-class" />
     </div>
   );
 }

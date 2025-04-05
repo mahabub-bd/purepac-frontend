@@ -40,7 +40,8 @@ export async function fetchData<T>(endpoint: string): Promise<T> {
 
 export async function postData<T = any>(
   endpoint: string,
-  values?: any
+  values?: any,
+  isMultipart = false
 ): Promise<ApiResponse<T>> {
   const url = `${apiUrl}/${endpoint}`;
 
@@ -48,9 +49,11 @@ export async function postData<T = any>(
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": isMultipart
+          ? "multipart/form-data"
+          : "application/json",
       },
-      body: values ? JSON.stringify(values) : undefined,
+      body: isMultipart ? values : JSON.stringify(values),
     });
 
     if (!response.ok) {
@@ -74,20 +77,29 @@ export async function postData<T = any>(
   }
 }
 
-export async function patchData(endpoint: string, values: any) {
+export async function patchData<T = any>(
+  endpoint: string,
+  values?: any,
+  isMultipart = false
+): Promise<ApiResponse<T>> {
   const url = `${apiUrl}/${endpoint}`;
 
   try {
+    const headers: Record<string, string> = {};
+
+    // Set appropriate Content-Type header based on the data type
+    if (!isMultipart) {
+      headers["Content-Type"] = "application/json";
+    }
+
     const response = await fetch(url, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
+      headers,
+      body: isMultipart ? values : JSON.stringify(values),
     });
 
     if (!response.ok) {
-      let errorMessage;
+      let errorMessage: string;
       try {
         const errorData = await response.json();
         errorMessage =
@@ -104,6 +116,34 @@ export async function patchData(endpoint: string, values: any) {
   } catch (error: unknown) {
     console.error("Error patching data:", error);
     throw error;
+  }
+}
+
+async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
+  if (!response.ok) {
+    let errorMessage: string;
+    try {
+      const errorData = await response.json();
+      errorMessage =
+        errorData.message ||
+        errorData.error ||
+        `HTTP error! Status: ${response.status}`;
+    } catch {
+      errorMessage = `HTTP error! Status: ${response.status}`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  try {
+    // Handle empty responses (like for 204 No Content)
+    if (response.status === 204) {
+      return {} as ApiResponse<T>;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error parsing response:", error);
+    throw new Error("Failed to parse server response");
   }
 }
 

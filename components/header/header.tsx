@@ -14,7 +14,7 @@ export async function Header() {
 
   return (
     <header className="sticky border-b top-0 z-50 w-full  bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="hidden md:flex items-center justify-between py-1 px-8 ">
+      <div className="hidden md:flex items-center justify-between py-1 container mx-auto  ">
         <Link
           href={isAdminUser ? "/admin/dashboard" : "/"}
           className="flex items-center mr-6"

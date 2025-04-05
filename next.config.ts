@@ -22,6 +22,10 @@ module.exports = {
         protocol: "https",
         hostname: "example.com/**",
       },
+      {
+        protocol: "https",
+        hostname: "purepacbd.s3.ap-southeast-1.amazonaws.com/**",
+      },
     ],
   },
 };

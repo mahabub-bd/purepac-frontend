@@ -45,7 +45,7 @@ export function BrandForm({ mode, brand, onSuccess }: BrandFormProps) {
     defaultValues: {
       name: brand?.name || "",
       description: brand?.description || "",
-      logoUrl: brand?.logoUrl || "",
+      logoUrl: brand?.attachment?.url || "",
       isActive: brand?.isActive ?? true,
     },
   });

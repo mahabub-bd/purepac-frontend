@@ -37,6 +37,7 @@ import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 import { BrandForm } from "./brand-form";
 
 import { deleteData, fetchData } from "@/utils/api-utils";
+import { serverRevalidate } from "@/utils/revalidatePath";
 import type { Brand } from "@/utils/types";
 import {
   Loader2,
@@ -123,6 +124,7 @@ export function BrandList() {
     try {
       await deleteData("brands", selectedBrand.id);
       fetchBrands();
+      serverRevalidate("admin/brand");
     } catch (error) {
       console.error("Error deleting brand:", error);
       toast.error("Failed to delete brand. Please try again.");
@@ -267,7 +269,7 @@ export function BrandList() {
                         <TableCell>
                           <div className="size-16 rounded-md overflow-hidden">
                             <Image
-                              src={brand.logoUrl || "/placeholder.svg"}
+                              src={brand.attachment?.url || "/placeholder.svg"}
                               alt={brand.name}
                               width={64}
                               height={64}

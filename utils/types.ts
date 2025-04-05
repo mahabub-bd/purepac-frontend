@@ -14,7 +14,7 @@ export interface Brand {
   id: number;
   name: string;
   description: string;
-  logoUrl: string;
+  attachment: Attachment;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -66,4 +66,16 @@ export interface UserResponse {
   message: string;
   statusCode: number;
   data: UserTypes | UserTypes[];
+}
+
+export interface Attachment {
+  id: number;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  key: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }

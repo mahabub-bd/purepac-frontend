@@ -9,8 +9,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Authentication System",
-  description: "A modern authentication system with multiple sign-in methods",
+  title: "Pure Pac",
+  description: "An Ecommerce",
 };
 
 export default async function RootLayout({

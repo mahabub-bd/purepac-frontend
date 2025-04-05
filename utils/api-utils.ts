@@ -79,7 +79,7 @@ export async function patchData(endpoint: string, values: any) {
 
   try {
     const response = await fetch(url, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },

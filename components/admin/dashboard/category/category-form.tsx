@@ -13,11 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-import { patchData, postData } from "@/utils/api-utils";
+import { formPostData, patchData, postData } from "@/utils/api-utils";
 import type { Category } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Upload } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -25,7 +26,7 @@ import { z } from "zod";
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
   description: z.string().min(1, "Description is required"),
-  imageUrl: z.string().min(1, "Image URL is required"),
+  imageUrl: z.string().optional(),
   isActive: z.boolean().default(true),
 });
 
@@ -39,26 +40,55 @@ interface CategoryFormProps {
 
 export function CategoryForm({ mode, category, onSuccess }: CategoryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [logoPreview, setLogoPreview] = useState<string>(
+    category?.attachment?.url || ""
+  );
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: category?.name || "",
       description: category?.description || "",
-      imageUrl: category?.imageUrl || "",
+      imageUrl: category?.attachment?.url || "",
       isActive: category?.isActive ?? true,
     },
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+
+      const fileUrl = URL.createObjectURL(selectedFile);
+      setLogoPreview(fileUrl);
+
+      form.setValue("imageUrl", "");
+    }
+  };
   const onSubmit = async (data: CategoryFormValues) => {
     setIsSubmitting(true);
     try {
+      let attachmentId = category?.attachment?.id;
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const result = await formPostData("attachment", formData);
+        attachmentId = result.data.id;
+      }
+      const categryData = {
+        name: data.name,
+        description: data.description,
+        isActive: data.isActive,
+        attachment: attachmentId,
+      };
       let response;
 
       if (mode === "create") {
-        response = await postData("categories", data);
+        response = await postData("categories", categryData);
       } else if (mode === "edit" && category) {
-        response = await patchData(`categories/${category.id}`, data);
+        response = await patchData(`categories/${category.id}`, categryData);
       }
 
       if (response?.statusCode === 200 || response?.statusCode === 201) {
@@ -78,6 +108,13 @@ export function CategoryForm({ mode, category, onSuccess }: CategoryFormProps) {
       setIsSubmitting(false);
     }
   };
+  useEffect(() => {
+    return () => {
+      if (logoPreview && !logoPreview.startsWith("http")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logoPreview]);
 
   return (
     <Form {...form}>
@@ -102,12 +139,43 @@ export function CategoryForm({ mode, category, onSuccess }: CategoryFormProps) {
           <FormField
             control={form.control}
             name="imageUrl"
-            render={({ field }) => (
+            render={({}) => (
               <FormItem>
-                <FormLabel>Image URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter image URL" {...field} />
-                </FormControl>
+                <FormLabel>Logo</FormLabel>
+                <div className="flex flex-col gap-4">
+                  {logoPreview && (
+                    <div className="relative w-32 h-32 border rounded-md overflow-hidden bg-gray-50">
+                      <Image
+                        src={logoPreview || "/placeholder.svg"}
+                        alt="Logo preview"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        document.getElementById("logo-upload")?.click()
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Choose File
+                    </Button>
+                    <Input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {fileName || "No file chosen"}
+                    </span>
+                  </div>
+                </div>
                 <FormMessage />
               </FormItem>
             )}

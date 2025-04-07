@@ -13,6 +13,7 @@ export type UserTypes = {
 export interface Brand {
   id: number;
   name: string;
+  slug?: string;
   description: string;
   attachment: Attachment;
   isActive: boolean;
@@ -23,8 +24,9 @@ export interface Brand {
 export interface Category {
   id: number;
   name: string;
+  slug?: string;
   description: string;
-  imageUrl: string;
+  attachment: Attachment;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

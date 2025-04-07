@@ -43,8 +43,8 @@ export function NavLinks({ isAdmin, isMobile, onClick }: NavLinksProps) {
           key={link.href}
           href={link.href}
           className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            isMobile ? "block py-2" : ""
+            "block text-base font-medium transition-colors hover:text-primary ",
+            isMobile ? "block " : ""
           )}
           onClick={onClick}
         >

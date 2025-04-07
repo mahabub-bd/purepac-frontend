@@ -272,7 +272,9 @@ export function CategoryList() {
                         <TableCell>
                           <div className="size-16 rounded-md overflow-hidden">
                             <Image
-                              src={category.imageUrl || "/placeholder.svg"}
+                              src={
+                                category?.attachment?.url || "/placeholder.svg"
+                              }
                               alt={category.name}
                               width={64}
                               height={64}

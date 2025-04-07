@@ -40,8 +40,7 @@ export async function fetchData<T>(endpoint: string): Promise<T> {
 
 export async function postData<T = any>(
   endpoint: string,
-  values?: any,
-  isMultipart = false
+  values?: any
 ): Promise<ApiResponse<T>> {
   const url = `${apiUrl}/${endpoint}`;
 
@@ -49,11 +48,53 @@ export async function postData<T = any>(
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": isMultipart
-          ? "multipart/form-data"
-          : "application/json",
+        "Content-Type": "application/json",
       },
-      body: isMultipart ? values : JSON.stringify(values),
+      body: JSON.stringify(values),
+    });
+
+    if (!response.ok) {
+      let errorMessage: string;
+      try {
+        const errorData = await response.json();
+        errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `HTTP error! Status: ${response.status}`;
+      } catch {
+        errorMessage = `HTTP error! Status: ${response.status}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  } catch (error: unknown) {
+    console.error("Error posting data:", error);
+    throw error;
+  }
+}
+
+export async function formPostData<T = any>(
+  endpoint: string,
+  formData?: FormData | Record<string, any>
+): Promise<ApiResponse<T>> {
+  const url = `${apiUrl}/${endpoint}`;
+
+  const headers: HeadersInit = {};
+
+  let body: BodyInit;
+  if (formData instanceof FormData) {
+    body = formData;
+  } else {
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify(formData || {});
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body,
     });
 
     if (!response.ok) {

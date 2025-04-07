@@ -8,7 +8,7 @@ export function CategoryCard({ category }: { category: Category }) {
       <div className="overflow-hidden  transition-all duration-200 ">
         <div className="relative aspect-square overflow-hidden">
           <Image
-            src={category?.imageUrl || "/placeholder.svg"}
+            src={category?.attachment?.url || "/placeholder.svg"}
             alt={category?.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"

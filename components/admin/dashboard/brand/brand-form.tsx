@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -13,11 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-import { patchData, postData } from "@/utils/api-utils";
+import { formPostData, patchData, postData } from "@/utils/api-utils";
 import type { Brand } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Upload } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -25,7 +28,7 @@ import { z } from "zod";
 const brandSchema = z.object({
   name: z.string().min(1, "Brand name is required"),
   description: z.string().min(1, "Description is required"),
-  logoUrl: z.string().min(1, "Logo URL is required"),
+  logoUrl: z.string().optional(), // Made optional since we'll use file upload
   isActive: z.boolean().default(true),
 });
 
@@ -39,6 +42,11 @@ interface BrandFormProps {
 
 export function BrandForm({ mode, brand, onSuccess }: BrandFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [logoPreview, setLogoPreview] = useState<string>(
+    brand?.attachment?.url || ""
+  );
 
   const form = useForm<BrandFormValues>({
     resolver: zodResolver(brandSchema),
@@ -50,15 +58,44 @@ export function BrandForm({ mode, brand, onSuccess }: BrandFormProps) {
     },
   });
 
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+
+      const fileUrl = URL.createObjectURL(selectedFile);
+      setLogoPreview(fileUrl);
+
+      form.setValue("logoUrl", "");
+    }
+  };
+
   const onSubmit = async (data: BrandFormValues) => {
     setIsSubmitting(true);
     try {
-      let response;
+      let attachmentId = brand?.attachment?.id;
 
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const result = await formPostData("attachment", formData);
+        attachmentId = result.data.id;
+      }
+
+      const brandData = {
+        name: data.name,
+        description: data.description,
+        isActive: data.isActive,
+        attachment: attachmentId,
+      };
+
+      let response;
       if (mode === "create") {
-        response = await postData("brands", data);
+        response = await postData("brands", brandData);
       } else if (mode === "edit" && brand) {
-        response = await patchData(`brands/${brand.id}`, data);
+        response = await patchData(`brands/${brand.id}`, brandData);
       }
 
       if (response?.statusCode === 200 || response?.statusCode === 201) {
@@ -78,6 +115,14 @@ export function BrandForm({ mode, brand, onSuccess }: BrandFormProps) {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview && !logoPreview.startsWith("http")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logoPreview]);
 
   return (
     <Form {...form}>
@@ -102,12 +147,43 @@ export function BrandForm({ mode, brand, onSuccess }: BrandFormProps) {
           <FormField
             control={form.control}
             name="logoUrl"
-            render={({ field }) => (
+            render={({}) => (
               <FormItem>
-                <FormLabel>Logo URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter logo URL" {...field} />
-                </FormControl>
+                <FormLabel>Logo</FormLabel>
+                <div className="flex flex-col gap-4">
+                  {logoPreview && (
+                    <div className="relative w-32 h-32 border rounded-md overflow-hidden bg-gray-50">
+                      <Image
+                        src={logoPreview || "/placeholder.svg"}
+                        alt="Logo preview"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        document.getElementById("logo-upload")?.click()
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Choose File
+                    </Button>
+                    <Input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {fileName || "No file chosen"}
+                    </span>
+                  </div>
+                </div>
                 <FormMessage />
               </FormItem>
             )}

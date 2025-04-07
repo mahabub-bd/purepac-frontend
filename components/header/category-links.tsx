@@ -1,34 +1,46 @@
 "use client";
 
-import type React from "react";
-
+import { fetchData } from "@/utils/api-utils";
+import { Category } from "@/utils/types";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface CategoryLinksProps {
   onClick?: () => void;
 }
 
 const CategoryLinks: React.FC<CategoryLinksProps> = ({ onClick }) => {
-  const categories = [
-    { href: "/category/packaging", label: "Packaging Solutions" },
-    { href: "/category/sustainable", label: "Sustainable Options" },
-    { href: "/category/custom", label: "Custom Packaging" },
-    { href: "/category/food", label: "Food Packaging" },
-    { href: "/category/retail", label: "Retail Packaging" },
-    { href: "/category/industrial", label: "Industrial Packaging" },
-    { href: "/category/medical", label: "Medical Packaging" },
-  ];
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data: Category[] = await fetchData("categories");
+        setCategories(data);
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  if (loading) return <div>Loading categories...</div>;
+  if (!categories.length) return <div>No categories found</div>;
 
   return (
     <>
       {categories.map((category) => (
         <Link
-          key={category.href}
-          href={category.href}
-          className="block text-base font-medium  transition-colors hover:text-primary"
+          key={category.id}
+          href={`/category/${category.slug || category.id}`}
+          className="block text-base font-medium transition-colors hover:text-primary "
           onClick={onClick}
         >
-          {category.label}
+          {category.name}
         </Link>
       ))}
     </>

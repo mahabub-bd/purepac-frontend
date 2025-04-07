@@ -141,9 +141,9 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
 
       {/* Mobile Toggle Button */}
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
-        className="fixed left-4 top-4 z-50 md:hidden"
+        className="fixed left-4 top-4 z-50 md:hidden h-9 w-9 rounded-full"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

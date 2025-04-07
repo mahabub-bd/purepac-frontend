@@ -5,12 +5,12 @@ import { Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import CategoryLinks from "./category-links";
 import { PurePacLogo } from "@/public/images";
+import CategoryLinks from "./category-links";
 import { NavLinks } from "./nav-links";
 
 type TabType = "main" | "categories";
@@ -43,7 +43,7 @@ export default function MobileMenu({ isAdmin }: { isAdmin?: boolean }) {
                 alt="PurePac Logo"
                 width={80}
                 height={60}
-                className="h-auto w-auto p-2"
+                className=" p-1"
               />
             </Link>
           </div>
@@ -84,7 +84,7 @@ export default function MobileMenu({ isAdmin }: { isAdmin?: boolean }) {
               {activeTab === "main" ? (
                 <NavLinks isAdmin={isAdmin} isMobile onClick={handleClose} />
               ) : (
-                !isAdmin && <CategoryLinks onClick={handleClose} />
+                <CategoryLinks onClick={handleClose} />
               )}
             </div>
           </div>

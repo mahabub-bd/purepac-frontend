@@ -1,5 +1,6 @@
 import { getUser } from "@/actions/auth";
 import { SidebarMenu } from "@/components/admin/dashboard/sidebar-menu";
+
 import type React from "react";
 
 export default async function AdminLayout({

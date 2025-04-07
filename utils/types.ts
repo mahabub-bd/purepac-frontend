@@ -37,9 +37,11 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-  price: number;
+  unitprice: number;
+  unit: string;
+  productSku: string;
   stock: number;
-  imageUrl: string;
+  attachment: Attachment;
   isActive: boolean;
   isFeatured: boolean;
   createdAt: string;
@@ -80,4 +82,20 @@ export interface Attachment {
   key: string;
   createdAt: string | Date;
   updatedAt: string | Date;
+}
+
+export enum ProductUnit {
+  PIECE = "piece",
+  KILOGRAM = "kilogram",
+  GRAM = "gram",
+  LITER = "liter",
+  MILLILITER = "milliliter",
+  METER = "meter",
+  CENTIMETER = "centimeter",
+  SQUARE_METER = "square_meter",
+  CUBIC_METER = "cubic_meter",
+  PACK = "pack",
+  BOX = "box",
+  PAIR = "pair",
+  SET = "set",
 }

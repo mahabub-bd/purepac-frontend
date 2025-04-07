@@ -22,7 +22,9 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="relative aspect-square overflow-hidden">
         <Link href={`/products/${product.id}`}>
           <Image
-            src={product?.imageUrl || "/placeholder.svg?height=300&width=300"}
+            src={
+              product?.attachment.url || "/placeholder.svg?height=300&width=300"
+            }
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -55,7 +57,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </Link>
 
         <p className="font-bold text-md">
-          {formatCurrencyEnglish(product?.price)}
+          {formatCurrencyEnglish(product?.unitprice)}
         </p>
       </CardContent>
       <CardFooter className="p-4 pt-0">

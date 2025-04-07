@@ -39,6 +39,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 import { ProductForm } from "./product-form";
@@ -47,6 +53,10 @@ import { formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData, fetchData } from "@/utils/api-utils";
 import type { Brand, Category, Product } from "@/utils/types";
 import {
+  ArrowUpDown,
+  Download,
+  Eye,
+  FileText,
   Filter,
   Loader2,
   MoreHorizontal,
@@ -56,10 +66,14 @@ import {
   Search,
   Star,
   Trash2,
+  XCircle,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+type SortField = "name" | "price" | "stock" | "sku";
+type SortDirection = "asc" | "desc";
 
 export function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,6 +90,9 @@ export function ProductList() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [activeView, setActiveView] = useState<"grid" | "table">("table");
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -127,17 +144,16 @@ export function ProductList() {
   const filterProducts = (productList = products) => {
     let filtered = [...productList];
 
-    // Apply search query
     if (searchQuery.trim()) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (product) =>
           product.name.toLowerCase().includes(lowerCaseQuery) ||
-          product.description.toLowerCase().includes(lowerCaseQuery)
+          product.description.toLowerCase().includes(lowerCaseQuery) ||
+          product.productSku.toLowerCase().includes(lowerCaseQuery)
       );
     }
 
-    // Apply category filter
     if (categoryFilter && categoryFilter !== "all") {
       const categoryId = Number.parseInt(categoryFilter);
       filtered = filtered.filter(
@@ -145,25 +161,44 @@ export function ProductList() {
       );
     }
 
-    // Apply brand filter
     if (brandFilter && brandFilter !== "all") {
       const brandId = Number.parseInt(brandFilter);
       filtered = filtered.filter((product) => product.brand.id === brandId);
     }
 
-    // Apply status filter
     if (statusFilter && statusFilter !== "all") {
       const isActive = statusFilter === "active";
       filtered = filtered.filter((product) => product.isActive === isActive);
     }
 
-    // Apply featured filter
     if (featuredFilter && featuredFilter !== "all") {
       const isFeatured = featuredFilter === "featured";
       filtered = filtered.filter(
         (product) => product.isFeatured === isFeatured
       );
     }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "price":
+          comparison = a.unitprice - b.unitprice;
+          break;
+        case "stock":
+          comparison = a.stock - b.stock;
+          break;
+        case "sku":
+          comparison = a.productSku.localeCompare(b.productSku);
+          break;
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
 
     setFilteredProducts(filtered);
   };
@@ -182,6 +217,8 @@ export function ProductList() {
     brandFilter,
     statusFilter,
     featuredFilter,
+    sortField,
+    sortDirection,
     products,
   ]);
 
@@ -224,6 +261,15 @@ export function ProductList() {
     setFeaturedFilter("");
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       <Package className="h-10 w-10 text-muted-foreground mb-4" />
@@ -260,6 +306,313 @@ export function ProductList() {
     </div>
   );
 
+  const renderActiveFilters = () => {
+    const hasFilters =
+      searchQuery ||
+      categoryFilter ||
+      brandFilter ||
+      statusFilter ||
+      featuredFilter;
+
+    if (!hasFilters) return null;
+
+    return (
+      <div className="flex flex-wrap gap-2 mt-4">
+        {searchQuery && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 px-3 py-1"
+          >
+            Search: {searchQuery}
+            <button onClick={() => setSearchQuery("")} className="ml-1">
+              <XCircle className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        {categoryFilter && categoryFilter !== "all" && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 px-3 py-1"
+          >
+            Category:{" "}
+            {categories.find((c) => c.id.toString() === categoryFilter)?.name ||
+              categoryFilter}
+            <button onClick={() => setCategoryFilter("")} className="ml-1">
+              <XCircle className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        {brandFilter && brandFilter !== "all" && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 px-3 py-1"
+          >
+            Brand:{" "}
+            {brands.find((b) => b.id.toString() === brandFilter)?.name ||
+              brandFilter}
+            <button onClick={() => setBrandFilter("")} className="ml-1">
+              <XCircle className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        {statusFilter && statusFilter !== "all" && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 px-3 py-1"
+          >
+            Status: {statusFilter}
+            <button onClick={() => setStatusFilter("")} className="ml-1">
+              <XCircle className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        {featuredFilter && featuredFilter !== "all" && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 px-3 py-1"
+          >
+            {featuredFilter === "featured" ? "Featured" : "Not Featured"}
+            <button onClick={() => setFeaturedFilter("")} className="ml-1">
+              <XCircle className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearFilters}
+          className="h-7 text-xs"
+        >
+          Clear all
+        </Button>
+      </div>
+    );
+  };
+
+  const renderGridView = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {filteredProducts.map((product) => (
+        <Card key={product.id} className="overflow-hidden flex flex-col h-full">
+          <div className="relative aspect-square bg-muted/20">
+            <Image
+              src={product?.attachment?.url || "/placeholder.svg"}
+              alt={product.name}
+              fill
+              className="object-contain p-2"
+            />
+            {product.isFeatured && (
+              <div className="absolute top-2 right-2">
+                <Badge className="flex items-center gap-1">
+                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  Featured
+                </Badge>
+              </div>
+            )}
+          </div>
+          <CardContent className="p-4 flex-grow">
+            <div className="flex justify-between items-start gap-2">
+              <h3 className="font-medium line-clamp-2">{product.name}</h3>
+              <Badge
+                variant={product.isActive ? "default" : "destructive"}
+                className="shrink-0"
+              >
+                {product.isActive ? "Active" : "Inactive"}
+              </Badge>
+            </div>
+            <div className="mt-2 text-sm text-muted-foreground">
+              SKU: {product.productSku}
+            </div>
+            <div className="mt-1 font-semibold">
+              {formatCurrencyEnglish(product.unitprice)}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Badge variant="outline">{product.brand.name}</Badge>
+              <Badge variant="outline">{product.category.name}</Badge>
+            </div>
+          </CardContent>
+          <CardFooter className="p-4 pt-0 flex justify-between">
+            <div className="text-sm">
+              Stock: <span className="font-medium">{product.stock}</span>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleEdit(product)}>
+                  <Pencil className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => handleDeleteClick(product)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+
+  const renderTableView = () => (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Image</TableHead>
+            <TableHead>
+              <button
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+                onClick={() => handleSort("name")}
+              >
+                Name
+                {sortField === "name" && (
+                  <ArrowUpDown
+                    className={`h-3 w-3 ${
+                      sortDirection === "desc" ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
+              </button>
+            </TableHead>
+            <TableHead>
+              <button
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+                onClick={() => handleSort("sku")}
+              >
+                SKU
+                {sortField === "sku" && (
+                  <ArrowUpDown
+                    className={`h-3 w-3 ${
+                      sortDirection === "desc" ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
+              </button>
+            </TableHead>
+            <TableHead>
+              <button
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+                onClick={() => handleSort("price")}
+              >
+                Price
+                {sortField === "price" && (
+                  <ArrowUpDown
+                    className={`h-3 w-3 ${
+                      sortDirection === "desc" ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
+              </button>
+            </TableHead>
+            <TableHead>Unit</TableHead>
+            <TableHead className="hidden md:table-cell">Brand</TableHead>
+            <TableHead className="hidden md:table-cell">Category</TableHead>
+            <TableHead className="hidden md:table-cell">
+              <button
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+                onClick={() => handleSort("stock")}
+              >
+                Stock
+                {sortField === "stock" && (
+                  <ArrowUpDown
+                    className={`h-3 w-3 ${
+                      sortDirection === "desc" ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
+              </button>
+            </TableHead>
+            <TableHead className="hidden md:table-cell">Status</TableHead>
+            <TableHead className="hidden md:table-cell">Featured</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredProducts.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell>
+                <div className="rounded-md overflow-hidden">
+                  <Image
+                    src={product?.attachment?.url || "/placeholder.svg"}
+                    alt={product.name}
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                  />
+                </div>
+              </TableCell>
+              <TableCell className="font-medium text-wrap">
+                {product.name}
+              </TableCell>
+              <TableCell>{product.productSku}</TableCell>
+              <TableCell>{formatCurrencyEnglish(product.unitprice)}</TableCell>
+              <TableCell className="capitalize">
+                {product.unit.replace("_", " ")}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {product.brand.name}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {product.category.name}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {product.stock}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                <Badge variant={product.isActive ? "default" : "destructive"}>
+                  {product.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                <Badge
+                  variant={product.isFeatured ? "default" : "secondary"}
+                  className="flex items-center gap-1"
+                >
+                  {product.isFeatured && (
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  )}
+                  {product.isFeatured ? "Featured" : "Regular"}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Open menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEdit(product)}>
+                      <Pencil className="mr-2 h-4 w-4" /> Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-600"
+                      onClick={() => handleDeleteClick(product)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
   return (
     <>
       <Card className="w-full">
@@ -268,13 +621,50 @@ export function ProductList() {
             <CardTitle>Products</CardTitle>
             <CardDescription>Manage your product inventory</CardDescription>
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add Product
-          </Button>
+          <div className="flex items-center gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => window.print()}
+                    className="hidden md:flex"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Print product list</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="hidden md:flex"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Export products</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Add Product
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -286,82 +676,138 @@ export function ProductList() {
                 />
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Select
-                  value={categoryFilter}
-                  onValueChange={setCategoryFilter}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem
-                        key={category.id}
-                        value={category.id.toString()}
-                      >
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={brandFilter} onValueChange={setBrandFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Brand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Brands</SelectItem>
-                    {brands.map((brand) => (
-                      <SelectItem key={brand.id} value={brand.id.toString()}>
-                        {brand.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={featuredFilter}
-                  onValueChange={setFeaturedFilter}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Featured" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="featured">Featured</SelectItem>
-                    <SelectItem value="not-featured">Not Featured</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {(searchQuery ||
-                  categoryFilter ||
-                  brandFilter ||
-                  statusFilter ||
-                  featuredFilter) && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center border rounded-md">
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={clearFilters}
-                    className="h-10 w-10"
+                    variant={activeView === "table" ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-r-none"
+                    onClick={() => setActiveView("table")}
                   >
-                    <Filter className="h-4 w-4" />
+                    <FileText className="h-4 w-4 mr-2" />
+                    Table
                   </Button>
-                )}
+                  <Button
+                    variant={activeView === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-l-none"
+                    onClick={() => setActiveView("grid")}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Grid
+                  </Button>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <div className="grid gap-3 p-2">
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold">Category</h4>
+                        <Select
+                          value={categoryFilter}
+                          onValueChange={setCategoryFilter}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="All Categories" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id.toString()}
+                              >
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold">Brand</h4>
+                        <Select
+                          value={brandFilter}
+                          onValueChange={setBrandFilter}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="All Brands" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Brands</SelectItem>
+                            {brands.map((brand) => (
+                              <SelectItem
+                                key={brand.id}
+                                value={brand.id.toString()}
+                              >
+                                {brand.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold">Status</h4>
+                        <Select
+                          value={statusFilter}
+                          onValueChange={setStatusFilter}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="All Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold">Featured</h4>
+                        <Select
+                          value={featuredFilter}
+                          onValueChange={setFeaturedFilter}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="All" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            <SelectItem value="featured">Featured</SelectItem>
+                            <SelectItem value="not-featured">
+                              Not Featured
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {(categoryFilter ||
+                        brandFilter ||
+                        statusFilter ||
+                        featuredFilter) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="mt-2"
+                        >
+                          Reset Filters
+                        </Button>
+                      )}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
+
+            {renderActiveFilters()}
 
             {isLoading ? (
               <div className="flex justify-center items-center py-12">
@@ -375,109 +821,8 @@ export function ProductList() {
             ) : filteredProducts.length === 0 ? (
               renderEmptyState()
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Image</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Brand
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Category
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Stock
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Status
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Featured
-                      </TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProducts.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <div className=" rounded-md overflow-hidden">
-                            <Image
-                              src={product.imageUrl || "/placeholder.svg"}
-                              alt={product.name}
-                              width={64}
-                              height={64}
-                              className=" object-contain"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {product.name}
-                        </TableCell>
-                        <TableCell>
-                          {formatCurrencyEnglish(product.price)}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {product.brand.name}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {product.category.name}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {product.stock}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <Badge
-                            variant={
-                              product.isActive ? "default" : "destructive"
-                            }
-                          >
-                            {product.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <Badge
-                            variant={
-                              product.isFeatured ? "default" : "secondary"
-                            }
-                            className="flex items-center gap-1"
-                          >
-                            {product.isFeatured && (
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            )}
-                            {product.isFeatured ? "Featured" : "Regular"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleEdit(product)}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteClick(product)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="mt-6">
+                {activeView === "table" ? renderTableView() : renderGridView()}
               </div>
             )}
           </div>
@@ -501,26 +846,12 @@ export function ProductList() {
               </>
             )}
           </div>
-          {(searchQuery ||
-            categoryFilter ||
-            brandFilter ||
-            statusFilter ||
-            featuredFilter) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-7 text-xs"
-            >
-              Clear filters
-            </Button>
-          )}
         </CardFooter>
       </Card>
 
       {/* Add Product Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Product</DialogTitle>
             <DialogDescription>
@@ -538,7 +869,7 @@ export function ProductList() {
 
       {/* Edit Product Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
             <DialogDescription>

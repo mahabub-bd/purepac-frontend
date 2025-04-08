@@ -39,12 +39,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 import { ProductForm } from "./product-form";
@@ -54,9 +48,6 @@ import { deleteData, fetchData } from "@/utils/api-utils";
 import type { Brand, Category, Product } from "@/utils/types";
 import {
   ArrowUpDown,
-  Download,
-  Eye,
-  FileText,
   Filter,
   Loader2,
   MoreHorizontal,
@@ -90,7 +81,7 @@ export function ProductList() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [activeView, setActiveView] = useState<"grid" | "table">("table");
+  // Grid view removed as requested
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -394,76 +385,6 @@ export function ProductList() {
     );
   };
 
-  const renderGridView = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {filteredProducts.map((product) => (
-        <Card key={product.id} className="overflow-hidden flex flex-col h-full">
-          <div className="relative aspect-square bg-muted/20">
-            <Image
-              src={product?.attachment?.url || "/placeholder.svg"}
-              alt={product.name}
-              fill
-              className="object-contain p-2"
-            />
-            {product.isFeatured && (
-              <div className="absolute top-2 right-2">
-                <Badge className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  Featured
-                </Badge>
-              </div>
-            )}
-          </div>
-          <CardContent className="p-4 flex-grow">
-            <div className="flex justify-between items-start gap-2">
-              <h3 className="font-medium line-clamp-2">{product.name}</h3>
-              <Badge
-                variant={product.isActive ? "default" : "destructive"}
-                className="shrink-0"
-              >
-                {product.isActive ? "Active" : "Inactive"}
-              </Badge>
-            </div>
-            <div className="mt-2 text-sm text-muted-foreground">
-              SKU: {product.productSku}
-            </div>
-            <div className="mt-1 font-semibold">
-              {formatCurrencyEnglish(product.unitprice)}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Badge variant="outline">{product.brand.name}</Badge>
-              <Badge variant="outline">{product.category.name}</Badge>
-            </div>
-          </CardContent>
-          <CardFooter className="p-4 pt-0 flex justify-between">
-            <div className="text-sm">
-              Stock: <span className="font-medium">{product.stock}</span>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleEdit(product)}>
-                  <Pencil className="mr-2 h-4 w-4" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-600"
-                  onClick={() => handleDeleteClick(product)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
-  );
-
   const renderTableView = () => (
     <div className="rounded-md border">
       <Table>
@@ -622,41 +543,6 @@ export function ProductList() {
             <CardDescription>Manage your product inventory</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => window.print()}
-                    className="hidden md:flex"
-                  >
-                    <FileText className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Print product list</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="hidden md:flex"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Export products</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
             <Button onClick={() => setIsAddDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" /> Add Product
             </Button>
@@ -677,27 +563,6 @@ export function ProductList() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="flex items-center border rounded-md">
-                  <Button
-                    variant={activeView === "table" ? "default" : "ghost"}
-                    size="sm"
-                    className="rounded-r-none"
-                    onClick={() => setActiveView("table")}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Table
-                  </Button>
-                  <Button
-                    variant={activeView === "grid" ? "default" : "ghost"}
-                    size="sm"
-                    className="rounded-l-none"
-                    onClick={() => setActiveView("grid")}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Grid
-                  </Button>
-                </div>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon">
@@ -821,9 +686,7 @@ export function ProductList() {
             ) : filteredProducts.length === 0 ? (
               renderEmptyState()
             ) : (
-              <div className="mt-6">
-                {activeView === "table" ? renderTableView() : renderGridView()}
-              </div>
+              <div className="mt-6">{renderTableView()}</div>
             )}
           </div>
         </CardContent>

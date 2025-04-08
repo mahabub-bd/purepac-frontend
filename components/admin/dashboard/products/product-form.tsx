@@ -222,7 +222,7 @@ export function ProductForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>SKU</FormLabel>
-                        <div className="flex gap-2">
+                        <div className="grid grid-cols-2 gap-4">
                           <FormControl>
                             <Input placeholder="Enter product SKU" {...field} />
                           </FormControl>
@@ -230,7 +230,7 @@ export function ProductForm({
                             type="button"
                             variant="outline"
                             onClick={generateSku}
-                            className="whitespace-nowrap"
+                            className="whitespace-nowrap bg-green-200"
                           >
                             Generate SKU
                           </Button>

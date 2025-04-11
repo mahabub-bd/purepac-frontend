@@ -7,17 +7,10 @@ import { Product } from "@/utils/types";
 import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function ProductCard({ product }: { product: Product }) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
-    <div
-      className="relative group text-center duration-300 bg-white bg-opacity-25 p-4 flex flex-col justify-between items-center rounded-xl h-full shadow-md hover:shadow-lg"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative group text-center duration-300 bg-white bg-opacity-25 p-4 flex flex-col justify-between items-center rounded-xl h-full shadow-md hover:shadow-lg">
       <Link
         href={`/products/${product.id}`}
         className="flex flex-col justify-between items-center w-full"

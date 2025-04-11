@@ -4,22 +4,24 @@ import Link from "next/link";
 
 export function CategoryCard({ category }: { category: Category }) {
   return (
-    <Link href={"/"} className="group block">
-      <div className="overflow-hidden  transition-all duration-200 ">
-        <div className="relative aspect-square overflow-hidden">
-          <Image
-            src={category?.attachment?.url || "/placeholder.svg"}
-            alt={category?.name}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-full "
-          />
-        </div>
-        <div className="p-5">
-          <h3 className="text-md font-semibold mb-2 group-hover:text-primary transition-colors text-center">
-            {category?.name}
-          </h3>
-        </div>
+    <Link
+      href={`/categories/${category.slug || category.id}`}
+      className="group block rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 bg-white"
+    >
+      <div className="p-2 flex justify-center items-center">
+        <Image
+          src={category?.attachment?.url || "/category-placeholder.svg"}
+          alt={category?.name || "Product category"}
+          width={80}
+          height={80}
+          className="object-cover transition-transform duration-300 group-hover:scale-110"
+        />
+      </div>
+
+      <div className="p-4 text-center">
+        <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary transition-colors">
+          {category?.name}
+        </h3>
       </div>
     </Link>
   );

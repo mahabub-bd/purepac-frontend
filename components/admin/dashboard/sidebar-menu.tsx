@@ -157,7 +157,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 pt-16 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-30 pt-4 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
           collapsed ? "w-[70px]" : "w-[240px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           className

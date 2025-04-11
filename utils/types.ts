@@ -9,7 +9,20 @@ export type UserTypes = {
   isAdmin: boolean;
   image?: any;
 };
-
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  roles: ("superadmin" | "admin" | "user")[];
+  isVerified: boolean;
+  lastLoginAt: string;
+  createdAt: string;
+  updatedAt: string;
+  mobileNumber: string;
+  otp: string | null;
+  otpExpiresAt: string;
+}
 export interface Brand {
   id: number;
   name: string;
@@ -98,4 +111,12 @@ export enum ProductUnit {
   BOX = "box",
   PAIR = "pair",
   SET = "set",
+}
+
+export enum Role {
+  CUSTOMER = "customer",
+  ADMIN = "admin",
+  SUPERADMIN = "superadmin",
+  EDITOR = "editor",
+  MODERATOR = "moderator",
 }

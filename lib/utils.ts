@@ -1,3 +1,4 @@
+import { Role } from "@/utils/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -11,3 +12,27 @@ export function formatCurrencyEnglish(amount: number): string {
     currency: "BDT",
   }).format(amount);
 }
+
+export const formatDateTime = (isoString: string) => {
+  const date = new Date(isoString);
+  return date.toLocaleString("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Dhaka", // GMT+6
+  });
+};
+
+export const roleColors: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  [Role.CUSTOMER]: "outline",
+  [Role.ADMIN]: "default",
+  [Role.SUPERADMIN]: "destructive",
+  [Role.EDITOR]: "secondary",
+  [Role.MODERATOR]: "secondary",
+};

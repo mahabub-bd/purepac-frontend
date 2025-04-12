@@ -1,4 +1,4 @@
-import type React from "react";
+import { StatsCard } from "@/components/admin/dashboard/dashboard/stats-card";
 import {
   Card,
   CardContent,
@@ -6,19 +6,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getTopCategoryByProductCount } from "@/lib/utils";
+import { fetchData } from "@/utils/api-utils";
+import type { Category, Product, User } from "@/utils/types";
 import {
-  BarChart3,
-  ShoppingCart,
-  Package,
-  Users,
-  DollarSign,
-  CreditCard,
   Activity,
-  ArrowUpRight,
-  ArrowDownRight,
+  BarChart3,
+  CreditCard,
+  DollarSign,
+  Package,
+  ShoppingCart,
+  Users,
 } from "lucide-react";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const products = await fetchData<Product[]>("products");
+  const customers = await fetchData<User[]>("users?roleType=customer");
+  const categories = await fetchData<Category[]>("categories");
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -39,6 +44,7 @@ export default function DashboardPage() {
           description="+20.1% from last month"
           trend="up"
           icon={DollarSign}
+          colorScheme="green"
         />
         <StatsCard
           title="Orders"
@@ -46,20 +52,23 @@ export default function DashboardPage() {
           description="+12.2% from last month"
           trend="up"
           icon={ShoppingCart}
+          colorScheme="purple"
         />
         <StatsCard
           title="Products"
-          value="485"
+          value={products?.length?.toString() || "0"}
           description="+5.4% from last month"
           trend="up"
           icon={Package}
+          colorScheme="amber"
         />
         <StatsCard
           title="Customers"
-          value="12,234"
+          value={customers?.length?.toString() || "0"}
           description="-2.5% from last month"
           trend="down"
           icon={Users}
+          colorScheme="indigo"
         />
       </div>
 
@@ -118,7 +127,7 @@ export default function DashboardPage() {
 
       {/* Additional Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20 border-none">
           <CardHeader className="pb-2">
             <CardTitle>Conversion Rate</CardTitle>
           </CardHeader>
@@ -130,14 +139,14 @@ export default function DashboardPage() {
                   +0.5% from last week
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Activity className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Activity className="h-6 w-6 text-blue-700 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20 border-none">
           <CardHeader className="pb-2">
             <CardTitle>Average Order Value</CardTitle>
           </CardHeader>
@@ -149,80 +158,35 @@ export default function DashboardPage() {
                   +2.3% from last month
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-purple-700 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20 border-none">
           <CardHeader className="pb-2">
             <CardTitle>Top Selling Category</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold">Electronics</p>
+                <p className="text-3xl font-bold">
+                  {getTopCategoryByProductCount(categories)}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   32% of total sales
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Package className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <Package className="h-6 w-6 text-amber-700 dark:text-amber-400" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
-}
-
-interface StatsCardProps {
-  title: string;
-  value: string;
-  description: string;
-  trend: "up" | "down" | "neutral";
-  icon: React.ElementType;
-}
-
-function StatsCard({
-  title,
-  value,
-  description,
-  trend,
-  icon: Icon,
-}: StatsCardProps) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground flex items-center mt-1">
-          {trend === "up" && (
-            <ArrowUpRight className="h-3 w-3 text-emerald-500 mr-1" />
-          )}
-          {trend === "down" && (
-            <ArrowDownRight className="h-3 w-3 text-rose-500 mr-1" />
-          )}
-          <span
-            className={
-              trend === "up"
-                ? "text-emerald-500"
-                : trend === "down"
-                ? "text-rose-500"
-                : ""
-            }
-          >
-            {description}
-          </span>
-        </p>
-      </CardContent>
-    </Card>
   );
 }
 

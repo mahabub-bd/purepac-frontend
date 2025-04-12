@@ -47,6 +47,7 @@ export interface Category {
 }
 
 export interface Product {
+  length: any;
   id: number;
   name: string;
   description: string;
@@ -120,3 +121,8 @@ export enum Role {
   EDITOR = "editor",
   MODERATOR = "moderator",
 }
+
+export type authResponse = {
+  message: string;
+  statusCode: number;
+};

@@ -1,6 +1,7 @@
 "use client";
 
 import { logout } from "@/actions/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,14 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { UserTypes } from "@/utils/types";
-import { LogOut, Settings, User, UserCircle, Heart } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { authResponse, UserTypes } from "@/utils/types";
+import { Heart, LogOut, Settings, User, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface AuthBtnProps {
   user: UserTypes | null;
@@ -26,17 +26,26 @@ interface AuthBtnProps {
   className?: string;
 }
 
-export default function AuthBtn({ user, compact = false, className }: AuthBtnProps) {
+export default function AuthBtn({
+  user,
+  compact = false,
+  className,
+}: AuthBtnProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      await logout();
-      toast.success("Logged out successfully");
-      router.push("/auth");
-      router.refresh(); // Ensure client state updates
+      const result: authResponse = await logout();
+
+      if (result.statusCode === 200) {
+        toast.success("Logged out successfully");
+        router.push("/auth/sign-in");
+        router.refresh(); // Ensure client state updates
+      } else {
+        toast.error("Failed to log out");
+      }
     } catch (error) {
       toast.error("Failed to log out");
       console.error("Logout error:", error);
@@ -48,7 +57,7 @@ export default function AuthBtn({ user, compact = false, className }: AuthBtnPro
   const getInitials = (name: string): string => {
     return name
       .split(" ")
-      .map((n) => n[0]?.toUpperCase() ?? '')
+      .map((n) => n[0]?.toUpperCase() ?? "")
       .join("")
       .substring(0, 2);
   };
@@ -56,7 +65,7 @@ export default function AuthBtn({ user, compact = false, className }: AuthBtnPro
   if (!user) {
     return (
       <Button
-        variant={compact ? "ghost" : "outline"}
+        variant={compact ? "ghost" : "default"}
         size="sm"
         className={cn(
           compact
@@ -67,7 +76,7 @@ export default function AuthBtn({ user, compact = false, className }: AuthBtnPro
         onClick={() => router.push("/auth/sign-in")}
         aria-label="Sign in"
       >
-        <User className={cn(compact ? "h-5 w-5" : "h-4 w-4")} />
+        <User className={cn("h-4 w-4", compact ? "" : "mr-1")} />
         {!compact && <span>Sign in</span>}
       </Button>
     );
@@ -89,9 +98,9 @@ export default function AuthBtn({ user, compact = false, className }: AuthBtnPro
         >
           <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
             {user.image && (
-              <AvatarImage 
-                src={user.image} 
-                alt={user.name || "User avatar"} 
+              <AvatarImage
+                src={user.image || "/placeholder.svg"}
+                alt={user.name || "User avatar"}
                 referrerPolicy="no-referrer"
               />
             )}
@@ -107,9 +116,9 @@ export default function AuthBtn({ user, compact = false, className }: AuthBtnPro
           <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-1 ring-white" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-56" 
-        align="end" 
+      <DropdownMenuContent
+        className="w-56"
+        align="end"
         forceMount
         onCloseAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
       >
@@ -164,7 +173,7 @@ export default function AuthBtn({ user, compact = false, className }: AuthBtnPro
         <DropdownMenuItem
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="text-red-600 focus:bg-red-50 focus:text-red-600"
+          className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950 dark:focus:text-red-400"
         >
           <LogOut className="mr-2 h-4 w-4" />
           <span>{isLoggingOut ? "Signing out..." : "Sign out"}</span>

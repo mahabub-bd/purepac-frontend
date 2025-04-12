@@ -1,4 +1,4 @@
-type ApiResponse<T = any> = {
+export type ApiResponse<T = any> = {
   data?: T;
   message?: string;
   error?: string;
@@ -74,6 +74,38 @@ export async function postData<T = any>(
   }
 }
 
+export async function logoutPost(endpoint: string, token: any): Promise<void> {
+  const url = `${apiUrl}/${endpoint}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json", // Added since your API might expect it
+      },
+      body: "{}", // Empty JSON body as shown in your cURL example
+    });
+
+    if (!response.ok) {
+      let errorMessage: string;
+      try {
+        const errorData = await response.json();
+        errorMessage =
+          errorData.message || `HTTP error! Status: ${response.status}`;
+      } catch {
+        errorMessage = `HTTP error! Status: ${response.status}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  } catch (error: unknown) {
+    console.error("Logout failed:", error);
+    throw error;
+  }
+}
 export async function formPostData<T = any>(
   endpoint: string,
   formData?: FormData | Record<string, any>
@@ -157,34 +189,6 @@ export async function patchData<T = any>(
   } catch (error: unknown) {
     console.error("Error patching data:", error);
     throw error;
-  }
-}
-
-async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
-  if (!response.ok) {
-    let errorMessage: string;
-    try {
-      const errorData = await response.json();
-      errorMessage =
-        errorData.message ||
-        errorData.error ||
-        `HTTP error! Status: ${response.status}`;
-    } catch {
-      errorMessage = `HTTP error! Status: ${response.status}`;
-    }
-    throw new Error(errorMessage);
-  }
-
-  try {
-    // Handle empty responses (like for 204 No Content)
-    if (response.status === 204) {
-      return {} as ApiResponse<T>;
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error parsing response:", error);
-    throw new Error("Failed to parse server response");
   }
 }
 

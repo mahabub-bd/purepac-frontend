@@ -36,6 +36,7 @@ export function getUserFromToken(token: string) {
       decoded.roles?.includes("superadmin") ||
       false,
     exp: decoded.exp,
+    createdAt: decoded?.createdAt,
   };
 }
 

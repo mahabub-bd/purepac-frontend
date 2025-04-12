@@ -1,4 +1,4 @@
-import { CategoryList } from "@/components/admin/dashboard/category/category-list";
+import { CategoryList } from "@/components/admin/category/category-list";
 
 export default function CategoriesPage() {
   return (

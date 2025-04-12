@@ -8,6 +8,8 @@ export type UserTypes = {
   roles: UserRole[];
   isAdmin: boolean;
   image?: any;
+  createdAt: string;
+  updatedAt: string;
 };
 export interface User {
   id: number;
@@ -22,6 +24,8 @@ export interface User {
   mobileNumber: string;
   otp: string | null;
   otpExpiresAt: string;
+  image?: any;
+  isAdmin: boolean;
 }
 export interface Brand {
   id: number;

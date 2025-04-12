@@ -56,8 +56,8 @@ const adminMenuItems = [
     icon: UsersRound,
   },
   {
-    name: "Settings",
-    href: "/admin/settings",
+    name: "Profile",
+    href: "/admin/profile",
     icon: Settings,
   },
 ];

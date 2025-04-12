@@ -1,4 +1,4 @@
-import { StatsCard } from "@/components/admin/dashboard/dashboard/stats-card";
+import { StatsCard } from "@/components/admin/dashboard/stats-card";
 import {
   Card,
   CardContent,
@@ -9,6 +9,7 @@ import {
 import { getTopCategoryByProductCount } from "@/lib/utils";
 import { fetchData } from "@/utils/api-utils";
 import type { Category, Product, User } from "@/utils/types";
+
 import {
   Activity,
   BarChart3,

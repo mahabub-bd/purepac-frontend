@@ -14,6 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { adminMenuItems, userMenuItems } from "@/constants";
 import { cn } from "@/lib/utils";
+import { AvatarImageIcon } from "@/public/images";
 import type { authResponse, UserTypes } from "@/utils/types";
 import {
   ChevronLeft,
@@ -109,7 +110,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-30 pt-4 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
-          collapsed ? "w-[70px]" : "w-[260px]",
+          collapsed ? "w-[70px]" : "w-[280px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           className
         )}
@@ -227,7 +228,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                   >
                     {user.image && (
                       <AvatarImage
-                        src={user.image || "/placeholder.svg"}
+                        src={user.image || AvatarImageIcon}
                         alt={user.name || "User avatar"}
                         referrerPolicy="no-referrer"
                       />
@@ -238,11 +239,11 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                   </Avatar>
                   {!collapsed && (
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium truncate max-w-[140px]">
+                      <span className="text-sm font-medium truncate ">
                         {user.name || "User"}
                       </span>
                       {user.email && (
-                        <span className="text-xs text-muted-foreground truncate max-w-[140px]">
+                        <span className="text-xs text-muted-foreground truncate ">
                           {user.email}
                         </span>
                       )}
@@ -271,7 +272,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/profile" className="cursor-pointer">
+                <Link href="/admin/profile" className="cursor-pointer">
                   <UserCircle className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>

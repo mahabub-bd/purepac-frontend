@@ -41,6 +41,7 @@ export async function setUserCookies(userData: any) {
     mobileNumber: "",
     roles: [] as string[],
     isAdmin: false,
+    createdAt: "",
   };
 
   try {
@@ -55,6 +56,7 @@ export async function setUserCookies(userData: any) {
           userData.roles?.includes("admin") ||
             userData.roles?.includes("superadmin")
         ),
+        createdAt: userData?.createdAt,
       };
     } else if (userData?.mobileNo) {
       userInfo = {
@@ -64,6 +66,7 @@ export async function setUserCookies(userData: any) {
         mobileNumber: userData.mobileNo,
         roles: [],
         isAdmin: false,
+        createdAt: userData?.createdAt,
       };
     }
 

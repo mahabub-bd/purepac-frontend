@@ -1,5 +1,5 @@
 import { getUser } from "@/actions/auth";
-import { SidebarMenu } from "@/components/admin/dashboard/sidebar-menu";
+import { SidebarMenu } from "@/components/admin/sidebar-menu";
 
 import type React from "react";
 
@@ -12,7 +12,7 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-background ">
       <SidebarMenu user={user} />
-      <div className="transition-all duration-300 ease-in-out pt-1 md:pt-0 md:pl-[250px] lg:pl-[250px]">
+      <div className="transition-all duration-300 ease-in-out pt-1 md:pt-0 md:pl-[280px] lg:pl-[280px]">
         {children}
       </div>
     </div>

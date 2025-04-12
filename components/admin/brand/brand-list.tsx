@@ -60,7 +60,7 @@ export function BrandList() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
-  console.log(brands);
+ 
 
   const fetchBrands = async () => {
     setIsLoading(true);

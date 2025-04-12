@@ -1,4 +1,4 @@
-import { UserList } from "@/components/admin/dashboard/user/user-list";
+import { UserList } from "@/components/admin/user/user-list";
 
 export default function UsersPage() {
   return (

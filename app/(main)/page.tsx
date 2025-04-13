@@ -4,6 +4,7 @@ import CategoriesList from "@/components/homepage/Category/categories-list";
 import ProductList from "@/components/products/product-list";
 
 export default function Home() {
+  
   return (
     <main className="min-h-screen">
       {/* Categories Section */}

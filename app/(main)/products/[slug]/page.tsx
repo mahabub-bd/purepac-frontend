@@ -1,8 +1,8 @@
-export default async function CategoriesPage({
+export default async function ProductsPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return <div>{slug}</div>;
+  return <div>Products {slug}</div>;
 }

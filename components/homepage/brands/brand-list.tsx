@@ -20,7 +20,7 @@ export default async function BrandList({
       {children}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         <Suspense fallback={<BrandSkeleton />}>
-          {brands.map((brand: Brand) => (
+          {brands?.map((brand: Brand) => (
             <BrandCard key={brand.id} brand={brand} />
           ))}
         </Suspense>

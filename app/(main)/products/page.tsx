@@ -50,7 +50,6 @@ export default async function ProductsPage({
     fetchBrands(),
   ]);
 
-  // Build the products endpoint with all search params
   const productsEndpoint = `products?${buildQueryString({
     limit: (await searchParams).limit || "20",
     category: (await searchParams).category,
@@ -62,10 +61,9 @@ export default async function ProductsPage({
   })}`;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4">
       <SortBar currentSort={(await searchParams).sort} />
-
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row justify-between ">
         <div className="w-full md:w-1/5">
           <ProductFilters
             categories={categories}

@@ -58,7 +58,7 @@ const PRICE_RANGES: PriceRange[] = [
   { min: 100000, max: Number.POSITIVE_INFINITY, label: "Above BDT 100,000" },
 ];
 
-export function ProductFilters({
+export function BrandFilters({
   categories,
   brands,
   currentCategory,

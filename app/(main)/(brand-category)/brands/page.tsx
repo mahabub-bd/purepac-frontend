@@ -3,8 +3,8 @@ import { SortBar } from "@/components/products/sort-bar";
 import { buildQueryString } from "@/utils/api-utils";
 
 export default async function BrandPage({
-  params,
   searchParams,
+  params,
 }: {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{

@@ -41,13 +41,12 @@ import {
 } from "@/components/ui/table";
 
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
-import { ProductForm } from "./product-form";
 
+import { PaginationComponent } from "@/components/common/pagination";
 import { formatCurrencyEnglish } from "@/lib/utils";
-import { deleteData, fetchData } from "@/utils/api-utils";
+import { deleteData, fetchData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand, Category, Product } from "@/utils/types";
 import {
-  ArrowUpDown,
   Filter,
   Loader2,
   MoreHorizontal,
@@ -60,49 +59,116 @@ import {
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ProductForm } from "./product-form";
 
-type SortField = "name" | "price" | "stock" | "sku";
-type SortDirection = "asc" | "desc";
+interface ProductListProps {
+  initialPage: number;
+  initialLimit: number;
+  initialSearchParams?: { [key: string]: string | string[] | undefined };
+}
 
-export function ProductList() {
+export function ProductList({
+  initialPage,
+  initialLimit,
+  initialSearchParams = {},
+}: ProductListProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const getInitialParam = (key: string) => {
+    const param = searchParams?.get(key);
+    return param ? param : initialSearchParams?.[key] || "";
+  };
+
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [brandFilter, setBrandFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [featuredFilter, setFeaturedFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState(
+    getInitialParam("search") as string
+  );
+  const [categoryFilter, setCategoryFilter] = useState(
+    getInitialParam("category") as string
+  );
+  const [brandFilter, setBrandFilter] = useState(
+    getInitialParam("brand") as string
+  );
+  const [statusFilter, setStatusFilter] = useState(
+    getInitialParam("status") as string
+  );
+  const [featuredFilter, setFeaturedFilter] = useState(
+    getInitialParam("featured") as string
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  // Grid view removed as requested
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [limit] = useState(initialLimit);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const updateUrl = useCallback(() => {
+    const params = new URLSearchParams();
+
+    params.set("page", currentPage.toString());
+    params.set("limit", limit.toString());
+
+    if (searchQuery) params.set("search", searchQuery);
+    if (categoryFilter && categoryFilter !== "all")
+      params.set("category", categoryFilter);
+    if (brandFilter && brandFilter !== "all") params.set("brand", brandFilter);
+    if (statusFilter && statusFilter !== "all")
+      params.set("status", statusFilter);
+    if (featuredFilter && featuredFilter !== "all")
+      params.set("featured", featuredFilter);
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [
+    router,
+    pathname,
+    currentPage,
+    limit,
+    searchQuery,
+    categoryFilter,
+    brandFilter,
+    statusFilter,
+    featuredFilter,
+  ]);
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const response = await fetchData<Product[]>("products");
+      const params = new URLSearchParams();
+      params.append("page", currentPage.toString());
+      params.append("limit", limit.toString());
 
-      if (Array.isArray(response)) {
-        setProducts(response);
-        filterProducts(response);
-      } else {
-        setProducts([]);
-        setFilteredProducts([]);
-        toast.error("Received invalid data format for products");
-      }
+      if (searchQuery) params.append("search", searchQuery);
+      if (categoryFilter && categoryFilter !== "all")
+        params.append("category", categoryFilter);
+      if (brandFilter && brandFilter !== "all")
+        params.append("brand", brandFilter);
+      if (statusFilter && statusFilter !== "all")
+        params.append("status", statusFilter);
+      if (featuredFilter && featuredFilter !== "all")
+        params.append("featured", featuredFilter);
+
+      const response = await fetchDataPagination<{
+        data: Product[];
+        total: number;
+        totalPages: number;
+      }>(`products?${params.toString()}`);
+      setProducts(response.data);
+      setTotalItems(response.total);
+      setTotalPages(response.totalPages);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products. Please try again.");
       setProducts([]);
-      setFilteredProducts([]);
     } finally {
       setIsLoading(false);
     }
@@ -132,68 +198,6 @@ export function ProductList() {
     }
   };
 
-  const filterProducts = (productList = products) => {
-    let filtered = [...productList];
-
-    if (searchQuery.trim()) {
-      const lowerCaseQuery = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(lowerCaseQuery) ||
-          product.description.toLowerCase().includes(lowerCaseQuery) ||
-          product.productSku.toLowerCase().includes(lowerCaseQuery)
-      );
-    }
-
-    if (categoryFilter && categoryFilter !== "all") {
-      const categoryId = Number.parseInt(categoryFilter);
-      filtered = filtered.filter(
-        (product) => product.category.id === categoryId
-      );
-    }
-
-    if (brandFilter && brandFilter !== "all") {
-      const brandId = Number.parseInt(brandFilter);
-      filtered = filtered.filter((product) => product.brand.id === brandId);
-    }
-
-    if (statusFilter && statusFilter !== "all") {
-      const isActive = statusFilter === "active";
-      filtered = filtered.filter((product) => product.isActive === isActive);
-    }
-
-    if (featuredFilter && featuredFilter !== "all") {
-      const isFeatured = featuredFilter === "featured";
-      filtered = filtered.filter(
-        (product) => product.isFeatured === isFeatured
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortField) {
-        case "name":
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case "price":
-          comparison = a.unitprice - b.unitprice;
-          break;
-        case "stock":
-          comparison = a.stock - b.stock;
-          break;
-        case "sku":
-          comparison = a.productSku.localeCompare(b.productSku);
-          break;
-      }
-
-      return sortDirection === "asc" ? comparison : -comparison;
-    });
-
-    setFilteredProducts(filtered);
-  };
-
   useEffect(() => {
     fetchProducts();
     fetchBrands();
@@ -201,17 +205,21 @@ export function ProductList() {
   }, []);
 
   useEffect(() => {
-    filterProducts();
+    fetchProducts();
+    updateUrl();
   }, [
+    currentPage,
+    limit,
     searchQuery,
     categoryFilter,
     brandFilter,
     statusFilter,
     featuredFilter,
-    sortField,
-    sortDirection,
-    products,
   ]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
@@ -250,15 +258,12 @@ export function ProductList() {
     setBrandFilter("");
     setStatusFilter("");
     setFeaturedFilter("");
+    setCurrentPage(1);
   };
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
 
   const renderEmptyState = () => (
@@ -391,76 +396,20 @@ export function ProductList() {
         <TableHeader>
           <TableRow>
             <TableHead>Image</TableHead>
-            <TableHead>
-              <button
-                className="flex items-center gap-1 hover:text-primary transition-colors"
-                onClick={() => handleSort("name")}
-              >
-                Name
-                {sortField === "name" && (
-                  <ArrowUpDown
-                    className={`h-3 w-3 ${
-                      sortDirection === "desc" ? "rotate-180" : ""
-                    }`}
-                  />
-                )}
-              </button>
-            </TableHead>
-            <TableHead>
-              <button
-                className="flex items-center gap-1 hover:text-primary transition-colors"
-                onClick={() => handleSort("sku")}
-              >
-                SKU
-                {sortField === "sku" && (
-                  <ArrowUpDown
-                    className={`h-3 w-3 ${
-                      sortDirection === "desc" ? "rotate-180" : ""
-                    }`}
-                  />
-                )}
-              </button>
-            </TableHead>
-            <TableHead>
-              <button
-                className="flex items-center gap-1 hover:text-primary transition-colors"
-                onClick={() => handleSort("price")}
-              >
-                Price
-                {sortField === "price" && (
-                  <ArrowUpDown
-                    className={`h-3 w-3 ${
-                      sortDirection === "desc" ? "rotate-180" : ""
-                    }`}
-                  />
-                )}
-              </button>
-            </TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>SKU</TableHead>
+            <TableHead>Price</TableHead>
             <TableHead>Unit</TableHead>
             <TableHead className="hidden md:table-cell">Brand</TableHead>
             <TableHead className="hidden md:table-cell">Category</TableHead>
-            <TableHead className="hidden md:table-cell">
-              <button
-                className="flex items-center gap-1 hover:text-primary transition-colors"
-                onClick={() => handleSort("stock")}
-              >
-                Stock
-                {sortField === "stock" && (
-                  <ArrowUpDown
-                    className={`h-3 w-3 ${
-                      sortDirection === "desc" ? "rotate-180" : ""
-                    }`}
-                  />
-                )}
-              </button>
-            </TableHead>
+            <TableHead className="hidden md:table-cell">Stock</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="hidden md:table-cell">Featured</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <TableRow key={product.id}>
               <TableCell>
                 <div className="rounded-md overflow-hidden">
@@ -558,7 +507,7 @@ export function ProductList() {
                   placeholder="Search products..."
                   className="pl-8"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
                 />
               </div>
 
@@ -575,7 +524,10 @@ export function ProductList() {
                         <h4 className="text-xs font-semibold">Category</h4>
                         <Select
                           value={categoryFilter}
-                          onValueChange={setCategoryFilter}
+                          onValueChange={(value) => {
+                            setCategoryFilter(value);
+                            setCurrentPage(1);
+                          }}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue placeholder="All Categories" />
@@ -598,7 +550,10 @@ export function ProductList() {
                         <h4 className="text-xs font-semibold">Brand</h4>
                         <Select
                           value={brandFilter}
-                          onValueChange={setBrandFilter}
+                          onValueChange={(value) => {
+                            setBrandFilter(value);
+                            setCurrentPage(1);
+                          }}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue placeholder="All Brands" />
@@ -621,7 +576,10 @@ export function ProductList() {
                         <h4 className="text-xs font-semibold">Status</h4>
                         <Select
                           value={statusFilter}
-                          onValueChange={setStatusFilter}
+                          onValueChange={(value) => {
+                            setStatusFilter(value);
+                            setCurrentPage(1);
+                          }}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue placeholder="All Status" />
@@ -638,17 +596,18 @@ export function ProductList() {
                         <h4 className="text-xs font-semibold">Featured</h4>
                         <Select
                           value={featuredFilter}
-                          onValueChange={setFeaturedFilter}
+                          onValueChange={(value) => {
+                            setFeaturedFilter(value);
+                            setCurrentPage(1);
+                          }}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue placeholder="All" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="featured">Featured</SelectItem>
-                            <SelectItem value="not-featured">
-                              Not Featured
-                            </SelectItem>
+                            <SelectItem value="true">Featured</SelectItem>
+                            <SelectItem value="false">Not Featured</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -683,32 +642,25 @@ export function ProductList() {
                   </p>
                 </div>
               </div>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               renderEmptyState()
             ) : (
               <div className="mt-6">{renderTableView()}</div>
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-xs text-muted-foreground">
-            {(searchQuery ||
-              categoryFilter ||
-              brandFilter ||
-              statusFilter ||
-              featuredFilter) &&
-            filteredProducts.length !== products.length ? (
-              <>
-                Showing <strong>{filteredProducts.length}</strong> of{" "}
-                <strong>{products.length}</strong> products
-              </>
-            ) : (
-              <>
-                Showing <strong>{filteredProducts.length}</strong>{" "}
-                {filteredProducts.length === 1 ? "product" : "products"}
-              </>
-            )}
+            Showing <strong>{products.length}</strong> of{" "}
+            <strong>{totalItems}</strong> products
           </div>
+
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            baseUrl="#"
+            onPageChange={handlePageChange}
+          />
         </CardFooter>
       </Card>
 

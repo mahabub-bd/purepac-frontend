@@ -38,6 +38,34 @@ export async function fetchData<T>(endpoint: string): Promise<T> {
   }
 }
 
+export async function fetchDataPagination<T>(endpoint: string): Promise<T> {
+  const url = `${apiUrl}/${endpoint}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      // Try to parse error response
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `HTTP error! Status: ${response.status}`;
+      } catch {
+        errorMessage = `HTTP error! Status: ${response.status}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error: unknown) {
+    console.error(`Error fetching data from ${endpoint}:`, error);
+    throw error;
+  }
+}
 export async function postData<T = any>(
   endpoint: string,
   values?: any

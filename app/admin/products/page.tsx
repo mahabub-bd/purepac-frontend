@@ -1,9 +1,32 @@
 import { ProductList } from "@/components/admin/products/product-list";
+import { ProductListSkeleton } from "@/components/admin/products/product-list-skeleton";
+import { Suspense } from "react";
 
-export default function ProductsPage() {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
+
+  const page =
+    typeof resolvedParams.page === "string"
+      ? Number.parseInt(resolvedParams.page)
+      : 1;
+  const limit =
+    typeof resolvedParams.limit === "string"
+      ? Number.parseInt(resolvedParams.limit)
+      : 8;
+
   return (
-    <div className="flex flex-col w-full h-full p-4 space-y-4">
-      <ProductList />
+    <div className="container mx-auto py-6">
+      <Suspense fallback={<ProductListSkeleton />}>
+        <ProductList
+          initialPage={page}
+          initialLimit={limit}
+          initialSearchParams={resolvedParams}
+        />
+      </Suspense>
     </div>
   );
 }

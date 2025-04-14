@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Brand } from "@/utils/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,14 +13,14 @@ export default function BrandCard({ brand }: { brand: Brand }) {
         className="flex flex-col justify-between items-center w-full h-full"
       >
         {/* Responsive image container */}
-        <div className="w-[100px] h-[100px] xs:w-[120px] xs:h-[120px] sm:w-[140px] sm:h-[140px] relative group-hover:scale-105 transition-transform duration-300">
+        <div className="w-[80px] h-[80px] xs:w-[100px] xs:h-[120px] sm:w-[120px] sm:h-[120px] relative group-hover:scale-105 transition-transform duration-300">
           <Image
             src={brand?.attachment?.url || "/placeholder.svg"}
             alt={brand.name}
             fill
             sizes="(max-width: 640px) 100px, (max-width: 768px) 120px, (max-width: 1024px) 140px, 145px"
             className="object-contain transition-opacity duration-300 opacity-90 hover:opacity-100"
-            quality={85}
+            quality={100}
           />
         </div>
 
@@ -35,13 +34,6 @@ export default function BrandCard({ brand }: { brand: Brand }) {
           </Badge>
         )}
 
-        {/* Brand name */}
-        <div className="mt-3 sm:mt-4 w-full px-1 sm:px-2">
-          <h3 className="font-bold text-gray-900 text-xs xs:text-sm line-clamp-2 h-[40px] flex items-center justify-center">
-            {brand.name}
-          </h3>
-        </div>
-
         {/* Product count */}
         <div className="flex items-center justify-center my-2 sm:my-3">
           <p className="text-[10px] xs:text-xs text-gray-500 font-medium flex items-center gap-1">
@@ -50,15 +42,6 @@ export default function BrandCard({ brand }: { brand: Brand }) {
           </p>
         </div>
       </Link>
-
-      {/* Responsive button */}
-      <Button
-        size="sm"
-        variant="outline"
-        className="font-medium text-[10px] xs:text-xs border-primary text-primary hover:bg-primary/10 hover:text-primary/90 rounded-lg py-1.5 xs:py-2 px-3 xs:px-4 transition-colors duration-300 w-full mt-auto"
-      >
-        <span className="hidden xs:inline">Browse</span> Brand
-      </Button>
     </div>
   );
 }

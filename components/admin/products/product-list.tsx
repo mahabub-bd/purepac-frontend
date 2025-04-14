@@ -649,18 +649,21 @@ export function ProductList({
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-xs text-muted-foreground">
-            Showing <strong>{products.length}</strong> of{" "}
-            <strong>{totalItems}</strong> products
+        <CardFooter className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground text-center md:text-left truncate">
+              {`Showing ${products.length} of ${totalItems} products`}
+            </p>
           </div>
 
-          <PaginationComponent
-            currentPage={currentPage}
-            totalPages={totalPages}
-            baseUrl="#"
-            onPageChange={handlePageChange}
-          />
+          <div className="flex-1 w-full md:w-auto">
+            <PaginationComponent
+              currentPage={currentPage}
+              totalPages={totalPages}
+              baseUrl="#"
+              onPageChange={handlePageChange}
+            />
+          </div>
         </CardFooter>
       </Card>
 

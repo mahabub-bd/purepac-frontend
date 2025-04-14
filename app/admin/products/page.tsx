@@ -19,7 +19,7 @@ export default async function ProductsPage({
       : 8;
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="p-6 space-y-6">
       <Suspense fallback={<ProductListSkeleton />}>
         <ProductList
           initialPage={page}

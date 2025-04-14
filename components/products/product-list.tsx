@@ -1,8 +1,7 @@
 import { fetchData } from "@/utils/api-utils";
 import { Product } from "@/utils/types";
-import { ReactNode, Suspense } from "react";
+import { ReactNode } from "react";
 import ProductCard from "./product-card";
-import { ProductSkeleton } from "./product-skeleton";
 
 export default async function ProductList({
   children,
@@ -17,19 +16,9 @@ export default async function ProductList({
     <div className="container mx-auto py-4 px-3 sm:px-4 md:py-8 lg:py-10 md:px-0">
       {children}
       <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-        <Suspense
-          fallback={
-            <div className="col-span-full grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-              {[...Array(10)].map((_, i) => (
-                <ProductSkeleton key={i} />
-              ))}
-            </div>
-          }
-        >
-          {products?.map((product: Product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </Suspense>
+        {products?.map((product: Product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
     </div>
   );

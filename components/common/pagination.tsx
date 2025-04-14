@@ -53,7 +53,7 @@ export function PaginationComponent({
   };
 
   return (
-    <Pagination>
+    <Pagination className="justify-center md:justify-end">
       <PaginationContent className="flex-wrap">
         {/* Previous Button */}
         <PaginationItem>
@@ -62,15 +62,15 @@ export function PaginationComponent({
             aria-disabled={currentPage <= 1}
             tabIndex={currentPage <= 1 ? -1 : undefined}
             className={
-              currentPage <= 1 ? "pointer-events-none opacity-50" : undefined
+              currentPage <= 1
+                ? "pointer-events-none opacity-50 cursor-pointer"
+                : undefined
             }
             onClick={(e) => currentPage > 1 && handleClick(currentPage - 1, e)}
           />
         </PaginationItem>
 
-        {/* Page Numbers with Ellipsis */}
         {visiblePages.map((page, index) => {
-          // Add ellipsis if there's a gap between pages
           const previousPage = visiblePages[index - 1];
           const needsEllipsisBefore = previousPage && page - previousPage > 1;
 

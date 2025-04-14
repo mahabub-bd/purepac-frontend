@@ -254,3 +254,21 @@ export async function deleteData(
     throw error;
   }
 }
+
+export function buildQueryString(
+  params: Record<string, string | string[] | undefined>
+): string {
+  const queryParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      if (Array.isArray(value)) {
+        value.forEach((v) => queryParams.append(key, v));
+      } else {
+        queryParams.set(key, value);
+      }
+    }
+  });
+
+  return queryParams.toString();
+}

@@ -97,9 +97,9 @@ export default function AuthBtn({
           aria-label="User menu"
         >
           <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
-            {user.image && (
+            {user?.profilePhoto?.url && (
               <AvatarImage
-                src={user.image || "/placeholder.svg"}
+                src={user?.profilePhoto?.url|| "/placeholder.svg"}
                 alt={user.name || "User avatar"}
                 referrerPolicy="no-referrer"
               />

@@ -87,9 +87,9 @@ export default function AdminProfileView({ user }: AdminProfileViewProps) {
         <Card className="md:col-span-1">
           <CardHeader className="flex flex-row items-center gap-4">
             <Avatar className="h-16 w-16 border-4 border-background">
-              {user.image ? (
+              {user?.profilePhoto?.url ? (
                 <AvatarImage
-                  src={user.image || "/placeholder.svg"}
+                  src={user?.profilePhoto?.url || "/placeholder.svg"}
                   alt={user.name || "Admin"}
                 />
               ) : (
@@ -227,9 +227,9 @@ export default function AdminProfileView({ user }: AdminProfileViewProps) {
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4 sm:flex-row">
                   <Avatar className="h-24 w-24">
-                    {user.image ? (
+                    {user?.profilePhoto?.url ? (
                       <AvatarImage
-                        src={user.image || "/placeholder.svg"}
+                        src={user?.profilePhoto?.url || "/placeholder.svg"}
                         alt={user.name || "Admin"}
                       />
                     ) : (

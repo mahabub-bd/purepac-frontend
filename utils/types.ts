@@ -1,4 +1,4 @@
-type UserRole = "superadmin" | "admin" | "user"; // add other possible roles here
+type UserRole = "superadmin" | "admin" | "user";
 
 export type UserTypes = {
   id: number;
@@ -7,7 +7,7 @@ export type UserTypes = {
   mobileNumber: string;
   roles: UserRole[];
   isAdmin: boolean;
-  image?: any;
+  profilePhoto?: Attachment;
   createdAt: string;
   updatedAt: string;
 };
@@ -24,7 +24,7 @@ export interface User {
   mobileNumber: string;
   otp: string | null;
   otpExpiresAt: string;
-  image?: any;
+  profilePhoto?: Attachment;
   isAdmin: boolean;
 }
 export interface Brand {
@@ -51,7 +51,6 @@ export interface Category {
 }
 
 export interface Product {
-  length: any;
   id: number;
   name: string;
   description: string;

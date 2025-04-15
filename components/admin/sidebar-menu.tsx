@@ -226,9 +226,9 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                   <Avatar
                     className={cn("h-8 w-8", collapsed ? "mr-0" : "mr-2")}
                   >
-                    {user.image && (
+                    {user?.profilePhoto?.url && (
                       <AvatarImage
-                        src={user.image || AvatarImageIcon}
+                        src={user?.profilePhoto?.url || AvatarImageIcon.src}
                         alt={user.name || "User avatar"}
                         referrerPolicy="no-referrer"
                       />

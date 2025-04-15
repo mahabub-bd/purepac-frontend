@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,6 +73,7 @@ export function ProductFilters({
   const [priceFilterType, setPriceFilterType] = useState<"range" | "slider">(
     "range"
   );
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Count active filters
   const activeFiltersCount = [
@@ -121,6 +123,7 @@ export function ProductFilters({
           : categoryId.toString(),
     };
     router.push(`${pathname}?${createQueryString(params)}`);
+    setIsSheetOpen(false);
   };
 
   const handleBrandChange = (brandId: number) => {
@@ -128,6 +131,7 @@ export function ProductFilters({
       brand: brandId.toString() === currentBrand ? null : brandId.toString(),
     };
     router.push(`${pathname}?${createQueryString(params)}`);
+    setIsSheetOpen(false);
   };
 
   const handleFeaturedChange = (checked: boolean) => {
@@ -135,6 +139,7 @@ export function ProductFilters({
       featured: checked ? "true" : null,
     };
     router.push(`${pathname}?${createQueryString(params)}`);
+    setIsSheetOpen(false);
   };
 
   const handlePriceRangeChange = (value: string) => {
@@ -142,6 +147,7 @@ export function ProductFilters({
       router.push(
         `${pathname}?${createQueryString({ minPrice: null, maxPrice: null })}`
       );
+      setIsSheetOpen(false);
       return;
     }
 
@@ -152,6 +158,7 @@ export function ProductFilters({
         maxPrice: max === "Infinity" ? max : max,
       })}`
     );
+    setIsSheetOpen(false);
   };
 
   const handleSliderPriceChange = (values: number[]) => {
@@ -166,6 +173,7 @@ export function ProductFilters({
       router.push(
         `${pathname}?${createQueryString({ minPrice: null, maxPrice: null })}`
       );
+      setIsSheetOpen(false);
       return;
     }
 
@@ -177,10 +185,12 @@ export function ProductFilters({
         maxPrice: maxValue,
       })}`
     );
+    setIsSheetOpen(false);
   };
 
   const handleResetFilters = () => {
     router.push(pathname);
+    setIsSheetOpen(false);
   };
 
   const formatPrice = (price: number) => {
@@ -203,310 +213,340 @@ export function ProductFilters({
     ? brands.find((b) => b.id.toString() === currentBrand)?.name
     : null;
 
-  return (
-    <Card className="border-none shadow-none">
-      <CardContent className="p-0">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Filters</h3>
-            {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-2">
-                {activeFiltersCount}
+
+  const FilterContent = () => (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Filter className="h-5 w-5 text-muted-foreground" />
+          <h3 className="text-lg font-semibold">Filters</h3>
+          {hasActiveFilters && (
+            <Badge variant="secondary" className="ml-2">
+              {activeFiltersCount}
+            </Badge>
+          )}
+        </div>
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleResetFilters}
+            className="h-8 text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+            Clear All
+          </Button>
+        )}
+      </div>
+
+      {hasActiveFilters && (
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            {currentCategoryName && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
+              >
+                <span className="text-xs">Category: {currentCategoryName}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 ml-1 rounded-full"
+                  onClick={() =>
+                    handleCategoryChange(Number.parseInt(currentCategory!))
+                  }
+                >
+                  <X className="h-3 w-3" />
+                  <span className="sr-only">Remove category filter</span>
+                </Button>
+              </Badge>
+            )}
+            {currentBrandName && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
+              >
+                <span className="text-xs">Brand: {currentBrandName}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 ml-1 rounded-full"
+                  onClick={() =>
+                    handleBrandChange(Number.parseInt(currentBrand!))
+                  }
+                >
+                  <X className="h-3 w-3" />
+                  <span className="sr-only">Remove brand filter</span>
+                </Button>
+              </Badge>
+            )}
+            {currentFeatured && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
+              >
+                <span className="text-xs">Featured Only</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 ml-1 rounded-full"
+                  onClick={() => handleFeaturedChange(false)}
+                >
+                  <X className="h-3 w-3" />
+                  <span className="sr-only">Remove featured filter</span>
+                </Button>
+              </Badge>
+            )}
+            {(currentPriceRange?.min || currentPriceRange?.max) && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
+              >
+                <span className="text-xs">
+                  Price:{" "}
+                  {currentPriceRange.min && currentPriceRange.max
+                    ? `${formatPrice(Number(currentPriceRange.min))} - ${
+                        currentPriceRange.max === "Infinity"
+                          ? `${formatPrice(MAX_PRICE)}+`
+                          : formatPrice(Number(currentPriceRange.max))
+                      }`
+                    : currentPriceRange.min
+                    ? `Min ${formatPrice(Number(currentPriceRange.min))}`
+                    : `Max ${formatPrice(Number(currentPriceRange.max))}`}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 ml-1 rounded-full"
+                  onClick={() =>
+                    router.push(
+                      `${pathname}?${createQueryString({
+                        minPrice: null,
+                        maxPrice: null,
+                      })}`
+                    )
+                  }
+                >
+                  <X className="h-3 w-3" />
+                  <span className="sr-only">Remove price filter</span>
+                </Button>
               </Badge>
             )}
           </div>
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleResetFilters}
-              className="h-8 text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-              Clear All
-            </Button>
-          )}
+        </div>
+      )}
+
+      <Separator className="mb-6" />
+
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium">Featured Products</h4>
+            <Switch
+              id="featured"
+              checked={currentFeatured || false}
+              onCheckedChange={handleFeaturedChange}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Show only featured products
+          </p>
         </div>
 
-        {hasActiveFilters && (
-          <div className="mb-6">
-            <div className="flex flex-wrap gap-2">
-              {currentCategoryName && (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
-                >
-                  <span className="text-xs">
-                    Category: {currentCategoryName}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 ml-1 rounded-full"
-                    onClick={() =>
-                      handleCategoryChange(Number.parseInt(currentCategory!))
-                    }
-                  >
-                    <X className="h-3 w-3" />
-                    <span className="sr-only">Remove category filter</span>
-                  </Button>
-                </Badge>
-              )}
-              {currentBrandName && (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
-                >
-                  <span className="text-xs">Brand: {currentBrandName}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 ml-1 rounded-full"
-                    onClick={() =>
-                      handleBrandChange(Number.parseInt(currentBrand!))
-                    }
-                  >
-                    <X className="h-3 w-3" />
-                    <span className="sr-only">Remove brand filter</span>
-                  </Button>
-                </Badge>
-              )}
-              {currentFeatured && (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
-                >
-                  <span className="text-xs">Featured Only</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 ml-1 rounded-full"
-                    onClick={() => handleFeaturedChange(false)}
-                  >
-                    <X className="h-3 w-3" />
-                    <span className="sr-only">Remove featured filter</span>
-                  </Button>
-                </Badge>
-              )}
-              {(currentPriceRange?.min || currentPriceRange?.max) && (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 pl-2 pr-1 py-1 bg-background hover:bg-muted transition-colors"
-                >
-                  <span className="text-xs">
-                    Price:{" "}
-                    {currentPriceRange.min && currentPriceRange.max
-                      ? `${formatPrice(Number(currentPriceRange.min))} - ${
-                          currentPriceRange.max === "Infinity"
-                            ? `${formatPrice(MAX_PRICE)}+`
-                            : formatPrice(Number(currentPriceRange.max))
-                        }`
-                      : currentPriceRange.min
-                      ? `Min ${formatPrice(Number(currentPriceRange.min))}`
-                      : `Max ${formatPrice(Number(currentPriceRange.max))}`}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 ml-1 rounded-full"
-                    onClick={() =>
-                      router.push(
-                        `${pathname}?${createQueryString({
-                          minPrice: null,
-                          maxPrice: null,
-                        })}`
-                      )
-                    }
-                  >
-                    <X className="h-3 w-3" />
-                    <span className="sr-only">Remove price filter</span>
-                  </Button>
-                </Badge>
-              )}
-            </div>
-          </div>
-        )}
-
-        <Separator className="mb-6" />
-
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Featured Products</h4>
-              <Switch
-                id="featured"
-                checked={currentFeatured || false}
-                onCheckedChange={handleFeaturedChange}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Show only featured products
-            </p>
-          </div>
-
-          <Accordion
-            type="multiple"
-            defaultValue={["categories", "brands", "price"]}
-            className="space-y-4"
+        <Accordion
+          type="multiple"
+          defaultValue={["categories", "brands", "price"]}
+          className="space-y-4"
+        >
+          <AccordionItem
+            value="categories"
+            className="border rounded-md px-4 py-2"
           >
-            <AccordionItem
-              value="categories"
-              className="border rounded-md px-4 py-2"
-            >
-              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-                Categories
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-2 pt-2">
-                  {categories.map((category) => (
-                    <div
-                      key={category.id}
-                      className="flex items-center space-x-2"
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              Categories
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2 pt-2">
+                {categories.map((category) => (
+                  <div
+                    key={category.id}
+                    className="flex items-center space-x-2"
+                  >
+                    <Checkbox
+                      id={`category-${category.id}`}
+                      checked={category.id.toString() === currentCategory}
+                      onCheckedChange={() => handleCategoryChange(category.id)}
+                    />
+                    <Label
+                      htmlFor={`category-${category.id}`}
+                      className="text-sm font-normal cursor-pointer"
                     >
-                      <Checkbox
-                        id={`category-${category.id}`}
-                        checked={category.id.toString() === currentCategory}
-                        onCheckedChange={() =>
-                          handleCategoryChange(category.id)
-                        }
-                      />
-                      <Label
-                        htmlFor={`category-${category.id}`}
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        {category.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+                      {category.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-            <AccordionItem
-              value="brands"
-              className="border rounded-md px-4 py-2"
-            >
-              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-                Brands
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-2 pt-2">
-                  {brands.map((brand) => (
-                    <div key={brand.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`brand-${brand.id}`}
-                        checked={brand.id.toString() === currentBrand}
-                        onCheckedChange={() => handleBrandChange(brand.id)}
-                      />
-                      <Label
-                        htmlFor={`brand-${brand.id}`}
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        {brand.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem
-              value="price"
-              className="border rounded-md px-4 py-2"
-            >
-              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-                Price Range
-              </AccordionTrigger>
-              <AccordionContent>
-                <Tabs
-                  defaultValue={priceFilterType}
-                  onValueChange={(value) =>
-                    setPriceFilterType(value as "range" | "slider")
-                  }
-                  className="mt-2"
-                >
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="range">Preset Ranges</TabsTrigger>
-                    <TabsTrigger value="slider">Custom Range</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="range">
-                    <RadioGroup
-                      value={currentPriceValue}
-                      onValueChange={handlePriceRangeChange}
-                      className="space-y-2"
+          <AccordionItem value="brands" className="border rounded-md px-4 py-2">
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              Brands
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2 pt-2">
+                {brands.map((brand) => (
+                  <div key={brand.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`brand-${brand.id}`}
+                      checked={brand.id.toString() === currentBrand}
+                      onCheckedChange={() => handleBrandChange(brand.id)}
+                    />
+                    <Label
+                      htmlFor={`brand-${brand.id}`}
+                      className="text-sm font-normal cursor-pointer"
                     >
-                      {PRICE_RANGES.map((range) => (
-                        <div
-                          key={range.label}
-                          className="flex items-center space-x-2"
+                      {brand.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="price" className="border rounded-md px-4 py-2">
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              Price Range
+            </AccordionTrigger>
+            <AccordionContent>
+              <Tabs
+                defaultValue={priceFilterType}
+                onValueChange={(value) =>
+                  setPriceFilterType(value as "range" | "slider")
+                }
+                className="mt-2"
+              >
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="range">Preset Ranges</TabsTrigger>
+                  <TabsTrigger value="slider">Custom Range</TabsTrigger>
+                </TabsList>
+                <TabsContent value="range">
+                  <RadioGroup
+                    value={currentPriceValue}
+                    onValueChange={handlePriceRangeChange}
+                    className="space-y-2"
+                  >
+                    {PRICE_RANGES.map((range) => (
+                      <div
+                        key={range.label}
+                        className="flex items-center space-x-2"
+                      >
+                        <RadioGroupItem
+                          value={`${range.min}-${
+                            range.max === Number.POSITIVE_INFINITY
+                              ? "Infinity"
+                              : range.max
+                          }`}
+                          id={`price-${range.min}-${range.max}`}
+                        />
+                        <Label
+                          htmlFor={`price-${range.min}-${range.max}`}
+                          className="text-sm font-normal cursor-pointer"
                         >
-                          <RadioGroupItem
-                            value={`${range.min}-${
-                              range.max === Number.POSITIVE_INFINITY
-                                ? "Infinity"
-                                : range.max
-                            }`}
-                            id={`price-${range.min}-${range.max}`}
-                          />
-                          <Label
-                            htmlFor={`price-${range.min}-${range.max}`}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {range.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </TabsContent>
-                  <TabsContent value="slider">
-                    <div className="space-y-6 pt-2 px-1">
-                      <Slider
-                        defaultValue={[0, MAX_PRICE]}
-                        value={priceRange}
-                        min={0}
-                        max={MAX_PRICE}
-                        step={1000}
-                        onValueChange={handleSliderPriceChange}
-                        onValueCommit={handleSliderPriceChangeCommitted}
-                        className="mb-6"
-                      />
+                          {range.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </TabsContent>
+                <TabsContent value="slider">
+                  <div className="space-y-6 pt-2 px-1">
+                    <Slider
+                      defaultValue={[0, MAX_PRICE]}
+                      value={priceRange}
+                      min={0}
+                      max={MAX_PRICE}
+                      step={1000}
+                      onValueChange={handleSliderPriceChange}
+                      onValueCommit={handleSliderPriceChangeCommitted}
+                      className="mb-6"
+                    />
 
-                      <div className="flex items-center justify-between">
-                        <div className="border rounded-md px-3 py-1.5">
-                          <span className="text-sm">
-                            {formatPrice(priceRange[0])}
-                          </span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">to</div>
-                        <div className="border rounded-md px-3 py-1.5">
-                          <span className="text-sm">
-                            {priceRange[1] === MAX_PRICE
-                              ? `${formatPrice(MAX_PRICE)}+`
-                              : formatPrice(priceRange[1])}
-                          </span>
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <div className="border rounded-md px-3 py-1.5">
+                        <span className="text-sm">
+                          {formatPrice(priceRange[0])}
+                        </span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">to</div>
+                      <div className="border rounded-md px-3 py-1.5">
+                        <span className="text-sm">
+                          {priceRange[1] === MAX_PRICE
+                            ? `${formatPrice(MAX_PRICE)}+`
+                            : formatPrice(priceRange[1])}
+                        </span>
                       </div>
                     </div>
-                  </TabsContent>
-                </Tabs>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
-          {hasActiveFilters && (
-            <div className="pt-4 md:hidden">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleResetFilters}
-              >
-                Reset All Filters
-              </Button>
+        {hasActiveFilters && (
+          <div className="pt-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleResetFilters}
+            >
+              Reset All Filters
+            </Button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop view - unchanged except for removing the hidden class */}
+      <Card className="border-none shadow-none fixed top-16 md:flex hidden">
+        <CardContent className="p-0">
+          <FilterContent />
+        </CardContent>
+      </Card>
+
+      {/* Mobile view - Sheet component that slides in from the right */}
+      <div className="md:hidden fixed top-32 left-4 z-50">
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
+            <Button
+              className="rounded-full h-10 w-10  shadow-lg flex items-center justify-center"
+              size="icon"
+            >
+              <Filter className="h-4 w-4" />
+              {hasActiveFilters && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center p-0 rounded-full"
+                >
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="right"
+            className=" sm:max-w-md overflow-y-auto p-6"
+          >
+            <div className="py-6">
+              <FilterContent />
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </>
   );
 }

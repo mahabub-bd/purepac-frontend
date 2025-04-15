@@ -15,7 +15,7 @@ export default async function ProductList({
   return (
     <div className="container mx-auto py-4 px-3 sm:px-4 md:py-8 lg:py-10 md:px-0">
       {children}
-      <div className="grid grid-cols-1 md:px-0 px-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 sm:gap-8 md:gap-5 lg:gap-6 gap-10">
+      <div className="grid grid-cols-2 md:px-0 px-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 sm:gap-8 md:gap-5 lg:gap-6 gap-6">
         {products?.slice(0, 10)?.map((product: Product) => (
           <ProductCard key={product.id} product={product} />
         ))}

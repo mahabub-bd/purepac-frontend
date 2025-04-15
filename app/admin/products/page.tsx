@@ -1,5 +1,5 @@
+import Loading from "@/app/loading";
 import { ProductList } from "@/components/admin/products/product-list";
-import { ProductListSkeleton } from "@/components/admin/products/product-list-skeleton";
 import { Suspense } from "react";
 
 export default async function ProductsPage({
@@ -16,11 +16,11 @@ export default async function ProductsPage({
   const limit =
     typeof resolvedParams.limit === "string"
       ? Number.parseInt(resolvedParams.limit)
-      : 8;
+      : 7;
 
   return (
     <div className="p-6 space-y-6">
-      <Suspense fallback={<ProductListSkeleton />}>
+      <Suspense fallback={<Loading />}>
         <ProductList
           initialPage={page}
           initialLimit={limit}

@@ -1,5 +1,7 @@
 "use client";
 
+import Loading from "@/app/loading";
+import { PaginationComponent } from "@/components/common/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,13 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,73 +27,99 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-import DeleteConfirmationDialog from "../delete-confirmation-dialog";
-import { BrandForm } from "./brand-form";
-
-import { deleteData, fetchData } from "@/utils/api-utils";
-import { serverRevalidate } from "@/utils/revalidatePath";
+import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand } from "@/utils/types";
 import {
-  Loader2,
+  Filter,
   MoreHorizontal,
+  Package,
   Pencil,
   Plus,
   Search,
   Trash2,
+  XCircle,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 
-export function BrandList() {
+interface BrandListProps {
+  initialPage: number;
+  initialLimit: number;
+  initialSearchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export function BrandList({
+  initialPage,
+  initialLimit,
+  initialSearchParams = {},
+}: BrandListProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const getInitialParam = (key: string) => {
+    const param = searchParams?.get(key);
+    return param ? param : initialSearchParams?.[key] || "";
+  };
+
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(
+    getInitialParam("search") as string
+  );
+  const [statusFilter, setStatusFilter] = useState(
+    getInitialParam("status") as string
+  );
   const [isLoading, setIsLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
- 
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [limit] = useState(initialLimit);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const updateUrl = useCallback(() => {
+    const params = new URLSearchParams();
+
+    params.set("page", currentPage.toString());
+    params.set("limit", limit.toString());
+
+    if (searchQuery) params.set("search", searchQuery);
+    if (statusFilter && statusFilter !== "all")
+      params.set("status", statusFilter);
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, currentPage, limit, searchQuery, statusFilter]);
 
   const fetchBrands = async () => {
     setIsLoading(true);
     try {
-      const response = await fetchData<Brand[]>("brands");
+      const params = new URLSearchParams();
+      params.append("page", currentPage.toString());
+      params.append("limit", limit.toString());
 
-      if (Array.isArray(response)) {
-        setBrands(response);
-        filterBrands(response);
-      } else {
-        setBrands([]);
-        setFilteredBrands([]);
-        toast.error("Received invalid data format for brands");
-      }
+      if (searchQuery) params.append("search", searchQuery);
+      if (statusFilter && statusFilter !== "all")
+        params.append("status", statusFilter);
+
+      const response = await fetchDataPagination<{
+        data: Brand[];
+        total: number;
+        totalPages: number;
+      }>(`brands?${params.toString()}`);
+      setBrands(response.data);
+      setTotalItems(response.total);
+      setTotalPages(response.totalPages);
     } catch (error) {
       console.error("Error fetching brands:", error);
       toast.error("Failed to load brands. Please try again.");
       setBrands([]);
-      setFilteredBrands([]);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const filterBrands = (brandList = brands) => {
-    let filtered = [...brandList];
-
-    // Apply search query
-    if (searchQuery.trim()) {
-      const lowerCaseQuery = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (brand) =>
-          brand.name.toLowerCase().includes(lowerCaseQuery) ||
-          brand.description.toLowerCase().includes(lowerCaseQuery)
-      );
-    }
-
-    setFilteredBrands(filtered);
   };
 
   useEffect(() => {
@@ -106,12 +127,12 @@ export function BrandList() {
   }, []);
 
   useEffect(() => {
-    filterBrands();
-  }, [searchQuery, brands]);
+    fetchBrands();
+    updateUrl();
+  }, [currentPage, limit, searchQuery, statusFilter]);
 
-  const handleEdit = (brand: Brand) => {
-    setSelectedBrand(brand);
-    setIsEditDialogOpen(true);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const handleDeleteClick = (brand: Brand) => {
@@ -125,7 +146,7 @@ export function BrandList() {
     try {
       await deleteData("brands", selectedBrand.id);
       fetchBrands();
-      serverRevalidate("admin/brand");
+      toast.success("Brand deleted successfully");
     } catch (error) {
       console.error("Error deleting brand:", error);
       toast.error("Failed to delete brand. Please try again.");
@@ -134,50 +155,146 @@ export function BrandList() {
     }
   };
 
-  const handleFormSuccess = () => {
-    setIsAddDialogOpen(false);
-    setIsEditDialogOpen(false);
-    fetchBrands();
-  };
-
   const clearFilters = () => {
     setSearchQuery("");
+    setStatusFilter("");
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center p-8 text-center">
-      <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center mb-4">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-6 w-6 text-muted-foreground"
-        >
-          <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H6a2 2 0 0 0 0-4H4a1 1 0 0 1-1-1V2" />
-        </svg>
-      </div>
+      <Package className="h-10 w-10 text-muted-foreground mb-4" />
       <h3 className="text-lg font-semibold">No brands found</h3>
       <p className="text-sm text-muted-foreground mt-2">
-        {searchQuery
-          ? "No brands match your search criteria. Try a different search term."
+        {searchQuery || statusFilter
+          ? "No brands match your search criteria. Try different filters."
           : "Get started by adding your first brand."}
       </p>
-      {!searchQuery && (
-        <Button className="mt-4" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Add Brand
+      {!(searchQuery || statusFilter) && (
+        <Button asChild className="mt-4">
+          <Link href="/admin/brand/add">
+            <Plus className="mr-2 h-4 w-4" /> Add Brand
+          </Link>
         </Button>
       )}
-      {searchQuery && (
+      {(searchQuery || statusFilter) && (
         <Button variant="outline" className="mt-4" onClick={clearFilters}>
           Clear Filters
         </Button>
       )}
+    </div>
+  );
+
+  const renderActiveFilters = () => {
+    const hasFilters = searchQuery || statusFilter;
+
+    if (!hasFilters) return null;
+
+    return (
+      <div className="flex flex-wrap gap-2 mt-4">
+        {searchQuery && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 px-3 py-1"
+          >
+            Search: {searchQuery}
+            <button onClick={() => setSearchQuery("")} className="ml-1">
+              <XCircle className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        {statusFilter && statusFilter !== "all" && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 px-3 py-1"
+          >
+            Status: {statusFilter}
+            <button onClick={() => setStatusFilter("")} className="ml-1">
+              <XCircle className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearFilters}
+          className="h-7 text-xs"
+        >
+          Clear all
+        </Button>
+      </div>
+    );
+  };
+
+  const renderTableView = () => (
+    <div className="rounded-md border md:p-6 p-2">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Logo</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="hidden md:table-cell">Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {brands.map((brand) => (
+            <TableRow key={brand.id}>
+              <TableCell>
+                <div className="rounded-md overflow-hidden">
+                  <Image
+                    src={brand?.attachment?.url || "/placeholder.svg"}
+                    alt={brand.name}
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                  />
+                </div>
+              </TableCell>
+              <TableCell className="font-medium">{brand.name}</TableCell>
+              <TableCell className="text-wrap">
+                {brand.description || "No description"}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                <Badge variant={brand.isActive ? "default" : "destructive"}>
+                  {brand.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Open menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/brand/${brand.id}/edit`}>
+                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-600"
+                      onClick={() => handleDeleteClick(brand)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 
@@ -189,13 +306,17 @@ export function BrandList() {
             <CardTitle>Brands</CardTitle>
             <CardDescription>Manage your product brands</CardDescription>
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add Brand
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link href="/admin/brand/add">
+                <Plus className="mr-2 h-4 w-4" /> Add Brand
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -203,194 +324,130 @@ export function BrandList() {
                   placeholder="Search brands..."
                   className="pl-8"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
                 />
               </div>
 
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearFilters}
-                  className="h-10 w-10"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4"
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 px-3"
+                    >
+                      <Filter className="h-4 w-4" />
+                      <span>Filters</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-64 p-3 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+                    sideOffset={8}
                   >
-                    <path d="M3 6h18" />
-                    <path d="M7 12h10" />
-                    <path d="M10 18h4" />
-                  </svg>
-                </Button>
-              )}
+                    <div className="space-y-3">
+                      {/* Header */}
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">Filters</h4>
+                        {statusFilter && statusFilter !== "all" && (
+                          <button
+                            onClick={clearFilters}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Status Filter */}
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground">
+                          Status
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            onClick={() => {
+                              setStatusFilter("all");
+                              setCurrentPage(1);
+                            }}
+                            className={`text-xs py-1.5 px-2 rounded-md border ${
+                              statusFilter === "all"
+                                ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
+                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                            }`}
+                          >
+                            All
+                          </button>
+                          <button
+                            onClick={() => {
+                              setStatusFilter("active");
+                              setCurrentPage(1);
+                            }}
+                            className={`text-xs py-1.5 px-2 rounded-md border flex items-center justify-center gap-1 ${
+                              statusFilter === "active"
+                                ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800 text-green-600 dark:text-green-400"
+                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                            }`}
+                          >
+                            <span className="h-2 w-2 rounded-full bg-green-500" />
+                            Active
+                          </button>
+                          <button
+                            onClick={() => {
+                              setStatusFilter("inactive");
+                              setCurrentPage(1);
+                            }}
+                            className={`text-xs py-1.5 px-2 rounded-md border flex items-center justify-center gap-1 ${
+                              statusFilter === "inactive"
+                                ? "bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800 text-red-600 dark:text-red-400"
+                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                            }`}
+                          >
+                            <span className="h-2 w-2 rounded-full bg-red-500" />
+                            Inactive
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
 
+            {renderActiveFilters()}
+
             {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">
-                    Loading brands...
-                  </p>
-                </div>
-              </div>
-            ) : filteredBrands.length === 0 ? (
+              <Loading />
+            ) : brands.length === 0 ? (
               renderEmptyState()
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Logo</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Description
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Status
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Products
-                      </TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredBrands.map((brand) => (
-                      <TableRow key={brand.id}>
-                        <TableCell>
-                          <div className="size-16 rounded-md overflow-hidden">
-                            <Image
-                              src={brand.attachment?.url || "/placeholder.svg"}
-                              alt={brand.name}
-                              width={64}
-                              height={64}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {brand.name}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <p className="line-clamp-2 text-sm text-muted-foreground">
-                            {brand.description}
-                          </p>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <Badge
-                            variant={brand.isActive ? "default" : "secondary"}
-                          >
-                            {brand.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {brand.products?.length || 0}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleEdit(brand)}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteClick(brand)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <div className="mt-6">{renderTableView()}</div>
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <div className="text-xs text-muted-foreground">
-            {searchQuery && filteredBrands.length !== brands.length ? (
-              <>
-                Showing <strong>{filteredBrands.length}</strong> of{" "}
-                <strong>{brands.length}</strong> brands
-              </>
-            ) : (
-              <>
-                Showing <strong>{filteredBrands.length}</strong>{" "}
-                {filteredBrands.length === 1 ? "brand" : "brands"}
-              </>
-            )}
+        <CardFooter className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground text-center md:text-left truncate">
+              {`Showing ${brands.length} of ${totalItems} brands`}
+            </p>
           </div>
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-7 text-xs"
-            >
-              Clear filters
-            </Button>
-          )}
+
+          <div className="flex-1 w-full md:w-auto">
+            <PaginationComponent
+              currentPage={currentPage}
+              totalPages={totalPages}
+              baseUrl="#"
+              onPageChange={handlePageChange}
+            />
+          </div>
         </CardFooter>
       </Card>
-
-      {/* Add Brand Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add New Brand</DialogTitle>
-            <DialogDescription>
-              Create a new brand. Fill in all the required information.
-            </DialogDescription>
-          </DialogHeader>
-          <BrandForm onSuccess={handleFormSuccess} mode="create" />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Brand Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Brand</DialogTitle>
-            <DialogDescription>Update the brand information.</DialogDescription>
-          </DialogHeader>
-          {selectedBrand && (
-            <BrandForm
-              onSuccess={handleFormSuccess}
-              mode="edit"
-              brand={selectedBrand}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDelete}
-        defaultToast={true}
-        toastMessage="Brand deleted successfully"
       />
     </>
   );

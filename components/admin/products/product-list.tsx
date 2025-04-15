@@ -11,13 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -40,15 +33,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import DeleteConfirmationDialog from "../delete-confirmation-dialog";
-
+import Loading from "@/app/loading";
 import { PaginationComponent } from "@/components/common/pagination";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData, fetchData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand, Category, Product } from "@/utils/types";
 import {
   Filter,
-  Loader2,
   MoreHorizontal,
   Package,
   Pencil,
@@ -59,10 +50,11 @@ import {
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ProductForm } from "./product-form";
+import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 
 interface ProductListProps {
   initialPage: number;
@@ -103,8 +95,6 @@ export function ProductList({
     getInitialParam("featured") as string
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [totalItems, setTotalItems] = useState(0);
@@ -221,11 +211,6 @@ export function ProductList({
     setCurrentPage(page);
   };
 
-  const handleEdit = (product: Product) => {
-    setSelectedProduct(product);
-    setIsEditDialogOpen(true);
-  };
-
   const handleDeleteClick = (product: Product) => {
     setSelectedProduct(product);
     setIsDeleteDialogOpen(true);
@@ -244,12 +229,6 @@ export function ProductList({
     } finally {
       setIsDeleteDialogOpen(false);
     }
-  };
-
-  const handleFormSuccess = () => {
-    setIsAddDialogOpen(false);
-    setIsEditDialogOpen(false);
-    fetchProducts();
   };
 
   const clearFilters = () => {
@@ -286,8 +265,10 @@ export function ProductList({
         statusFilter ||
         featuredFilter
       ) && (
-        <Button className="mt-4" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Add Product
+        <Button asChild className="mt-4">
+          <Link href="/products/add">
+            <Plus className="mr-2 h-4 w-4" /> Add Product
+          </Link>
         </Button>
       )}
       {(searchQuery ||
@@ -391,7 +372,7 @@ export function ProductList({
   };
 
   const renderTableView = () => (
-    <div className="rounded-md border">
+    <div className="rounded-md border md:p-6 p-2">
       <Table>
         <TableHeader>
           <TableRow>
@@ -464,8 +445,10 @@ export function ProductList({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(product)}>
-                      <Pencil className="mr-2 h-4 w-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/products/${product.id}/edit`}>
+                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-red-600"
@@ -492,8 +475,10 @@ export function ProductList({
             <CardDescription>Manage your product inventory</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Add Product
+            <Button asChild>
+              <Link href="/admin/products/add">
+                <Plus className="mr-2 h-4 w-4" /> Add Product
+              </Link>
             </Button>
           </div>
         </CardHeader>
@@ -634,14 +619,7 @@ export function ProductList({
             {renderActiveFilters()}
 
             {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">
-                    Loading products...
-                  </p>
-                </div>
-              </div>
+              <Loading />
             ) : products.length === 0 ? (
               renderEmptyState()
             ) : (
@@ -666,45 +644,6 @@ export function ProductList({
           </div>
         </CardFooter>
       </Card>
-
-      {/* Add Product Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Product</DialogTitle>
-            <DialogDescription>
-              Create a new product. Fill in all the required information.
-            </DialogDescription>
-          </DialogHeader>
-          <ProductForm
-            onSuccess={handleFormSuccess}
-            mode="create"
-            brands={brands}
-            categories={categories}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Product Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
-            <DialogDescription>
-              Update the product information.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedProduct && (
-            <ProductForm
-              onSuccess={handleFormSuccess}
-              mode="edit"
-              product={selectedProduct}
-              brands={brands}
-              categories={categories}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

@@ -1,6 +1,7 @@
 "use client";
 
-import { logout } from "@/actions/auth";
+import type React from "react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,31 +13,194 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { adminMenuItems, userMenuItems } from "@/constants";
 import { cn } from "@/lib/utils";
-import { AvatarImageIcon } from "@/public/images";
-import type { authResponse, UserTypes } from "@/utils/types";
 import {
+  BarChart,
+  ChevronDown,
   ChevronLeft,
+  Home,
+  ImageIcon,
+  LayoutGrid,
   LogOut,
+  Megaphone,
   Menu,
   Package,
   Settings,
+  ShoppingBag,
+  ShoppingCart,
+  Tag,
   User,
   UserCircle,
+  Users,
+  UsersRound,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+
+// Define menu item types
+interface MenuItem {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+  subItems?: SubMenuItem[];
+}
+
+interface SubMenuItem {
+  name: string;
+  href: string;
+}
+
+interface UserTypes {
+  name?: string;
+  email?: string;
+  isAdmin?: boolean;
+  profilePhoto?: {
+    url?: string;
+  };
+}
 
 interface SidebarProps {
   className?: string;
   user: UserTypes;
   logo?: string;
 }
+
+// Admin menu items with submenus
+const adminMenuItems: MenuItem[] = [
+  {
+    name: "Dashboard",
+    href: "/admin/dashboard",
+    icon: Home,
+  },
+  {
+    name: "Orders",
+    href: "/admin/orders",
+    icon: ShoppingCart,
+    subItems: [
+      { name: "All Orders", href: "/admin/orders" },
+      { name: "Pending", href: "/admin/orders/pending" },
+      { name: "Completed", href: "/admin/orders/completed" },
+      { name: "Cancelled", href: "/admin/orders/cancelled" },
+    ],
+  },
+  {
+    name: "Products",
+    href: "/admin/products",
+    icon: Package,
+    subItems: [
+      { name: "All Products", href: "/admin/products" },
+      { name: "Add Product", href: "/admin/products/add" },
+
+      { name: "Inventory", href: "/admin/products/inventory" },
+    ],
+  },
+  {
+    name: "Purchase",
+    href: "/admin/purchase",
+    icon: ShoppingBag,
+    subItems: [
+      { name: "All Purchases", href: "/admin/purchase" },
+      { name: "Add Purchase", href: "/admin/purchase/add" },
+      { name: "Suppliers", href: "/admin/purchase/suppliers" },
+    ],
+  },
+  {
+    name: "Brand",
+    href: "/admin/brand",
+    icon: Tag,
+    subItems: [
+      { name: "All Brands", href: "/admin/brand" },
+      { name: "Add Brand", href: "/admin/brand/add" },
+    ],
+  },
+  {
+    name: "Categories",
+    href: "/admin/categories",
+    icon: LayoutGrid,
+    subItems: [
+      { name: "All Categories", href: "/admin/categories" },
+      { name: "Add Category", href: "/admin/categories/add" },
+    ],
+  },
+  {
+    name: "Marketing",
+    href: "/admin/marketing",
+    icon: Megaphone,
+    subItems: [
+      { name: "Promotions", href: "/admin/marketing/promotions" },
+      { name: "Discounts", href: "/admin/marketing/discounts" },
+      { name: "Coupons", href: "/admin/marketing/coupons" },
+    ],
+  },
+  {
+    name: "Banner",
+    href: "/admin/banner",
+    icon: ImageIcon,
+  },
+  {
+    name: "Customer",
+    href: "/admin/customer",
+    icon: Users,
+  },
+  {
+    name: "Reports",
+    href: "/admin/reports",
+    icon: BarChart,
+    subItems: [
+      { name: "Sales", href: "/admin/reports/sales" },
+      { name: "Inventory", href: "/admin/reports/inventory" },
+      { name: "Customer", href: "/admin/reports/customer" },
+    ],
+  },
+  {
+    name: "User",
+    href: "/admin/user",
+    icon: UsersRound,
+  },
+  {
+    name: "Settings",
+    href: "/admin/settings",
+    icon: Settings,
+    subItems: [
+      { name: "General", href: "/admin/settings" },
+      { name: "Shipping", href: "/admin/settings/shipping" },
+      { name: "Payment", href: "/admin/settings/payment" },
+      { name: "Tax", href: "/admin/settings/tax" },
+    ],
+  },
+  {
+    name: "Profile",
+    href: "/admin/profile",
+    icon: UserCircle,
+  },
+];
+
+// User menu items
+const userMenuItems: MenuItem[] = [
+  {
+    name: "Dashboard",
+    href: "/account",
+    icon: Home,
+  },
+  {
+    name: "Orders",
+    href: "/account/orders",
+    icon: ShoppingCart,
+  },
+  {
+    name: "Profile",
+    href: "/account/profile",
+    icon: User,
+  },
+  {
+    name: "Settings",
+    href: "/account/settings",
+    icon: Settings,
+  },
+];
 
 export function SidebarMenu({ className, logo, user }: SidebarProps) {
   const pathname = usePathname();
@@ -45,23 +209,18 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const result: authResponse = await logout();
-
-      if (result.statusCode === 200) {
-        toast.success("Logged out successfully");
+      // Mock logout for demo purposes
+      setTimeout(() => {
         router.push("/auth/sign-in");
-        router.refresh();
-      } else {
-        toast.error("Failed to log out");
-      }
+        setIsLoggingOut(false);
+      }, 1000);
     } catch (error) {
-      toast.error("Failed to log out");
       console.error("Logout error:", error);
-    } finally {
       setIsLoggingOut(false);
     }
   };
@@ -79,6 +238,21 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
       .map((n) => n[0]?.toUpperCase() ?? "")
       .join("")
       .substring(0, 2);
+  };
+
+  const toggleSubMenu = (itemName: string) => {
+    setOpenSubMenus((prev) => ({
+      ...prev,
+      [itemName]: !prev[itemName],
+    }));
+  };
+
+  const isSubMenuActive = (item: MenuItem) => {
+    if (!item.subItems) return false;
+    return item.subItems.some(
+      (subItem) =>
+        pathname === subItem.href || pathname.startsWith(`${subItem.href}/`)
+    );
   };
 
   return (
@@ -175,38 +349,130 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
             {menuItems.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const hasSubMenu = item.subItems && item.subItems.length > 0;
+              const isSubActive = isSubMenuActive(item);
+              const isOpen = openSubMenus[item.name] || false;
 
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                    isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "transparent",
-                    collapsed ? "justify-center" : "justify-start"
+                <div key={item.name} className="flex flex-col">
+                  {hasSubMenu ? (
+                    <button
+                      onClick={() => toggleSubMenu(item.name)}
+                      className={cn(
+                        "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                        isActive || isSubActive
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "transparent",
+                        collapsed ? "justify-center" : "justify-between"
+                      )}
+                    >
+                      <div className="flex items-center">
+                        <item.icon
+                          className={cn(
+                            "h-5 w-5 shrink-0",
+                            collapsed ? "mr-0" : "mr-2"
+                          )}
+                        />
+                        {!collapsed && <span>{item.name}</span>}
+                      </div>
+                      {!collapsed && (
+                        <ChevronDown
+                          className={cn(
+                            "h-4 w-4 transition-transform",
+                            isOpen ? "rotate-180" : ""
+                          )}
+                        />
+                      )}
+                      {collapsed && (
+                        <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
+                          {item.name}
+                        </div>
+                      )}
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                        isActive
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "transparent",
+                        collapsed ? "justify-center" : "justify-start"
+                      )}
+                    >
+                      <item.icon
+                        className={cn(
+                          "h-5 w-5 shrink-0",
+                          collapsed ? "mr-0" : "mr-2"
+                        )}
+                      />
+                      {!collapsed && <span>{item.name}</span>}
+                      {collapsed && (
+                        <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
+                          {item.name}
+                        </div>
+                      )}
+                    </Link>
                   )}
-                >
-                  <item.icon
-                    className={cn(
-                      "h-5 w-5 shrink-0",
-                      collapsed ? "mr-0" : "mr-2"
-                    )}
-                  />
-                  {!collapsed && <span>{item.name}</span>}
-                  {collapsed && (
-                    <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
-                      {item.name}
+
+                  {/* Submenu */}
+                  {hasSubMenu && !collapsed && isOpen && (
+                    <div className="ml-6 mt-1 border-l pl-3 space-y-1">
+                      {item.subItems?.map((subItem) => {
+                        const isSubItemActive =
+                          pathname === subItem.href ||
+                          pathname.startsWith(`${subItem.href}/`);
+
+                        return (
+                          <Link
+                            key={subItem.name}
+                            href={subItem.href}
+                            className={cn(
+                              "flex h-8 items-center rounded-md px-3 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                              isSubItemActive
+                                ? "bg-primary/5 text-primary font-medium"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {subItem.name}
+                          </Link>
+                        );
+                      })}
                     </div>
                   )}
-                </Link>
+
+                  {/* Collapsed Submenu Dropdown */}
+                  {hasSubMenu && collapsed && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hidden absolute left-full ml-6 rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        side="right"
+                        align="start"
+                        className="w-48"
+                      >
+                        {item.subItems?.map((subItem) => (
+                          <DropdownMenuItem key={subItem.name} asChild>
+                            <Link href={subItem.href}>{subItem.name}</Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               );
             })}
           </nav>
         </ScrollArea>
 
-        {/* Profile Dropdown (replacing the logout button) */}
+        {/* Profile Dropdown */}
         <div className="border-t p-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -228,7 +494,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                   >
                     {user?.profilePhoto?.url && (
                       <AvatarImage
-                        src={user?.profilePhoto?.url || AvatarImageIcon.src}
+                        src={user?.profilePhoto?.url || "/placeholder.svg"}
                         alt={user.name || "User avatar"}
                         referrerPolicy="no-referrer"
                       />

@@ -116,7 +116,9 @@ export async function login(formData: LoginFormData) {
       await setUserCookies(userData);
       const user = await getUser();
 
-      const redirectPath = user?.isAdmin ? "/admin" : "/user";
+      const redirectPath = user?.isAdmin
+        ? "/admin/dashboard"
+        : "/user/dashboard";
 
       return {
         success: true,
@@ -217,7 +219,9 @@ export async function verifyOtp(data: {
       await setUserCookies(userData);
       const user = await getUser();
 
-      const redirectPath = user?.isAdmin ? "/admin" : "/user";
+      const redirectPath = user?.isAdmin
+        ? "/admin/dashboard"
+        : "/user/dashboard";
 
       return {
         success: true,

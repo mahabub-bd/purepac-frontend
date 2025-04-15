@@ -213,10 +213,9 @@ export function ProductFilters({
     ? brands.find((b) => b.id.toString() === currentBrand)?.name
     : null;
 
-
   const FilterContent = () => (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 ">
         <div className="flex items-center gap-2">
           <Filter className="h-5 w-5 text-muted-foreground" />
           <h3 className="text-lg font-semibold">Filters</h3>
@@ -358,62 +357,6 @@ export function ProductFilters({
           defaultValue={["categories", "brands", "price"]}
           className="space-y-4"
         >
-          <AccordionItem
-            value="categories"
-            className="border rounded-md px-4 py-2"
-          >
-            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-              Categories
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-2 pt-2">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center space-x-2"
-                  >
-                    <Checkbox
-                      id={`category-${category.id}`}
-                      checked={category.id.toString() === currentCategory}
-                      onCheckedChange={() => handleCategoryChange(category.id)}
-                    />
-                    <Label
-                      htmlFor={`category-${category.id}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {category.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="brands" className="border rounded-md px-4 py-2">
-            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-              Brands
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-2 pt-2">
-                {brands.map((brand) => (
-                  <div key={brand.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`brand-${brand.id}`}
-                      checked={brand.id.toString() === currentBrand}
-                      onCheckedChange={() => handleBrandChange(brand.id)}
-                    />
-                    <Label
-                      htmlFor={`brand-${brand.id}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {brand.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
           <AccordionItem value="price" className="border rounded-md px-4 py-2">
             <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
               Price Range
@@ -492,6 +435,61 @@ export function ProductFilters({
               </Tabs>
             </AccordionContent>
           </AccordionItem>
+          <AccordionItem
+            value="categories"
+            className="border rounded-md px-4 py-2"
+          >
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              Categories
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2 pt-2">
+                {categories.map((category) => (
+                  <div
+                    key={category.id}
+                    className="flex items-center space-x-2"
+                  >
+                    <Checkbox
+                      id={`category-${category.id}`}
+                      checked={category.id.toString() === currentCategory}
+                      onCheckedChange={() => handleCategoryChange(category.id)}
+                    />
+                    <Label
+                      htmlFor={`category-${category.id}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {category.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="brands" className="border rounded-md px-4 py-2">
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              Brands
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2 pt-2">
+                {brands.map((brand) => (
+                  <div key={brand.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`brand-${brand.id}`}
+                      checked={brand.id.toString() === currentBrand}
+                      onCheckedChange={() => handleBrandChange(brand.id)}
+                    />
+                    <Label
+                      htmlFor={`brand-${brand.id}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {brand.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
 
         {hasActiveFilters && (
@@ -512,7 +510,7 @@ export function ProductFilters({
   return (
     <>
       {/* Desktop view - unchanged except for removing the hidden class */}
-      <Card className="border-none shadow-none fixed top-16 md:flex hidden">
+      <Card className="border-none shadow-none p-2 fixed top-16 md:flex hidden h-[85vh]  overflow-y-scroll">
         <CardContent className="p-0">
           <FilterContent />
         </CardContent>

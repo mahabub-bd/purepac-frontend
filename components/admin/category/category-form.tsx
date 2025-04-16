@@ -103,7 +103,7 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
             ? "Category created successfully"
             : "Category updated successfully";
         toast.success(successMessage);
-        router.push("/admin/categories");
+        router.push("/admin/categories/categories-list");
       } else {
         toast.error(response?.message || "An error occurred");
       }

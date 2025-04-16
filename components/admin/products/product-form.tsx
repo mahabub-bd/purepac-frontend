@@ -157,7 +157,7 @@ export function ProductForm({
             ? "Product created successfully"
             : "Product updated successfully";
         toast.success(successMessage);
-        router.push("/admin/products");
+        router.push("/admin/products/products-list");
       } else {
         toast.error(response?.message || "An error occurred");
       }

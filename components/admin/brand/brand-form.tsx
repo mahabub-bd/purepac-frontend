@@ -102,7 +102,7 @@ export function BrandForm({ mode, brand }: BrandFormProps) {
             ? "Brand created successfully"
             : "Brand updated successfully";
         toast.success(successMessage);
-        router.push("/admin/brand");
+        router.push("/admin/brand/brand-list");
       } else {
         toast.error(response?.message || "An error occurred");
       }

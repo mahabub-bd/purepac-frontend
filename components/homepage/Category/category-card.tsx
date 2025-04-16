@@ -8,7 +8,7 @@ export function CategoryCard({ category }: { category: Category }) {
       href={`/categories/${category.slug || category.id}`}
       className="group block rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 bg-white hover:bg-gray-50"
     >
-      {/* Image Container */}
+      {/* Image Container - LCP Element */}
       <div className="p-2 xs:p-3 sm:p-4 flex justify-center items-center h-[120px] xs:h-[140px] sm:h-[160px]">
         <Image
           src={category?.attachment?.url || "/category-placeholder.svg"}
@@ -17,6 +17,8 @@ export function CategoryCard({ category }: { category: Category }) {
           height={600}
           className="object-contain w-[60px] xs:w-[80px] sm:w-[100px] transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 640px) 60px, (max-width: 768px) 80px, 100px"
+          priority={true}
+          loading="eager"
         />
       </div>
 

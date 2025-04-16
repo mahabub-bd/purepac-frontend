@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -20,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Filter, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface Category {
   id: number;
@@ -509,12 +509,11 @@ export function ProductFilters({
 
   return (
     <>
-      {/* Desktop view - unchanged except for removing the hidden class */}
-      <Card className="border-none shadow-none p-2 fixed top-16 md:flex hidden h-[85vh]  overflow-y-scroll">
-        <CardContent className="p-0">
+      <ScrollArea className="min-w-76 shadow-none p-2 md:flex hidden h-[90vh]  absolute top-2">
+        <div className="p-2 ">
           <FilterContent />
-        </CardContent>
-      </Card>
+        </div>
+      </ScrollArea>
 
       {/* Mobile view - Sheet component that slides in from the right */}
       <div className="md:hidden fixed top-32 left-4 z-50">

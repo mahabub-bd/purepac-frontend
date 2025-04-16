@@ -20,7 +20,7 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-background ">
       <SidebarMenu user={user} />
-      <div className="transition-all duration-300 ease-in-out pt-1 md:pt-0 md:pl-[260px] lg:pl-[260px]">
+      <div className="transition-all duration-300 ease-in-out pt-1 md:pt-0 md:pl-[250px] lg:pl-[260px]">
         {children}
       </div>
     </div>

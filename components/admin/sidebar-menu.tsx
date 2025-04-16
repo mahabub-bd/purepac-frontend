@@ -91,9 +91,8 @@ const adminMenuItems: MenuItem[] = [
     href: "/admin/products",
     icon: Package,
     subItems: [
-      { name: "All Products", href: "/admin/products" },
+      { name: "Product List", href: "/admin/products/products-list" },
       { name: "Add Product", href: "/admin/products/add" },
-
       { name: "Inventory", href: "/admin/products/inventory" },
     ],
   },
@@ -102,7 +101,7 @@ const adminMenuItems: MenuItem[] = [
     href: "/admin/purchase",
     icon: ShoppingBag,
     subItems: [
-      { name: "All Purchases", href: "/admin/purchase" },
+      { name: "Purchases List", href: "/admin/purchase/purchase-list" },
       { name: "Add Purchase", href: "/admin/purchase/add" },
       { name: "Suppliers", href: "/admin/purchase/suppliers" },
     ],
@@ -112,7 +111,7 @@ const adminMenuItems: MenuItem[] = [
     href: "/admin/brand",
     icon: Tag,
     subItems: [
-      { name: "All Brands", href: "/admin/brand" },
+      { name: "Brand List", href: "/admin/brand/brand-list" },
       { name: "Add Brand", href: "/admin/brand/add" },
     ],
   },
@@ -121,7 +120,7 @@ const adminMenuItems: MenuItem[] = [
     href: "/admin/categories",
     icon: LayoutGrid,
     subItems: [
-      { name: "All Categories", href: "/admin/categories" },
+      { name: "Category List", href: "/admin/categories/categories-list" },
       { name: "Add Category", href: "/admin/categories/add" },
     ],
   },

@@ -39,7 +39,7 @@ export default async function CategoryBrandProductList({
   }
 
   return (
-    <div className="container mx-auto py-4 px-3 sm:px-4 md:py-8 lg:py-10 md:px-0">
+    <div className="container mx-auto py-4 sm:px-1 md:py-8 lg:py-10 md:px-0">
       <HeadingPrimary title={title} />
 
       {products.length > 0 ? (

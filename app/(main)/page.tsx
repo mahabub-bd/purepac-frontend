@@ -4,12 +4,11 @@ import CategoriesList from "@/components/homepage/Category/categories-list";
 import ProductList from "@/components/products/product-list";
 
 export default function Home() {
-  
   return (
     <main className="min-h-screen">
       {/* Categories Section */}
       <section className="md:py-10 py-5 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto ">
           <CategoriesList endpoint="categories">
             <HeadingPrimary
               title="FEATURED CATEGORIES"
@@ -22,7 +21,7 @@ export default function Home() {
 
       {/* Best Selling Products Section */}
       <section className="md:py-10 py-5">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto ">
           <ProductList endpoint="products">
             <HeadingPrimary
               title="BEST SELLERS"
@@ -36,7 +35,7 @@ export default function Home() {
 
       {/* Featured Products Section */}
       <section className="md:py-10 py-5 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto ">
           <ProductList endpoint="products">
             <HeadingPrimary
               title="FEATURED PRODUCTS"
@@ -49,7 +48,7 @@ export default function Home() {
 
       {/* Brands Section */}
       <section className="md:py-10 py-5">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto ">
           <BrandList endpoint="brands">
             <HeadingPrimary
               title="OUR BRANDS"
@@ -61,7 +60,7 @@ export default function Home() {
       </section>
 
       <section className="md:py-10 py-5 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto ">
           <ProductList endpoint="products">
             <HeadingPrimary
               title="SPECIAL OFFERS"

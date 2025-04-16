@@ -242,6 +242,9 @@ export function BrandList({
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
+            <TableHead className="hidden md:table-cell text-center">
+              Products
+            </TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -267,6 +270,9 @@ export function BrandList({
                 <Badge variant={brand.isActive ? "default" : "destructive"}>
                   {brand.isActive ? "Active" : "Inactive"}
                 </Badge>
+              </TableCell>
+              <TableCell className="hidden md:table-cell text-center">
+                {brand.products?.length || 0}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>

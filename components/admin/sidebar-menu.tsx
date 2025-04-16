@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import {
   BarChart,
@@ -38,9 +35,9 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import type React from "react";
 import { useEffect, useState } from "react";
 
-// Define menu item types
 interface MenuItem {
   name: string;
   href: string;
@@ -68,7 +65,6 @@ interface SidebarProps {
   logo?: string;
 }
 
-// Admin menu items with submenus
 const adminMenuItems: MenuItem[] = [
   {
     name: "Dashboard",
@@ -177,7 +173,6 @@ const adminMenuItems: MenuItem[] = [
   },
 ];
 
-// User menu items
 const userMenuItems: MenuItem[] = [
   {
     name: "Dashboard",
@@ -213,7 +208,6 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      // Mock logout for demo purposes
       setTimeout(() => {
         router.push("/auth/sign-in");
         setIsLoggingOut(false);
@@ -256,7 +250,6 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile Overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm md:hidden"
@@ -264,7 +257,6 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
         />
       )}
 
-      {/* Mobile Toggle Button */}
       <Button
         variant="ghost"
         size="icon"
@@ -274,12 +266,10 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
-      {/* Mobile Header */}
       <div className="flex h-16 items-center justify-center md:hidden fixed top-0 left-0 right-0 bg-background z-40">
         <span className="font-semibold">{sidebarTitle}</span>
       </div>
 
-      {/* Sidebar */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-30 pt-4 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
@@ -288,7 +278,6 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
           className
         )}
       >
-        {/* Sidebar Header */}
         <div className="flex items-center justify-between px-4">
           <div
             className={cn(
@@ -342,136 +331,142 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
           </Button>
         </div>
 
-        {/* Sidebar Content */}
-        <ScrollArea className="flex-1 py-2">
-          <nav className="grid gap-1 px-2">
-            {menuItems.map((item) => {
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
-              const hasSubMenu = item.subItems && item.subItems.length > 0;
-              const isSubActive = isSubMenuActive(item);
-              const isOpen = openSubMenus[item.name] || false;
+        <div className="flex-1 overflow-y-auto">
+          <div className="h-full">
+            <div className="h-[calc(100%-3rem)] py-2">
+              <div className="h-full overflow-y-hidden hover:overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/50">
+                <nav className="grid gap-1 px-2">
+                  {menuItems.map((item) => {
+                    const isActive =
+                      pathname === item.href ||
+                      pathname.startsWith(`${item.href}/`);
+                    const hasSubMenu =
+                      item.subItems && item.subItems.length > 0;
+                    const isSubActive = isSubMenuActive(item);
+                    const isOpen = openSubMenus[item.name] || false;
 
-              return (
-                <div key={item.name} className="flex flex-col">
-                  {hasSubMenu ? (
-                    <button
-                      onClick={() => toggleSubMenu(item.name)}
-                      className={cn(
-                        "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                        isActive || isSubActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "transparent",
-                        collapsed ? "justify-center" : "justify-between"
-                      )}
-                    >
-                      <div className="flex items-center">
-                        <item.icon
-                          className={cn(
-                            "h-5 w-5 shrink-0",
-                            collapsed ? "mr-0" : "mr-2"
-                          )}
-                        />
-                        {!collapsed && <span>{item.name}</span>}
-                      </div>
-                      {!collapsed && (
-                        <ChevronDown
-                          className={cn(
-                            "h-4 w-4 transition-transform",
-                            isOpen ? "rotate-180" : ""
-                          )}
-                        />
-                      )}
-                      {collapsed && (
-                        <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
-                          {item.name}
-                        </div>
-                      )}
-                    </button>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                        isActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "transparent",
-                        collapsed ? "justify-center" : "justify-start"
-                      )}
-                    >
-                      <item.icon
-                        className={cn(
-                          "h-5 w-5 shrink-0",
-                          collapsed ? "mr-0" : "mr-2"
-                        )}
-                      />
-                      {!collapsed && <span>{item.name}</span>}
-                      {collapsed && (
-                        <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
-                          {item.name}
-                        </div>
-                      )}
-                    </Link>
-                  )}
-
-                  {/* Submenu */}
-                  {hasSubMenu && !collapsed && isOpen && (
-                    <div className="ml-6 mt-1 border-l pl-3 space-y-1">
-                      {item.subItems?.map((subItem) => {
-                        const isSubItemActive =
-                          pathname === subItem.href ||
-                          pathname.startsWith(`${subItem.href}/`);
-
-                        return (
-                          <Link
-                            key={subItem.name}
-                            href={subItem.href}
+                    return (
+                      <div key={item.name} className="flex flex-col">
+                        {hasSubMenu ? (
+                          <button
+                            onClick={() => toggleSubMenu(item.name)}
                             className={cn(
-                              "flex h-8 items-center rounded-md px-3 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                              isSubItemActive
-                                ? "bg-primary/5 text-primary font-medium"
-                                : "text-muted-foreground"
+                              "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                              isActive || isSubActive
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "transparent",
+                              collapsed ? "justify-center" : "justify-between"
                             )}
                           >
-                            {subItem.name}
+                            <div className="flex items-center">
+                              <item.icon
+                                className={cn(
+                                  "h-5 w-5 shrink-0",
+                                  collapsed ? "mr-0" : "mr-2"
+                                )}
+                              />
+                              {!collapsed && <span>{item.name}</span>}
+                            </div>
+                            {!collapsed && (
+                              <ChevronDown
+                                className={cn(
+                                  "h-4 w-4 transition-transform",
+                                  isOpen ? "rotate-180" : ""
+                                )}
+                              />
+                            )}
+                            {collapsed && (
+                              <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
+                                {item.name}
+                              </div>
+                            )}
+                          </button>
+                        ) : (
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                              isActive
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "transparent",
+                              collapsed ? "justify-center" : "justify-start"
+                            )}
+                          >
+                            <item.icon
+                              className={cn(
+                                "h-5 w-5 shrink-0",
+                                collapsed ? "mr-0" : "mr-2"
+                              )}
+                            />
+                            {!collapsed && <span>{item.name}</span>}
+                            {collapsed && (
+                              <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
+                                {item.name}
+                              </div>
+                            )}
                           </Link>
-                        );
-                      })}
-                    </div>
-                  )}
+                        )}
 
-                  {/* Collapsed Submenu Dropdown */}
-                  {hasSubMenu && collapsed && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="hidden absolute left-full ml-6 rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        side="right"
-                        align="start"
-                        className="w-48"
-                      >
-                        {item.subItems?.map((subItem) => (
-                          <DropdownMenuItem key={subItem.name} asChild>
-                            <Link href={subItem.href}>{subItem.name}</Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-        </ScrollArea>
+                        {hasSubMenu && !collapsed && isOpen && (
+                          <div className="ml-6 mt-1 border-l pl-3 space-y-1">
+                            {item.subItems?.map((subItem) => {
+                              const isSubItemActive =
+                                pathname === subItem.href ||
+                                pathname.startsWith(`${subItem.href}/`);
 
-        {/* Profile Dropdown */}
+                              return (
+                                <Link
+                                  key={subItem.name}
+                                  href={subItem.href}
+                                  className={cn(
+                                    "flex h-8 items-center rounded-md px-3 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                                    isSubItemActive
+                                      ? "bg-primary/5 text-primary font-medium"
+                                      : "text-muted-foreground"
+                                  )}
+                                >
+                                  {subItem.name}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {hasSubMenu && collapsed && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="hidden absolute left-full ml-6 rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex"
+                              >
+                                <ChevronDown className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              side="right"
+                              align="start"
+                              className="w-48"
+                            >
+                              {item.subItems?.map((subItem) => (
+                                <DropdownMenuItem key={subItem.name} asChild>
+                                  <Link href={subItem.href}>
+                                    {subItem.name}
+                                  </Link>
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    );
+                  })}
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="border-t p-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -504,11 +499,11 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                   </Avatar>
                   {!collapsed && (
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium truncate ">
+                      <span className="text-sm font-medium truncate">
                         {user.name || "User"}
                       </span>
                       {user.email && (
-                        <span className="text-xs text-muted-foreground truncate ">
+                        <span className="text-xs text-muted-foreground truncate">
                           {user.email}
                         </span>
                       )}

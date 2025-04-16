@@ -99,7 +99,7 @@ export default function AuthBtn({
           <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
             {user?.profilePhoto?.url && (
               <AvatarImage
-                src={user?.profilePhoto?.url|| "/placeholder.svg"}
+                src={user?.profilePhoto?.url || "/placeholder.svg"}
                 alt={user.name || "User avatar"}
                 referrerPolicy="no-referrer"
               />
@@ -148,7 +148,7 @@ export default function AuthBtn({
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link
-              href={user?.isAdmin ? "/admin" : "/user"}
+              href={user?.isAdmin ? "/admin/dashboard" : "/user/dashboard"}
               className="flex cursor-pointer items-center"
               prefetch={false}
             >

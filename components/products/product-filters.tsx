@@ -215,7 +215,7 @@ export function ProductFilters({
 
   const FilterContent = () => (
     <>
-      <div className="flex items-center justify-between mb-4 ">
+      <div className="flex items-center justify-between mb-4  ">
         <div className="flex items-center gap-2">
           <Filter className="h-5 w-5 text-muted-foreground" />
           <h3 className="text-lg font-semibold">Filters</h3>

@@ -104,7 +104,7 @@ export function CategoryList({
 
       if (searchQuery) params.append("search", searchQuery);
       if (statusFilter && statusFilter !== "all")
-        params.append("status", statusFilter);
+        params.append("isActive", statusFilter);
 
       const response = await fetchDataPagination<{
         data: Category[];
@@ -261,7 +261,9 @@ export function CategoryList({
             <TableHead>Name</TableHead>
             <TableHead className="hidden md:table-cell">Description</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
-            <TableHead className="hidden md:table-cell">Products</TableHead>
+            <TableHead className="hidden md:table-cell text-center">
+              Products
+            </TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -288,7 +290,7 @@ export function CategoryList({
                   {category.isActive ? "Active" : "Inactive"}
                 </Badge>
               </TableCell>
-              <TableCell className="hidden md:table-cell">
+              <TableCell className="hidden md:table-cell text-center">
                 {category.products?.length || 0}
               </TableCell>
               <TableCell className="text-right">

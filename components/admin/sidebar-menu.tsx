@@ -11,44 +11,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { fetchData } from "@/utils/api-utils";
+import { MenuItem } from "@/utils/types";
 import {
-  BarChart,
   ChevronDown,
   ChevronLeft,
-  Home,
-  ImageIcon,
-  LayoutGrid,
   LogOut,
-  Megaphone,
   Menu,
   Package,
   Settings,
-  ShoppingBag,
-  ShoppingCart,
-  Tag,
   User,
   UserCircle,
-  Users,
-  UsersRound,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type React from "react";
 import { useEffect, useState } from "react";
-
-interface MenuItem {
-  name: string;
-  href: string;
-  icon: React.ElementType;
-  subItems?: SubMenuItem[];
-}
-
-interface SubMenuItem {
-  name: string;
-  href: string;
-}
+import { IconRenderer } from "../common/IconRenderer";
 
 interface UserTypes {
   name?: string;
@@ -65,145 +45,28 @@ interface SidebarProps {
   logo?: string;
 }
 
-const adminMenuItems: MenuItem[] = [
-  {
-    name: "Dashboard",
-    href: "/admin/dashboard",
-    icon: Home,
-  },
-  {
-    name: "Orders",
-    href: "/admin/orders",
-    icon: ShoppingCart,
-    subItems: [
-      { name: "All Orders", href: "/admin/orders" },
-      { name: "Pending", href: "/admin/orders/pending" },
-      { name: "Completed", href: "/admin/orders/completed" },
-      { name: "Cancelled", href: "/admin/orders/cancelled" },
-    ],
-  },
-  {
-    name: "Products",
-    href: "/admin/products",
-    icon: Package,
-    subItems: [
-      { name: "Product List", href: "/admin/products/products-list" },
-      { name: "Add Product", href: "/admin/products/add" },
-      { name: "Inventory", href: "/admin/products/inventory" },
-    ],
-  },
-  {
-    name: "Purchase",
-    href: "/admin/purchase",
-    icon: ShoppingBag,
-    subItems: [
-      { name: "Purchases List", href: "/admin/purchase/purchase-list" },
-      { name: "Add Purchase", href: "/admin/purchase/add" },
-      { name: "Suppliers", href: "/admin/purchase/suppliers" },
-    ],
-  },
-  {
-    name: "Brand",
-    href: "/admin/brand",
-    icon: Tag,
-    subItems: [
-      { name: "Brand List", href: "/admin/brand/brand-list" },
-      { name: "Add Brand", href: "/admin/brand/add" },
-    ],
-  },
-  {
-    name: "Categories",
-    href: "/admin/categories",
-    icon: LayoutGrid,
-    subItems: [
-      { name: "Category List", href: "/admin/categories/categories-list" },
-      { name: "Add Category", href: "/admin/categories/add" },
-    ],
-  },
-  {
-    name: "Marketing",
-    href: "/admin/marketing",
-    icon: Megaphone,
-    subItems: [
-      { name: "Promotions", href: "/admin/marketing/promotions" },
-      { name: "Discounts", href: "/admin/marketing/discounts" },
-      { name: "Coupons", href: "/admin/marketing/coupons" },
-    ],
-  },
-  {
-    name: "Banner",
-    href: "/admin/banner",
-    icon: ImageIcon,
-  },
-  {
-    name: "Customer",
-    href: "/admin/customer",
-    icon: Users,
-  },
-  {
-    name: "Reports",
-    href: "/admin/reports",
-    icon: BarChart,
-    subItems: [
-      { name: "Sales", href: "/admin/reports/sales" },
-      { name: "Inventory", href: "/admin/reports/inventory" },
-      { name: "Customer", href: "/admin/reports/customer" },
-    ],
-  },
-  {
-    name: "User",
-    href: "/admin/user",
-    icon: UsersRound,
-  },
-  {
-    name: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-    subItems: [
-      { name: "General", href: "/admin/settings" },
-      { name: "Shipping", href: "/admin/settings/shipping" },
-      { name: "Payment", href: "/admin/settings/payment" },
-      { name: "Tax", href: "/admin/settings/tax" },
-    ],
-  },
-  {
-    name: "Profile",
-    href: "/admin/profile",
-    icon: UserCircle,
-  },
-];
-
-const userMenuItems: MenuItem[] = [
-  {
-    name: "Dashboard",
-    href: "/account",
-    icon: Home,
-  },
-  {
-    name: "Orders",
-    href: "/account/orders",
-    icon: ShoppingCart,
-  },
-  {
-    name: "Profile",
-    href: "/account/profile",
-    icon: User,
-  },
-  {
-    name: "Settings",
-    href: "/account/settings",
-    icon: Settings,
-  },
-];
-
 export function SidebarMenu({ className, logo, user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
   const [collapsed, setCollapsed] = useState(false);
+  const [menuData, setmenuData] = useState<MenuItem[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const fetchMenuData = async () => {
+      try {
+        const response: MenuItem[] = await fetchData("menu/tree");
+        setmenuData(response);
+      } catch (error) {
+        console.error("Error fetching menu data:", error);
+      }
+    };
+
+    fetchMenuData();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -222,7 +85,8 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
     setMobileOpen(false);
   }, [pathname]);
 
-  const menuItems = user?.isAdmin ? adminMenuItems : userMenuItems;
+  const menuItems = user?.isAdmin ? menuData : null;
+
   const sidebarTitle = user?.isAdmin ? "Admin Panel" : "My Account";
 
   const getInitials = (name: string): string => {
@@ -241,10 +105,10 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
   };
 
   const isSubMenuActive = (item: MenuItem) => {
-    if (!item.subItems) return false;
-    return item.subItems.some(
+    if (!item?.children) return false;
+    return item.children.some(
       (subItem) =>
-        pathname === subItem.href || pathname.startsWith(`${subItem.href}/`)
+        pathname === subItem?.url || pathname.startsWith(`${subItem?.url}/`)
     );
   };
 
@@ -336,14 +200,14 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
             <div className="h-[calc(100%-3rem)] py-2">
               <div className="h-full overflow-y-hidden hover:overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/50">
                 <nav className="grid gap-1 px-2">
-                  {menuItems.map((item) => {
+                  {menuItems?.map((item: MenuItem) => {
                     const isActive =
-                      pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`);
+                      pathname === item?.url ||
+                      pathname.startsWith(`${item?.url}/`);
                     const hasSubMenu =
-                      item.subItems && item.subItems.length > 0;
+                      item?.children && item?.children?.length > 0;
                     const isSubActive = isSubMenuActive(item);
-                    const isOpen = openSubMenus[item.name] || false;
+                    const isOpen = openSubMenus[item?.name] || false;
 
                     return (
                       <div key={item.name} className="flex flex-col">
@@ -359,12 +223,15 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                             )}
                           >
                             <div className="flex items-center">
-                              <item.icon
-                                className={cn(
-                                  "h-5 w-5 shrink-0",
-                                  collapsed ? "mr-0" : "mr-2"
-                                )}
-                              />
+                              {item.icon && (
+                                <IconRenderer
+                                  name={item.icon}
+                                  className={cn(
+                                    "h-5 w-5 shrink-0",
+                                    collapsed ? "mr-0" : "mr-2"
+                                  )}
+                                />
+                              )}
                               {!collapsed && <span>{item.name}</span>}
                             </div>
                             {!collapsed && (
@@ -383,7 +250,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                           </button>
                         ) : (
                           <Link
-                            href={item.href}
+                            href={item?.url}
                             className={cn(
                               "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
                               isActive
@@ -392,12 +259,16 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                               collapsed ? "justify-center" : "justify-start"
                             )}
                           >
-                            <item.icon
-                              className={cn(
-                                "h-5 w-5 shrink-0",
-                                collapsed ? "mr-0" : "mr-2"
-                              )}
-                            />
+                            {item.icon && (
+                              <IconRenderer
+                                name={item.icon}
+                                className={cn(
+                                  "h-5 w-5 shrink-0",
+                                  collapsed ? "mr-0" : "mr-2"
+                                )}
+                              />
+                            )}
+
                             {!collapsed && <span>{item.name}</span>}
                             {collapsed && (
                               <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
@@ -409,15 +280,15 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
 
                         {hasSubMenu && !collapsed && isOpen && (
                           <div className="ml-6 mt-1 border-l pl-3 space-y-1">
-                            {item.subItems?.map((subItem) => {
+                            {item?.children.map((subItem) => {
                               const isSubItemActive =
-                                pathname === subItem.href ||
-                                pathname.startsWith(`${subItem.href}/`);
+                                pathname === subItem.url ||
+                                pathname.startsWith(`${subItem.url}/`);
 
                               return (
                                 <Link
                                   key={subItem.name}
-                                  href={subItem.href}
+                                  href={subItem.url}
                                   className={cn(
                                     "flex h-8 items-center rounded-md px-3 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
                                     isSubItemActive
@@ -448,11 +319,9 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
                               align="start"
                               className="w-48"
                             >
-                              {item.subItems?.map((subItem) => (
+                              {item?.children?.map((subItem) => (
                                 <DropdownMenuItem key={subItem.name} asChild>
-                                  <Link href={subItem.href}>
-                                    {subItem.name}
-                                  </Link>
+                                  <Link href={subItem.url}>{subItem.name}</Link>
                                 </DropdownMenuItem>
                               ))}
                             </DropdownMenuContent>

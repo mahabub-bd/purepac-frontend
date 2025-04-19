@@ -129,3 +129,27 @@ export type authResponse = {
   message: string;
   statusCode: number;
 };
+
+export interface MenuItem {
+  parentId: number | null;
+  id: number;
+  name: string;
+  icon: string | null;
+  url: string;
+  order: number;
+  isMainMenu: boolean;
+  isActive: boolean;
+  children: MenuItem[];
+}
+
+export interface MenuTreeResponse {
+  message: string;
+  statusCode: number;
+  data: MenuItem[];
+}
+
+export interface ApiResponse {
+  data: [];
+  message: string;
+  statusCode: number;
+}

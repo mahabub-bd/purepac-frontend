@@ -53,7 +53,6 @@ export default async function ProductBarList({
 
   const paginationUrls: Record<number, string> = {};
 
-  // Generate URLs for all pages
   for (let page = 1; page <= response.totalPages; page++) {
     const newParams = new URLSearchParams(params.toString());
     newParams.set("page", page.toString());
@@ -70,12 +69,20 @@ export default async function ProductBarList({
             ))}
           </div>
 
-          <div className="flex justify-center mt-4">
-            <PaginationComponent
-              currentPage={currentPage}
-              totalPages={response.totalPages}
-              paginationUrls={paginationUrls}
-            />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground text-center md:text-left truncate">
+                {`Showing ${response.data.length} of ${response?.total} products`}
+              </p>
+            </div>
+
+            <div className="flex-1 w-full md:w-auto">
+              <PaginationComponent
+                currentPage={currentPage}
+                totalPages={response.totalPages}
+                paginationUrls={paginationUrls}
+              />
+            </div>
           </div>
         </>
       ) : (

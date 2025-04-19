@@ -53,7 +53,7 @@ export default async function ProductCard({ product }: { product: Product }) {
         </p>
 
         {/* Price */}
-        <div className="flex items-center justify-center my-2 sm:my-3">
+        <div className="flex items-center justify-center my-2 sm:my-2 md:flex-row flex-col">
           <p className="font-semibold text-sm sm:text-md group-hover:text-primary transition-colors">
             {formatCurrencyEnglish(product?.unitprice)}
           </p>

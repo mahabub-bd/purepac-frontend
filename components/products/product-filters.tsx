@@ -50,7 +50,6 @@ interface ProductFiltersProps {
   };
 }
 
-// Define the specific price ranges as requested
 const PRICE_RANGES: PriceRange[] = [
   { min: 0, max: 5000, label: "Under BDT 5,000" },
   { min: 5000, max: 10000, label: "BDT 5,000 - 10,000" },

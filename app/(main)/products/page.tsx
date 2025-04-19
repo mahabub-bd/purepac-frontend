@@ -1,10 +1,10 @@
 import { ProductFilters } from "@/components/products/product-filters";
 import ProductBarList from "@/components/products/product-grid";
 import { SortBar } from "@/components/products/sort-bar";
-import { buildQueryString, fetchData } from "@/utils/api-utils";
+import { fetchData } from "@/utils/api-utils";
 import { Brand, Category } from "@/utils/types";
 
-async function fetchCategories() {
+async function fetchCategories(): Promise<Category[]> {
   try {
     const data: Category[] = await fetchData("categories");
     return data;
@@ -14,7 +14,7 @@ async function fetchCategories() {
   }
 }
 
-async function fetchBrands() {
+async function fetchBrands(): Promise<Brand[]> {
   try {
     const data: Brand[] = await fetchData("brands");
     return data;
@@ -37,6 +37,7 @@ export default async function ProductsPage({
 }: {
   searchParams: Promise<{
     limit?: string;
+    page?: string;
     category?: string;
     brand?: string;
     featured?: string;
@@ -50,20 +51,21 @@ export default async function ProductsPage({
     fetchBrands(),
   ]);
 
-  const productsEndpoint = `products?${buildQueryString({
-    limit: (await searchParams).limit || "20",
+  const filterParams = {
+    limit: (await searchParams).limit || "12",
+    page: (await searchParams).page || "1",
     category: (await searchParams).category,
     brand: (await searchParams).brand,
     featured: (await searchParams).featured,
     sort: (await searchParams).sort,
     minPrice: (await searchParams).minPrice,
     maxPrice: (await searchParams).maxPrice,
-  })}`;
+  };
 
   return (
     <div className="container mx-auto px-4 py-4">
       <SortBar currentSort={(await searchParams).sort} />
-      <div className="flex flex-col md:flex-row justify-between gap-6 ">
+      <div className="flex flex-col md:flex-row justify-between gap-6">
         <ProductFilters
           categories={categories}
           brands={brands}
@@ -76,8 +78,7 @@ export default async function ProductsPage({
             max: (await searchParams).maxPrice,
           }}
         />
-
-        <ProductBarList endpoint={productsEndpoint} />
+        <ProductBarList filterParams={filterParams} />
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ interface PaginationComponentProps {
   currentPage: number;
   totalPages: number;
   baseUrl?: string;
+  paginationUrls?: Record<number, string>;
   onPageChange?: (page: number) => void;
 }
 
@@ -24,6 +25,7 @@ export function PaginationComponent({
   currentPage,
   totalPages,
   baseUrl = "?page=",
+  paginationUrls,
   onPageChange,
 }: PaginationComponentProps) {
   const visiblePages = useMemo(() => {
@@ -40,10 +42,19 @@ export function PaginationComponent({
     }
 
     pages.add(1);
-    pages.add(totalPages);
+    if (totalPages > 0) {
+      pages.add(totalPages);
+    }
 
     return Array.from(pages).sort((a, b) => a - b);
   }, [currentPage, totalPages]);
+
+  const getPageUrl = (page: number): string => {
+    if (paginationUrls && paginationUrls[page]) {
+      return paginationUrls[page];
+    }
+    return `${baseUrl}${page}`;
+  };
 
   const handleClick = (page: number, e: React.MouseEvent) => {
     if (onPageChange) {
@@ -58,7 +69,7 @@ export function PaginationComponent({
         {/* Previous Button */}
         <PaginationItem>
           <PaginationPrevious
-            href={onPageChange ? undefined : `${baseUrl}${currentPage - 1}`}
+            href={currentPage <= 1 ? undefined : getPageUrl(currentPage - 1)}
             aria-disabled={currentPage <= 1}
             tabIndex={currentPage <= 1 ? -1 : undefined}
             className={
@@ -83,7 +94,7 @@ export function PaginationComponent({
               )}
               <PaginationItem>
                 <PaginationLink
-                  href={onPageChange ? undefined : `${baseUrl}${page}`}
+                  href={getPageUrl(page)}
                   isActive={page === currentPage}
                   onClick={(e) => handleClick(page, e)}
                 >
@@ -97,7 +108,11 @@ export function PaginationComponent({
         {/* Next Button */}
         <PaginationItem>
           <PaginationNext
-            href={onPageChange ? undefined : `${baseUrl}${currentPage + 1}`}
+            href={
+              currentPage >= totalPages
+                ? undefined
+                : getPageUrl(currentPage + 1)
+            }
             aria-disabled={currentPage >= totalPages}
             tabIndex={currentPage >= totalPages ? -1 : undefined}
             className={

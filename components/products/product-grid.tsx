@@ -1,5 +1,5 @@
 import { fetchDataPagination } from "@/utils/api-utils";
-import { Product } from "@/utils/types";
+import type { Product } from "@/utils/types";
 import { PaginationComponent } from "../common/pagination";
 import ProductCard from "./product-card";
 
@@ -49,12 +49,16 @@ export default async function ProductBarList({
     );
   }
 
-  const currentPage = parseInt(filterParams.page || "1");
-  // const createPageUrl = (page: number) => {
-  //   const newParams = new URLSearchParams(params.toString());
-  //   newParams.set("page", page.toString());
-  //   return `?${newParams.toString()}`;
-  // };
+  const currentPage = Number.parseInt(filterParams.page || "1");
+
+  const paginationUrls: Record<number, string> = {};
+
+  // Generate URLs for all pages
+  for (let page = 1; page <= response.totalPages; page++) {
+    const newParams = new URLSearchParams(params.toString());
+    newParams.set("page", page.toString());
+    paginationUrls[page] = `?${newParams.toString()}`;
+  }
 
   return (
     <div className="container mx-auto py-4 sm:px-1 md:py-5 md:px-0">
@@ -70,7 +74,7 @@ export default async function ProductBarList({
             <PaginationComponent
               currentPage={currentPage}
               totalPages={response.totalPages}
-              baseUrl="#"
+              paginationUrls={paginationUrls}
             />
           </div>
         </>

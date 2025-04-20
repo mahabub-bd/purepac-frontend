@@ -70,7 +70,7 @@ export default function AddProductPage() {
               </CardDescription>
             </div>
             <Button asChild variant="outline">
-              <Link href="/admin/products">Back to Products</Link>
+              <Link href="/admin/products/products-list">Back to Products</Link>
             </Button>
           </div>
         </CardHeader>

@@ -90,7 +90,7 @@ export default function EditProductPage() {
               <CardDescription>Update the product information.</CardDescription>
             </div>
             <Button asChild variant="outline">
-              <Link href="/admin/products">Back to Products</Link>
+              <Link href="/admin/products/products-list">Back to Products</Link>
             </Button>
           </div>
         </CardHeader>

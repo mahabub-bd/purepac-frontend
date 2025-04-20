@@ -17,6 +17,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const user = await getUser();
+
   return (
     <div className="min-h-screen bg-background ">
       <SidebarMenu user={user} />

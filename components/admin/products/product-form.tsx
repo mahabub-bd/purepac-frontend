@@ -30,15 +30,15 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-// Utils & Types
-import { formPostData, patchData, postData } from "@/utils/api-utils";
 import {
-  ProductUnit,
-  type Brand,
-  type Category,
-  type Product,
-} from "@/utils/types";
+  fetchData,
+  formPostData,
+  patchData,
+  postData,
+} from "@/utils/api-utils";
+import { Unit, type Brand, type Category, type Product } from "@/utils/types";
 import { useRouter } from "next/navigation";
+
 import { InfoBox, Section } from "../helper";
 
 const productSchema = z.object({
@@ -71,6 +71,8 @@ export function ProductForm({
   categories,
 }: ProductFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [units, setUnits] = useState<Unit[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [imagePreview, setImagePreview] = useState(
@@ -84,7 +86,7 @@ export function ProductForm({
       description: product?.description || "",
       unitprice: product?.unitprice || 0,
       stock: product?.stock || 0,
-      unit: product?.unit || ProductUnit.PIECE,
+      unit: product?.unit?.id?.toString() || "",
       productSku: product?.productSku || "",
       imageUrl: product?.attachment?.url || "",
       isActive: product?.isActive ?? true,
@@ -93,6 +95,21 @@ export function ProductForm({
       categoryId: product?.category?.id || 0,
     },
   });
+
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const response = await fetchData<Unit[]>("units");
+        console.log(response, "units response");
+
+        setUnits(response);
+      } catch (error) {
+        console.error("Error fetching units:", error);
+      }
+    };
+
+    fetchUnits();
+  }, []);
 
   const generateSku = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -257,15 +274,18 @@ export function ProductForm({
                       <FormControl className="w-full">
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={field.value ? field.value : undefined}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select unit" />
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.values(ProductUnit).map((unit) => (
-                              <SelectItem key={unit} value={unit}>
-                                {unit.replace("_", " ")}
+                            {units?.map((unit: Unit) => (
+                              <SelectItem
+                                key={unit.id}
+                                value={unit.id.toString()}
+                              >
+                                {unit.name}
                               </SelectItem>
                             ))}
                           </SelectContent>

@@ -409,7 +409,7 @@ export function ProductList({
               <TableCell>{product.productSku}</TableCell>
               <TableCell>{formatCurrencyEnglish(product.unitprice)}</TableCell>
               <TableCell className="capitalize">
-                {product.unit.replace("_", " ")}
+                {product?.unit?.name}
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 {product.brand.name}

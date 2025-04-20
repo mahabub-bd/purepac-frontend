@@ -188,6 +188,22 @@ export async function getUser() {
     return null;
   }
 }
+
+export async function getToken() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token");
+
+  if (!token?.value) return null;
+
+  try {
+    return token.value;
+  } catch (error) {
+    console.error("Error parsing token data:", error);
+
+    cookieStore.delete("auth_token");
+    return null;
+  }
+}
 export async function mobileLogin(mobileNumber: string) {
   try {
     const response = await postData("auth/mobile-login", { mobileNumber });

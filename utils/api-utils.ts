@@ -1,3 +1,5 @@
+import { getToken } from "@/actions/auth";
+
 export type ApiResponse<T = any> = {
   data?: T;
   message?: string;
@@ -181,22 +183,30 @@ export async function formPostData<T = any>(
 export async function patchData<T = any>(
   endpoint: string,
   values?: any,
-  isMultipart = false
+  options?: {
+    isMultipart?: boolean;
+    headers?: Record<string, string>;
+    noAuth?: boolean;
+  }
 ): Promise<ApiResponse<T>> {
   const url = `${apiUrl}/${endpoint}`;
+  const token = await getToken();
 
   try {
-    const headers: Record<string, string> = {};
+    const headers: HeadersInit = {
+      ...(options?.headers || {}),
+    };
 
-    // Set appropriate Content-Type header based on the data type
-    if (!isMultipart) {
+    if (!options?.isMultipart) {
       headers["Content-Type"] = "application/json";
     }
+
+    headers["Authorization"] = `Bearer ${token}`;
 
     const response = await fetch(url, {
       method: "PATCH",
       headers,
-      body: isMultipart ? values : JSON.stringify(values),
+      body: options?.isMultipart ? values : JSON.stringify(values),
     });
 
     if (!response.ok) {

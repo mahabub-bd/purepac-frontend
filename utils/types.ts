@@ -55,7 +55,7 @@ export interface Product {
   name: string;
   description: string;
   unitprice: number;
-  unit: string;
+  unit: Unit;
   productSku: string;
   stock: number;
   attachment: Attachment;
@@ -65,6 +65,8 @@ export interface Product {
   updatedAt: string;
   brand: Brand;
   category: Category;
+  createdBy: User;
+  updatedBy: User;
 }
 
 // For API responses
@@ -101,20 +103,14 @@ export interface Attachment {
   updatedAt: string | Date;
 }
 
-export enum ProductUnit {
-  PIECE = "piece",
-  KILOGRAM = "kilogram",
-  GRAM = "gram",
-  LITER = "liter",
-  MILLILITER = "milliliter",
-  METER = "meter",
-  CENTIMETER = "centimeter",
-  SQUARE_METER = "square_meter",
-  CUBIC_METER = "cubic_meter",
-  PACK = "pack",
-  BOX = "box",
-  PAIR = "pair",
-  SET = "set",
+export interface Unit {
+  id: number;
+  name: string;
+  isActive: boolean;
+  createdDate: string;
+  updatedDate: string;
+  createdBy: User;
+  updatedBy: User;
 }
 
 export enum Role {

@@ -111,7 +111,7 @@ export function MenuForm({ mode, menuItem }: MenuFormProps) {
             ? "Menu item created successfully"
             : "Menu item updated successfully";
         toast.success(successMessage);
-        router.push("/admin/menu/menu-list");
+        router.push("/admin/settings/menu-list");
       } else {
         toast.error(response?.message || "An error occurred");
       }

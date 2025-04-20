@@ -224,7 +224,7 @@ export function MenuList({
       </p>
       {!(searchQuery || statusFilter || isMainMenuFilter) && (
         <Button asChild className="mt-4">
-          <Link href="/admin/menu/add">
+          <Link href="/admin/settings/add">
             <Plus className="mr-2 h-4 w-4" /> Add Menu Item
           </Link>
         </Button>
@@ -337,7 +337,7 @@ export function MenuList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/menu/${menuItem.id}/edit`}>
+                      <Link href={`/admin/settings/${menuItem.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </Link>
                     </DropdownMenuItem>
@@ -367,7 +367,7 @@ export function MenuList({
           </div>
           <div className="flex items-center gap-2">
             <Button asChild>
-              <Link href="/admin/menu/add">
+              <Link href="/admin/settings/add">
                 <Plus className="mr-2 h-4 w-4" /> Add Menu Item
               </Link>
             </Button>

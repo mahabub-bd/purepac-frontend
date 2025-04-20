@@ -24,7 +24,7 @@ export default function AddMenuPage() {
               </CardDescription>
             </div>
             <Button asChild variant="outline">
-              <Link href="/admin/menu/menu-list">Back to Menu</Link>
+              <Link href="/admin/settings/menu-list">Back to Menu</Link>
             </Button>
           </div>
         </CardHeader>

@@ -1,6 +1,6 @@
-import { BrandList } from "@/components/admin/brand/brand-list";
+import { MenuList } from "@/components/admin/menu/menu-list";
 
-export default async function BrandsPage({
+export default async function MenusPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -18,7 +18,7 @@ export default async function BrandsPage({
 
   return (
     <div className="p-6 space-y-6">
-      <BrandList
+      <MenuList
         initialPage={page}
         initialLimit={limit}
         initialSearchParams={resolvedParams}

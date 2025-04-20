@@ -10,9 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { fetchData } from "@/utils/api-utils";
-import { MenuItem } from "@/utils/types";
+import type { MenuItem } from "@/utils/types";
 import {
   ChevronDown,
   ChevronLeft,
@@ -50,23 +51,31 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
   const router = useRouter();
 
   const [collapsed, setCollapsed] = useState(false);
-  const [menuData, setmenuData] = useState<MenuItem[]>([]);
+  const [menuData, setMenuData] = useState<MenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchMenuData = async () => {
+      setIsLoading(true);
       try {
-        const response: MenuItem[] = await fetchData("menu/tree");
-        setmenuData(response);
+        const endpoint = user?.isAdmin
+          ? "menu/tree?isAdminMenu=true&limit=50"
+          : "menu/tree?isAdminMenu=false&limit=50";
+
+        const response: MenuItem[] = await fetchData(endpoint);
+        setMenuData(response);
       } catch (error) {
         console.error("Error fetching menu data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchMenuData();
-  }, []);
+  }, [user?.isAdmin]);
 
   const handleLogout = async () => {
     try {
@@ -84,8 +93,6 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
-
-  const menuItems = user?.isAdmin ? menuData : null;
 
   const sidebarTitle = user?.isAdmin ? "Admin Panel" : "My Account";
 
@@ -112,6 +119,31 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
     );
   };
 
+  // Generate skeleton menu items for loading state
+  const renderSkeletonMenu = () => {
+    return Array(6)
+      .fill(0)
+      .map((_, index) => (
+        <div key={index} className="px-2 py-1">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <Skeleton className="h-5 w-5 rounded-md" />
+            {!collapsed && <Skeleton className="h-4 w-28" />}
+          </div>
+          {!collapsed && index % 2 === 0 && (
+            <div className="ml-6 mt-1 border-l pl-3 space-y-1">
+              {Array(Math.floor(Math.random() * 3) + 1)
+                .fill(0)
+                .map((_, subIndex) => (
+                  <div key={`sub-${index}-${subIndex}`} className="px-3 py-1">
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      ));
+  };
+
   return (
     <>
       {mobileOpen && (
@@ -136,7 +168,8 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 pt-4 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-30 pt-4 flex flex-col border-r transition-all duration-300 ease-in-out",
+
           collapsed ? "w-[70px]" : "w-[250px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           className
@@ -200,136 +233,145 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
             <div className="h-[calc(100%-3rem)] py-2">
               <div className="h-full overflow-y-hidden hover:overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/50">
                 <nav className="grid gap-1 px-2">
-                  {menuItems?.map((item: MenuItem) => {
-                    const isActive =
-                      pathname === item?.url ||
-                      pathname.startsWith(`${item?.url}/`);
-                    const hasSubMenu =
-                      item?.children && item?.children?.length > 0;
-                    const isSubActive = isSubMenuActive(item);
-                    const isOpen = openSubMenus[item?.name] || false;
+                  {isLoading
+                    ? renderSkeletonMenu()
+                    : menuData?.map((item: MenuItem) => {
+                        const isActive =
+                          pathname === item?.url ||
+                          pathname.startsWith(`${item?.url}/`);
+                        const hasSubMenu =
+                          item?.children && item?.children?.length > 0;
+                        const isSubActive = isSubMenuActive(item);
+                        const isOpen = openSubMenus[item?.name] || false;
 
-                    return (
-                      <div key={item.name} className="flex flex-col">
-                        {hasSubMenu ? (
-                          <button
-                            onClick={() => toggleSubMenu(item.name)}
-                            className={cn(
-                              "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                              isActive || isSubActive
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "transparent",
-                              collapsed ? "justify-center" : "justify-between"
-                            )}
-                          >
-                            <div className="flex items-center">
-                              {item.icon && (
-                                <IconRenderer
-                                  name={item.icon}
-                                  className={cn(
-                                    "h-5 w-5 shrink-0",
-                                    collapsed ? "mr-0" : "mr-2"
-                                  )}
-                                />
-                              )}
-                              {!collapsed && <span>{item.name}</span>}
-                            </div>
-                            {!collapsed && (
-                              <ChevronDown
+                        return (
+                          <div key={item.name} className="flex flex-col">
+                            {hasSubMenu ? (
+                              <button
+                                onClick={() => toggleSubMenu(item.name)}
                                 className={cn(
-                                  "h-4 w-4 transition-transform",
-                                  isOpen ? "rotate-180" : ""
+                                  "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                                  isActive || isSubActive
+                                    ? "bg-primary/10 text-primary font-medium"
+                                    : "transparent",
+                                  collapsed
+                                    ? "justify-center"
+                                    : "justify-between"
                                 )}
-                              />
-                            )}
-                            {collapsed && (
-                              <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
-                                {item.name}
-                              </div>
-                            )}
-                          </button>
-                        ) : (
-                          <Link
-                            href={item?.url}
-                            className={cn(
-                              "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                              isActive
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "transparent",
-                              collapsed ? "justify-center" : "justify-start"
-                            )}
-                          >
-                            {item.icon && (
-                              <IconRenderer
-                                name={item.icon}
-                                className={cn(
-                                  "h-5 w-5 shrink-0",
-                                  collapsed ? "mr-0" : "mr-2"
-                                )}
-                              />
-                            )}
-
-                            {!collapsed && <span>{item.name}</span>}
-                            {collapsed && (
-                              <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
-                                {item.name}
-                              </div>
-                            )}
-                          </Link>
-                        )}
-
-                        {hasSubMenu && !collapsed && isOpen && (
-                          <div className="ml-6 mt-1 border-l pl-3 space-y-1">
-                            {item?.children.map((subItem) => {
-                              const isSubItemActive =
-                                pathname === subItem.url ||
-                                pathname.startsWith(`${subItem.url}/`);
-
-                              return (
-                                <Link
-                                  key={subItem.name}
-                                  href={subItem.url}
-                                  className={cn(
-                                    "flex h-8 items-center rounded-md px-3 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                                    isSubItemActive
-                                      ? "bg-primary/5 text-primary font-medium"
-                                      : "text-muted-foreground"
-                                  )}
-                                >
-                                  {subItem.name}
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {hasSubMenu && collapsed && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="hidden absolute left-full ml-6 rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex"
                               >
-                                <ChevronDown className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              side="right"
-                              align="start"
-                              className="w-48"
-                            >
-                              {item?.children?.map((subItem) => (
-                                <DropdownMenuItem key={subItem.name} asChild>
-                                  <Link href={subItem.url}>{subItem.name}</Link>
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    );
-                  })}
+                                <div className="flex items-center">
+                                  {item.icon && (
+                                    <IconRenderer
+                                      name={item.icon}
+                                      className={cn(
+                                        "h-5 w-5 shrink-0",
+                                        collapsed ? "mr-0" : "mr-2"
+                                      )}
+                                    />
+                                  )}
+                                  {!collapsed && <span>{item.name}</span>}
+                                </div>
+                                {!collapsed && (
+                                  <ChevronDown
+                                    className={cn(
+                                      "h-4 w-4 transition-transform",
+                                      isOpen ? "rotate-180" : ""
+                                    )}
+                                  />
+                                )}
+                                {collapsed && (
+                                  <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
+                                    {item.name}
+                                  </div>
+                                )}
+                              </button>
+                            ) : (
+                              <Link
+                                href={item?.url}
+                                className={cn(
+                                  "group flex h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                                  isActive
+                                    ? "bg-primary/10 text-primary font-medium"
+                                    : "transparent",
+                                  collapsed ? "justify-center" : "justify-start"
+                                )}
+                              >
+                                {item.icon && (
+                                  <IconRenderer
+                                    name={item.icon}
+                                    className={cn(
+                                      "h-5 w-5 shrink-0",
+                                      collapsed ? "mr-0" : "mr-2"
+                                    )}
+                                  />
+                                )}
+
+                                {!collapsed && <span>{item.name}</span>}
+                                {collapsed && (
+                                  <div className="absolute left-full ml-6 hidden rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex">
+                                    {item.name}
+                                  </div>
+                                )}
+                              </Link>
+                            )}
+
+                            {hasSubMenu && !collapsed && isOpen && (
+                              <div className="ml-6 mt-1 border-l pl-3 space-y-1">
+                                {item?.children.map((subItem) => {
+                                  const isSubItemActive =
+                                    pathname === subItem.url ||
+                                    pathname.startsWith(`${subItem.url}/`);
+
+                                  return (
+                                    <Link
+                                      key={subItem.name}
+                                      href={subItem.url}
+                                      className={cn(
+                                        "flex h-8 items-center rounded-md px-3 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                                        isSubItemActive
+                                          ? "bg-primary/5 text-primary font-medium"
+                                          : "text-muted-foreground"
+                                      )}
+                                    >
+                                      {subItem.name}
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {hasSubMenu && collapsed && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="hidden absolute left-full ml-6 rounded-md border bg-popover px-3 py-2 text-popover-foreground shadow-md group-hover:flex"
+                                  >
+                                    <ChevronDown className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  side="right"
+                                  align="start"
+                                  className="w-48"
+                                >
+                                  {item?.children?.map((subItem) => (
+                                    <DropdownMenuItem
+                                      key={subItem.name}
+                                      asChild
+                                    >
+                                      <Link href={subItem.url}>
+                                        {subItem.name}
+                                      </Link>
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
+                        );
+                      })}
                 </nav>
               </div>
             </div>

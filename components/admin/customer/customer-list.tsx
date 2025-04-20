@@ -199,7 +199,7 @@ export function CustomerList() {
             ) : filteredCustomers.length === 0 ? (
               renderEmptyState()
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-md border md:p-6 p-2">
                 <Table>
                   <TableHeader>
                     <TableRow>

@@ -139,6 +139,7 @@ export interface MenuItem {
   order: number;
   isMainMenu: boolean;
   isActive: boolean;
+  isAdminMenu: boolean;
   children: MenuItem[];
 }
 

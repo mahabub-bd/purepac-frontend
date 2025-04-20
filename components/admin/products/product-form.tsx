@@ -287,7 +287,11 @@ export function ProductForm({
                           onValueChange={(value) =>
                             field.onChange(Number(value))
                           }
-                          value={field.value?.toString()}
+                          value={
+                            field.value && field.value > 0
+                              ? field.value.toString()
+                              : undefined
+                          }
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select brand" />
@@ -308,7 +312,6 @@ export function ProductForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="categoryId"
@@ -320,7 +323,11 @@ export function ProductForm({
                           onValueChange={(value) =>
                             field.onChange(Number(value))
                           }
-                          value={field.value?.toString()}
+                          value={
+                            field.value && field.value > 0
+                              ? field.value.toString()
+                              : undefined
+                          }
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select category" />

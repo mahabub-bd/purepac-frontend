@@ -23,6 +23,7 @@ export function decodeJwt(token: string) {
 
 export function getUserFromToken(token: string) {
   const decoded = decodeJwt(token);
+
   if (!decoded) return null;
 
   return {
@@ -30,10 +31,10 @@ export function getUserFromToken(token: string) {
     email: decoded.email,
     name: decoded.name,
     mobileNumber: decoded.mobileNumber,
-    roles: decoded.roles || [],
+    roles: decoded.roles.rolename,
     isAdmin:
-      decoded.roles?.includes("admin") ||
-      decoded.roles?.includes("superadmin") ||
+      decoded.roles?.rolename === "admin" ||
+      decoded.roles?.rolename === "superadmin" ||
       false,
     exp: decoded.exp,
     createdAt: decoded?.createdAt,

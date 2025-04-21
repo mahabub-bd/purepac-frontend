@@ -16,7 +16,7 @@ export interface User {
   name: string;
   email: string;
   password: string;
-  roles: ("superadmin" | "admin" | "user")[];
+  role: Role;
   isVerified: boolean;
   lastLoginAt: string;
   createdAt: string;
@@ -113,13 +113,13 @@ export interface Unit {
   updatedBy: User;
 }
 
-export enum Role {
-  CUSTOMER = "customer",
-  ADMIN = "admin",
-  SUPERADMIN = "superadmin",
-  EDITOR = "editor",
-  MODERATOR = "moderator",
-}
+// export enum Role {
+//   CUSTOMER = "customer",
+//   ADMIN = "admin",
+//   SUPERADMIN = "superadmin",
+//   EDITOR = "editor",
+//   MODERATOR = "moderator",
+// }
 
 export type authResponse = {
   message: string;
@@ -149,4 +149,17 @@ export interface ApiResponse {
   data: [];
   message: string;
   statusCode: number;
+}
+
+export interface Role {
+  id: number;
+  rolename: string;
+  description: string;
+  isActive: boolean;
+  createdDate: string;
+
+  updatedDate: string;
+
+  createdByUser: User;
+  updatedByUser: User;
 }

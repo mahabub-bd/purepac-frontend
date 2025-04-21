@@ -35,7 +35,7 @@ export default function AdminProfileView({ user }: AdminProfileViewProps) {
     name: user.name || "",
     email: user.email || "",
     phone: user?.mobileNumber || "",
-    roles: user?.roles,
+    roles: user?.role,
   });
 
   const getInitials = (name: string): string => {
@@ -107,7 +107,9 @@ export default function AdminProfileView({ user }: AdminProfileViewProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-sm">
                 <Shield className="h-4 w-4 text-primary" />
-                <span className="font-medium capitalize">{user?.roles}</span>
+                <span className="font-medium capitalize">
+                  {user?.role?.rolename}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -204,7 +206,7 @@ export default function AdminProfileView({ user }: AdminProfileViewProps) {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>
-                        <Input id="role" value={user?.roles[0]} disabled />
+                        <Input id="role" value={user?.role?.id} disabled />
                       </div>
                     </div>
                   </form>

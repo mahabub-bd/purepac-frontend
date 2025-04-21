@@ -100,7 +100,6 @@ export function ProductForm({
     const fetchUnits = async () => {
       try {
         const response = await fetchData<Unit[]>("units");
-        console.log(response, "units response");
 
         setUnits(response);
       } catch (error) {

@@ -1,4 +1,4 @@
-import { Category, Role } from "@/utils/types";
+import { Category } from "@/utils/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -24,17 +24,6 @@ export const formatDateTime = (isoString: string) => {
     hour12: true,
     timeZone: "Asia/Dhaka", // GMT+6
   });
-};
-
-export const roleColors: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  [Role.CUSTOMER]: "outline",
-  [Role.ADMIN]: "default",
-  [Role.SUPERADMIN]: "destructive",
-  [Role.EDITOR]: "secondary",
-  [Role.MODERATOR]: "secondary",
 };
 
 export function getTopCategoryByProductCount(

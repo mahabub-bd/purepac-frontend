@@ -18,12 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { patchData, postData } from "@/utils/api-utils";
+import { fetchData, patchData, postData } from "@/utils/api-utils";
 import { Role, User } from "@/utils/types";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -40,9 +40,7 @@ const userSchema = z.object({
     .string()
     .min(10, { message: "Please enter a valid mobile number" })
     .startsWith("+880", { message: "Mobile number must start with +880" }),
-  roles: z
-    .array(z.nativeEnum(Role))
-    .min(1, { message: "Please select at least one role" }),
+  roles: z.string().min(1, { message: "Please select at least one role" }),
   isVerified: z.boolean().default(false),
 });
 
@@ -54,6 +52,7 @@ interface UserFormProps {
 
 export function UserForm({ user, mode, onSuccess }: UserFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
 
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
@@ -62,10 +61,25 @@ export function UserForm({ user, mode, onSuccess }: UserFormProps) {
       email: user?.email || "",
       password: "",
       mobileNumber: user?.mobileNumber || "+880",
-      roles: (user?.roles as Role[]) || [],
+      roles: user?.role?.id.toString(),
       isVerified: user?.isVerified || false,
     },
   });
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await fetchData<Role[]>("roles");
+
+        setRoles(response);
+      } catch (error) {
+        console.error("Error fetching units:", error);
+      }
+    };
+
+    fetchRoles();
+  }, []);
+
+  console.log(roles, "roles");
 
   const onSubmit = async (values: z.infer<typeof userSchema>) => {
     setIsSubmitting(true);
@@ -197,19 +211,20 @@ export function UserForm({ user, mode, onSuccess }: UserFormProps) {
             render={({ field }) => (
               <FormItem className="space-y-2">
                 <FormLabel>Role</FormLabel>
-                <Select
-                  value={field.value[0]}
-                  onValueChange={(value) => field.onChange([value as Role])}
-                >
+                <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {Object.values(Role).map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                    {roles?.map((role: Role) => (
+                      <SelectItem
+                        className=" capitalize"
+                        key={role.id}
+                        value={role.id.toString()}
+                      >
+                        {role.rolename}
                       </SelectItem>
                     ))}
                   </SelectContent>

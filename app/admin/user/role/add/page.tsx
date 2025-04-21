@@ -1,6 +1,6 @@
 "use client";
 
-import { BrandForm } from "@/components/admin/brand/brand-form";
+import { RoleForm } from "@/components/role/role-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,26 +10,35 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export default function AddBrandPage() {
+export default function AddRolePage() {
+  const router = useRouter();
+
+  const handleSuccess = () => {
+    toast.success("Role created successfully");
+    router.push("/admin/roles");
+  };
+
   return (
     <div className="p-6 space-y-6">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Add New Brand</CardTitle>
+              <CardTitle>Role Information</CardTitle>
               <CardDescription>
-                Create a new brand. Fill in all the required information.
+                Enter the details for the new role.
               </CardDescription>
             </div>
             <Button asChild variant="outline">
-              <Link href="/admin/brand/brand-list">Back to Brands</Link>
+              <Link href="/admin/user/role/role-list">Back to Role List</Link>
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <BrandForm mode="create" />
+          <RoleForm mode="create" onSuccess={handleSuccess} />
         </CardContent>
       </Card>
     </div>

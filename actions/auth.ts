@@ -16,7 +16,6 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export async function setUserCookies(userData: any) {
   const cookieStore = await cookies();
 
-  // Validate before setting auth token
   const authToken = userData?.data?.accessToken || userData?.token;
   if (!authToken) {
     console.error("No auth token provided");
@@ -39,7 +38,7 @@ export async function setUserCookies(userData: any) {
     name: "Customer",
     email: "",
     mobileNumber: "",
-    roles: [] as string[],
+    roles: "",
     isAdmin: false,
     createdAt: "",
   };
@@ -51,10 +50,9 @@ export async function setUserCookies(userData: any) {
         name: userData.name || "Customer",
         email: userData.email || "",
         mobileNumber: userData.mobileNumber || "",
-        roles: userData.roles || [],
+        roles: userData.roles || "",
         isAdmin: Boolean(
-          userData.roles?.includes("admin") ||
-            userData.roles?.includes("superadmin")
+          userData.roles === "admin" || userData.roles === "superadmin"
         ),
         createdAt: userData?.createdAt,
       };
@@ -64,7 +62,7 @@ export async function setUserCookies(userData: any) {
         name: userData.name || "Customer",
         email: userData.email || `${userData.mobileNo}@example.com`,
         mobileNumber: userData.mobileNo,
-        roles: [],
+        roles: userData.roles?.rolename || "",
         isAdmin: false,
         createdAt: userData?.createdAt,
       };

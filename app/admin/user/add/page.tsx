@@ -1,6 +1,6 @@
 "use client";
 
-import { BrandForm } from "@/components/admin/brand/brand-form";
+import { UserForm } from "@/components/admin/user/user-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,25 +11,35 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 
-export default function AddBrandPage() {
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+export default function AddUserPage() {
+  const router = useRouter();
+
+  const handleSuccess = () => {
+    toast.success("User created successfully");
+    router.push("/admin/users/user-list");
+  };
+
   return (
     <div className="p-6 space-y-6">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Add New Brand</CardTitle>
+              <CardTitle>User Information</CardTitle>
               <CardDescription>
-                Create a new brand. Fill in all the required information.
+                Enter the details for the new user.
               </CardDescription>
             </div>
             <Button asChild variant="outline">
-              <Link href="/admin/brand/brand-list">Back to Brands</Link>
+              <Link href="/admin/user/user-list">Back to User List</Link>
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <BrandForm mode="create" />
+          <UserForm mode="create" onSuccess={handleSuccess} />
         </CardContent>
       </Card>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { logout } from "@/actions/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { fetchData } from "@/utils/api-utils";
-import type { MenuItem } from "@/utils/types";
+import type { authResponse, MenuItem } from "@/utils/types";
 import {
   ChevronDown,
   ChevronLeft,
@@ -29,6 +30,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { IconRenderer } from "../common/IconRenderer";
 
 interface UserTypes {
@@ -80,12 +82,20 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      setTimeout(() => {
+      const result: authResponse = await logout();
+      console.log("Logout result:", result); // Debugging line
+
+      if (result.statusCode === 200) {
+        toast.success("Logged out successfully");
         router.push("/auth/sign-in");
-        setIsLoggingOut(false);
-      }, 1000);
+        router.refresh(); // Ensure client state updates
+      } else {
+        toast.error("Failed to log out");
+      }
     } catch (error) {
+      toast.error("Failed to log out");
       console.error("Logout error:", error);
+    } finally {
       setIsLoggingOut(false);
     }
   };

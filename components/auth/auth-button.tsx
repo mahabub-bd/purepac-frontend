@@ -38,6 +38,7 @@ export default function AuthBtn({
     try {
       setIsLoggingOut(true);
       const result: authResponse = await logout();
+      console.log("Logout result:", result); // Debugging line
 
       if (result.statusCode === 200) {
         toast.success("Logged out successfully");

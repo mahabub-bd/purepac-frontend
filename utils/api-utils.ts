@@ -113,9 +113,9 @@ export async function logoutPost(endpoint: string, token: any): Promise<void> {
       headers: {
         accept: "application/json",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json", // Added since your API might expect it
+        "Content-Type": "application/json",
       },
-      body: "{}", // Empty JSON body as shown in your cURL example
+      body: "{}",
     });
 
     if (!response.ok) {

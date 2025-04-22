@@ -1,6 +1,4 @@
-import Loading from "@/app/loading";
 import { CategoryList } from "@/components/admin/category/category-list";
-import { Suspense } from "react";
 
 export default async function CategoriesPage({
   searchParams,
@@ -20,13 +18,11 @@ export default async function CategoriesPage({
 
   return (
     <div className="p-6 space-y-6 border rounded-sm">
-      <Suspense fallback={<Loading />}>
-        <CategoryList
-          initialPage={page}
-          initialLimit={limit}
-          initialSearchParams={resolvedParams}
-        />
-      </Suspense>
+      <CategoryList
+        initialPage={page}
+        initialLimit={limit}
+        initialSearchParams={resolvedParams}
+      />
     </div>
   );
 }

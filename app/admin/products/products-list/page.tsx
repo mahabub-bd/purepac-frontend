@@ -1,6 +1,4 @@
-import Loading from "@/app/loading";
 import { ProductList } from "@/components/admin/products/product-list";
-import { Suspense } from "react";
 
 export default async function ProductsPage({
   searchParams,
@@ -20,13 +18,11 @@ export default async function ProductsPage({
 
   return (
     <div className="p-6 space-y-6 border rounded-sm">
-      <Suspense fallback={<Loading />}>
-        <ProductList
-          initialPage={page}
-          initialLimit={limit}
-          initialSearchParams={resolvedParams}
-        />
-      </Suspense>
+      <ProductList
+        initialPage={page}
+        initialLimit={limit}
+        initialSearchParams={resolvedParams}
+      />
     </div>
   );
 }

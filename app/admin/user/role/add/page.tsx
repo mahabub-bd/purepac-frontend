@@ -1,6 +1,6 @@
 "use client";
 
-import { RoleForm } from "@/components/role/role-form";
+import { RoleForm } from "@/components/admin/role/role-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,

@@ -67,7 +67,7 @@ export default function EditRolePage() {
             The requested role could not be found.
           </p>
           <Button asChild className="mt-4">
-            <Link href="/admin/roles">Back to Roles</Link>
+            <Link href="/admin/user/role/role-list">Back to Roles</Link>
           </Button>
         </div>
       </div>

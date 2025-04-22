@@ -18,7 +18,7 @@ export default function AddRolePage() {
 
   const handleSuccess = () => {
     toast.success("Role created successfully");
-    router.push("/admin/roles");
+    router.push("/admin/user/role/role-list");
   };
 
   return (

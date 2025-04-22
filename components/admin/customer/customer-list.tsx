@@ -37,7 +37,6 @@ import {
   Loader2,
   MoreHorizontal,
   Pencil,
-  Plus,
   Search,
   UserCircle,
   XCircle,
@@ -266,7 +265,7 @@ export function CustomerList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/user/${user?.id}/edit`}>
+                      <Link href={`/admin/customer/${user?.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </Link>
                     </DropdownMenuItem>
@@ -285,14 +284,9 @@ export function CustomerList({
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Users</CardTitle>
-            <CardDescription>Manage your system users</CardDescription>
+            <CardTitle>Customers</CardTitle>
+            <CardDescription>Manage your Customer</CardDescription>
           </div>
-          <Button asChild>
-            <Link href="/admin/user/add">
-              <Plus className="mr-2 h-4 w-4" /> Add User
-            </Link>
-          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

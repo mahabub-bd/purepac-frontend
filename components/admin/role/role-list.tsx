@@ -37,7 +37,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import DeleteConfirmationDialog from "../admin/delete-confirmation-dialog";
+import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 
 export function RoleList() {
   const [roles, setRoles] = useState<Role[]>([]);

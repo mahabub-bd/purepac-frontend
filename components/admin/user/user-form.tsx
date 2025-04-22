@@ -40,7 +40,7 @@ const userSchema = z.object({
     .string()
     .min(10, { message: "Please enter a valid mobile number" })
     .startsWith("+880", { message: "Mobile number must start with +880" }),
-  roles: z.string().min(1, { message: "Please select at least one role" }),
+  roleId: z.string().min(1, { message: "Please select at least one role" }),
   isVerified: z.boolean().default(false),
 });
 
@@ -61,7 +61,7 @@ export function UserForm({ user, mode, onSuccess }: UserFormProps) {
       email: user?.email || "",
       password: "",
       mobileNumber: user?.mobileNumber || "+880",
-      roles: user?.role?.id.toString(),
+      roleId: user?.role?.id.toString(),
       isVerified: user?.isVerified || false,
     },
   });
@@ -78,8 +78,6 @@ export function UserForm({ user, mode, onSuccess }: UserFormProps) {
 
     fetchRoles();
   }, []);
-
-  console.log(roles, "roles");
 
   const onSubmit = async (values: z.infer<typeof userSchema>) => {
     setIsSubmitting(true);
@@ -207,7 +205,7 @@ export function UserForm({ user, mode, onSuccess }: UserFormProps) {
 
           <FormField
             control={form.control}
-            name="roles"
+            name="roleId"
             render={({ field }) => (
               <FormItem className="space-y-2">
                 <FormLabel>Role</FormLabel>
@@ -224,7 +222,7 @@ export function UserForm({ user, mode, onSuccess }: UserFormProps) {
                         key={role.id}
                         value={role.id.toString()}
                       >
-                        {role.rolename}
+                        {role?.rolename}
                       </SelectItem>
                     ))}
                   </SelectContent>

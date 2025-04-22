@@ -1,4 +1,4 @@
-import { RoleList } from "@/components/role/role-list";
+import { RoleList } from "@/components/admin/role/role-list";
 
 export default function RolesPage() {
   return (

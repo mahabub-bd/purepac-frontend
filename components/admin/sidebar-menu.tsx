@@ -158,7 +158,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
     <>
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-30  bg-background/80 backdrop-blur-sm md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -178,7 +178,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 pt-4 flex flex-col border-r transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-30 pt-8  flex flex-col border-r transition-all duration-300 ease-in-out",
 
           collapsed ? "w-[70px]" : "w-[250px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",

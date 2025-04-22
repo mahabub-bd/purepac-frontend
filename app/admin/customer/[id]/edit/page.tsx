@@ -1,6 +1,6 @@
 "use client";
 
-import { UserForm } from "@/components/admin/user/user-form";
+import { CustomerForm } from "@/components/admin/customer/customer-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,8 +44,8 @@ export default function EditUserPage() {
   }, [userId, router]);
 
   const handleSuccess = () => {
-    toast.success("User updated successfully");
-    router.push("/admin/user/user-list");
+    toast.success("Customer updated successfully");
+    router.push("/admin/customer/customer-list");
   };
 
   if (isLoading) {
@@ -85,12 +85,14 @@ export default function EditUserPage() {
               <CardDescription>Update the user details.</CardDescription>
             </div>
             <Button asChild variant="outline">
-              <Link href="/admin/user/user-list">Back to User List</Link>
+              <Link href="/admin/customer/customer-list">
+                Back to CustomerList
+              </Link>
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <UserForm mode="edit" user={user} onSuccess={handleSuccess} />
+          <CustomerForm mode="edit" user={user} onSuccess={handleSuccess} />
         </CardContent>
       </Card>
     </div>

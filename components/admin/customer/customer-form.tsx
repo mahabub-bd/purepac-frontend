@@ -10,55 +10,98 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { patchData } from "@/utils/api-utils";
-import { User } from "@/utils/types";
-
+import { fetchData, patchData, postData } from "@/utils/api-utils";
+import { Role, User } from "@/utils/types";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-const customerSchema = z.object({
+const userSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" })
+    .optional()
+    .or(z.literal("")),
   mobileNumber: z
     .string()
     .min(10, { message: "Please enter a valid mobile number" })
     .startsWith("+880", { message: "Mobile number must start with +880" }),
+  roleId: z.string().min(1, { message: "Please select at least one role" }),
   isVerified: z.boolean().default(false),
 });
 
-interface CustomerFormProps {
-  customer: User;
+interface UserFormProps {
+  user?: User;
+  mode: "create" | "edit";
   onSuccess: () => void;
 }
 
-export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
+export function CustomerForm({ user, mode, onSuccess }: UserFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
 
-  const form = useForm<z.infer<typeof customerSchema>>({
-    resolver: zodResolver(customerSchema),
+  const form = useForm<z.infer<typeof userSchema>>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
-      name: customer.name,
-      email: customer.email,
-      mobileNumber: customer.mobileNumber || "+880",
-      isVerified: customer.isVerified || false,
+      name: user?.name || "",
+      email: user?.email || "",
+      password: "",
+      mobileNumber: user?.mobileNumber || "+880",
+      roleId: user?.role?.id.toString(),
+      isVerified: user?.isVerified || false,
     },
   });
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await fetchData<Role[]>("roles");
 
-  const onSubmit = async (values: z.infer<typeof customerSchema>) => {
+        setRoles(response);
+      } catch (error) {
+        console.error("Error fetching units:", error);
+      }
+    };
+
+    fetchRoles();
+  }, []);
+
+  const onSubmit = async (values: z.infer<typeof userSchema>) => {
     setIsSubmitting(true);
     try {
-      await patchData(`users/${customer.id}`, values);
-      toast.success("Customer updated successfully");
+      if (mode === "create") {
+        await postData("users", values);
+        toast.success("User created successfully");
+      } else if (mode === "edit" && user) {
+        const payload = { ...values };
+        if (!payload.password) {
+          delete payload.password;
+        }
+
+        await patchData(`users/${user.id}`, payload);
+        toast.success("User updated successfully");
+      }
       onSuccess();
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to update customer. Please try again.");
+      toast.error(
+        mode === "create"
+          ? "Failed to create user. Please try again."
+          : "Failed to update user. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -107,6 +150,29 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
 
           <FormField
             control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel>
+                  {mode === "create"
+                    ? "Password"
+                    : "New Password (leave blank to keep current)"}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Enter password"
+                    {...field}
+                    className="w-full"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="mobileNumber"
             render={({ field }) => (
               <FormItem className="space-y-2">
@@ -132,6 +198,35 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
                     }}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="roleId"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel>Role</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {roles?.map((role: Role) => (
+                      <SelectItem
+                        className=" capitalize"
+                        key={role.id}
+                        value={role.id.toString()}
+                      >
+                        {role?.rolename}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -168,7 +263,7 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
           </Button>
           <Button type="submit" disabled={isSubmitting} className="w-32">
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Update Customer
+            {mode === "create" ? "Create User" : "Update "}
           </Button>
         </div>
       </form>

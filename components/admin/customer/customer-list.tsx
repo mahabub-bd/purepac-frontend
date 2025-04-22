@@ -1,5 +1,7 @@
 "use client";
 
+import { CardFooter } from "@/components/ui/card";
+
 import type React from "react";
 
 import { PaginationComponent } from "@/components/common/pagination";
@@ -9,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -29,8 +30,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/utils";
-import { deleteData, fetchDataPagination } from "@/utils/api-utils";
-import { User } from "@/utils/types";
+import { fetchDataPagination } from "@/utils/api-utils";
+import type { User } from "@/utils/types";
 import {
   Filter,
   Loader2,
@@ -45,7 +46,6 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 
 interface ApiResponse {
   message: string;
@@ -91,8 +91,6 @@ export function CustomerList({
   );
   const [isLoading, setIsLoading] = useState(true);
 
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [limit] = useState(initialLimit);
@@ -147,26 +145,6 @@ export function CustomerList({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-  };
-
-  const handleDeleteClick = (user: User) => {
-    setSelectedUser(user);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDelete = async () => {
-    if (!selectedUser) return;
-
-    try {
-      await deleteData("users", selectedUser.id);
-      fetchUsers();
-      toast.success("User deleted successfully");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error("Failed to delete user. Please try again.");
-    } finally {
-      setIsDeleteDialogOpen(false);
-    }
   };
 
   const clearFilters = () => {
@@ -449,14 +427,6 @@ export function CustomerList({
           </div>
         </CardFooter>
       </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        open={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDelete}
-        defaultToast={false}
-      />
     </>
   );
 }

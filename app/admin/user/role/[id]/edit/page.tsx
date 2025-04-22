@@ -44,7 +44,7 @@ export default function EditRolePage() {
 
   const handleSuccess = () => {
     toast.success("Role updated successfully");
-    router.push("/admin/roles");
+    router.push("/admin/user/role/role-list");
   };
 
   if (isLoading) {

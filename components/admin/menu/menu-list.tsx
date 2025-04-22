@@ -7,14 +7,6 @@ import { PaginationComponent } from "@/components/common/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -115,7 +107,6 @@ export function MenuList({
     setCurrentPage(page);
   };
 
-  // Fetch all parent menu items (main menu items) once
   const fetchParentMenuItems = async () => {
     try {
       const response = await fetchData<MenuItem[]>(
@@ -293,7 +284,7 @@ export function MenuList({
   };
 
   const renderTableView = () => (
-    <div className="rounded-md border md:p-6 p-2">
+    <div className="md:p-6 p-2">
       <Table>
         <TableHeader>
           <TableRow>
@@ -359,11 +350,13 @@ export function MenuList({
 
   return (
     <>
-      <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <div className="w-full md:p-6 p-2">
+        <div className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Menu</CardTitle>
-            <CardDescription>Manage your website menu items</CardDescription>
+            <h2 className="text-2xl font-bold">Menu</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage your website menu items
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button asChild>
@@ -372,161 +365,161 @@ export function MenuList({
               </Link>
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search menu items..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-              </div>
+        </div>
 
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 px-3"
-                    >
-                      <Filter className="h-4 w-4" />
-                      <span>Filters</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-64 p-3 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
-                    sideOffset={8}
-                  >
-                    <div className="space-y-3">
-                      {/* Header */}
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium">Filters</h4>
-                        {(statusFilter || isMainMenuFilter) && (
-                          <button
-                            onClick={clearFilters}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                          >
-                            Clear all
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Status Filter */}
-                      <div className="space-y-2">
-                        <label className="text-xs text-muted-foreground">
-                          Status
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          <button
-                            onClick={() => {
-                              setStatusFilter("all");
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border ${
-                              statusFilter === "all"
-                                ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            All
-                          </button>
-                          <button
-                            onClick={() => {
-                              setStatusFilter("active");
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border flex items-center justify-center gap-1 ${
-                              statusFilter === "active"
-                                ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800 text-green-600 dark:text-green-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-green-500" />
-                            Active
-                          </button>
-                          <button
-                            onClick={() => {
-                              setStatusFilter("inactive");
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border flex items-center justify-center gap-1 ${
-                              statusFilter === "inactive"
-                                ? "bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800 text-red-600 dark:text-red-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-red-500" />
-                            Inactive
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Menu Type Filter */}
-                      <div className="space-y-2">
-                        <label className="text-xs text-muted-foreground">
-                          Menu Type
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          <button
-                            onClick={() => {
-                              setIsMainMenuFilter("all");
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border ${
-                              isMainMenuFilter === "all"
-                                ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            All
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsMainMenuFilter("true");
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border ${
-                              isMainMenuFilter === "true"
-                                ? "bg-purple-50 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 text-purple-600 dark:text-purple-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            Main Menu
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsMainMenuFilter("false");
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border ${
-                              isMainMenuFilter === "false"
-                                ? "bg-orange-50 border-orange-200 dark:bg-orange-900/30 dark:border-orange-800 text-orange-600 dark:text-orange-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            Sub Menu
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search menu items..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
             </div>
 
-            {renderActiveFilters()}
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 px-3"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>Filters</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-64 p-3 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+                  sideOffset={8}
+                >
+                  <div className="space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Filters</h4>
+                      {(statusFilter || isMainMenuFilter) && (
+                        <button
+                          onClick={clearFilters}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
 
-            {isLoading ? (
-              <Loading />
-            ) : menuItems.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <div className="mt-6">{renderTableView()}</div>
-            )}
+                    {/* Status Filter */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground">
+                        Status
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => {
+                            setStatusFilter("all");
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            statusFilter === "all"
+                              ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          All
+                        </button>
+                        <button
+                          onClick={() => {
+                            setStatusFilter("active");
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border flex items-center justify-center gap-1 ${
+                            statusFilter === "active"
+                              ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800 text-green-600 dark:text-green-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          <span className="h-2 w-2 rounded-full bg-green-500" />
+                          Active
+                        </button>
+                        <button
+                          onClick={() => {
+                            setStatusFilter("inactive");
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border flex items-center justify-center gap-1 ${
+                            statusFilter === "inactive"
+                              ? "bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800 text-red-600 dark:text-red-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          <span className="h-2 w-2 rounded-full bg-red-500" />
+                          Inactive
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Menu Type Filter */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground">
+                        Menu Type
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => {
+                            setIsMainMenuFilter("all");
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            isMainMenuFilter === "all"
+                              ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          All
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsMainMenuFilter("true");
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            isMainMenuFilter === "true"
+                              ? "bg-purple-50 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 text-purple-600 dark:text-purple-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          Main Menu
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsMainMenuFilter("false");
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            isMainMenuFilter === "false"
+                              ? "bg-orange-50 border-orange-200 dark:bg-orange-900/30 dark:border-orange-800 text-orange-600 dark:text-orange-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          Sub Menu
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col md:flex-row items-center justify-between gap-4">
+
+          {renderActiveFilters()}
+
+          {isLoading ? (
+            <Loading />
+          ) : menuItems.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <div className="mt-6">{renderTableView()}</div>
+          )}
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground text-center md:text-left truncate">
               {`Showing ${menuItems.length} of ${totalItems} menu items`}
@@ -541,8 +534,8 @@ export function MenuList({
               onPageChange={handlePageChange}
             />
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
 
       <DeleteConfirmationDialog
         open={isDeleteDialogOpen}

@@ -19,7 +19,7 @@ export default async function ProductsPage({
       : 7;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 border rounded-sm">
       <Suspense fallback={<Loading />}>
         <ProductList
           initialPage={page}

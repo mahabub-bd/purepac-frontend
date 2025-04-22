@@ -2,13 +2,7 @@
 
 import { UserForm } from "@/components/admin/user/user-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 
 import { fetchData } from "@/utils/api-utils";
 import type { User } from "@/utils/types";
@@ -45,7 +39,7 @@ export default function EditUserPage() {
 
   const handleSuccess = () => {
     toast.success("User updated successfully");
-    router.push("/admin/user/user-list");
+    router.back();
   };
 
   if (isLoading) {
@@ -76,23 +70,20 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>User Information</CardTitle>
-              <CardDescription>Update the user details.</CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/user/user-list">Back to User List</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <CardTitle>User Information</CardTitle>
+            <CardDescription>Update the user details.</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <UserForm mode="edit" user={user} onSuccess={handleSuccess} />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/user/user-list">Back to User List</Link>
+          </Button>
+        </div>
+      </div>
+
+      <UserForm mode="edit" user={user} onSuccess={handleSuccess} />
     </div>
   );
 }

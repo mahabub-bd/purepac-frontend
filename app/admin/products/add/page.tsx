@@ -2,13 +2,6 @@
 
 import { ProductForm } from "@/components/admin/products/product-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import type { Brand, Category } from "@/utils/types";
 import { Loader2 } from "lucide-react";
@@ -59,25 +52,23 @@ export default function AddProductPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Add New Product</CardTitle>
-              <CardDescription>
-                Create a new product. Fill in all the required information.
-              </CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/products/products-list">Back to Products</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className=" md:p-6 p:2">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">Add New Product</h2>
+            <p className="text-sm text-muted-foreground">
+              Create a new product. Fill in all the required information.
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
+          <Button asChild variant="outline">
+            <Link href="/admin/products/products-list">Back to Products</Link>
+          </Button>
+        </div>
+        <div>
           <ProductForm mode="create" brands={brands} categories={categories} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

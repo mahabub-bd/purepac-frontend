@@ -3,14 +3,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -99,7 +91,7 @@ export function RoleList() {
   );
 
   const renderTableView = () => (
-    <div className="rounded-md border md:p-6 p-2">
+    <div className="md:p-6 p-2">
       <Table>
         <TableHeader>
           <TableRow>
@@ -157,44 +149,44 @@ export function RoleList() {
 
   return (
     <>
-      <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <div className="w-full md:p-6 p-2">
+        <div className="flex flex-row items-center justify-between mb-6">
           <div>
-            <CardTitle>Roles</CardTitle>
-            <CardDescription>
+            <h2 className="text-2xl font-bold">Roles</h2>
+            <p className="text-sm text-muted-foreground">
               Manage system roles and permissions
-            </CardDescription>
+            </p>
           </div>
           <Button asChild>
             <Link href="/admin/user/role/add">
               <Plus className="mr-2 h-4 w-4" /> Add Role
             </Link>
           </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">
-                    Loading roles...
-                  </p>
-                </div>
+        </div>
+
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Loading roles...
+                </p>
               </div>
-            ) : roles.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <div>{renderTableView()}</div>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
+            </div>
+          ) : roles.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <div>{renderTableView()}</div>
+          )}
+        </div>
+
+        <div className="flex justify-between">
           <div className="text-xs text-muted-foreground">
             {roles.length} {roles.length === 1 ? "role" : "roles"}
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

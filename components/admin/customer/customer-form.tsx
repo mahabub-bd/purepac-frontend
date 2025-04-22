@@ -110,147 +110,148 @@ export function CustomerForm({ user, mode, onSuccess }: UserFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter name"
-                    {...field}
-                    className="w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="Enter email"
-                    {...field}
-                    className="w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel>
-                  {mode === "create"
-                    ? "Password"
-                    : "New Password (leave blank to keep current)"}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter password"
-                    {...field}
-                    className="w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="mobileNumber"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel>Mobile Number</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="+880"
-                    {...field}
-                    className="w-full"
-                    onChange={(e) => {
-                      // Ensure the input starts with +880
-                      if (!e.target.value.startsWith("+880")) {
-                        if (e.target.value === "") {
-                          field.onChange("+880");
-                        } else if (!e.target.value.startsWith("+")) {
-                          field.onChange(`+880${e.target.value}`);
-                        } else {
-                          field.onChange("+880");
-                        }
-                      } else {
-                        field.onChange(e.target.value);
-                      }
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="roleId"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel>Role</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
+                    <Input
+                      placeholder="Enter name"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {roles?.map((role: Role) => (
-                      <SelectItem
-                        className=" capitalize"
-                        key={role.id}
-                        value={role.id.toString()}
-                      >
-                        {role?.rolename}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="isVerified"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 space-y-0">
-                <div className="space-y-0.5">
-                  <FormLabel>Verified Status</FormLabel>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter email"
+                      {...field}
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>
+                    {mode === "create"
+                      ? "Password"
+                      : "New Password (leave blank to keep current)"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter password"
+                      {...field}
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="mobileNumber"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Mobile Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="+880"
+                      {...field}
+                      className="w-full"
+                      onChange={(e) => {
+                        // Ensure the input starts with +880
+                        if (!e.target.value.startsWith("+880")) {
+                          if (e.target.value === "") {
+                            field.onChange("+880");
+                          } else if (!e.target.value.startsWith("+")) {
+                            field.onChange(`+880${e.target.value}`);
+                          } else {
+                            field.onChange("+880");
+                          }
+                        } else {
+                          field.onChange(e.target.value);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="roleId"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Role</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {roles?.map((role: Role) => (
+                        <SelectItem
+                          className=" capitalize"
+                          key={role.id}
+                          value={role.id.toString()}
+                        >
+                          {role?.rolename}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isVerified"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 space-y-0">
+                  <div className="space-y-0.5">
+                    <FormLabel>Verified Status</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
-
         <div className="flex justify-end space-x-4 pt-2">
           <Button
             type="button"

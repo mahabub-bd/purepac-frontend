@@ -6,14 +6,6 @@ import { PaginationComponent } from "@/components/common/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -248,7 +240,7 @@ export function UserList({
   };
 
   const renderTableView = () => (
-    <div className="rounded-md border md:p-6 p-2">
+    <div className=" md:p-6 p-2">
       <Table>
         <TableHeader>
           <TableRow>
@@ -316,135 +308,137 @@ export function UserList({
 
   return (
     <>
-      <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <div className="w-full md:p-6 p-2">
+        <div className="flex flex-row items-center justify-between mb-6">
           <div>
-            <CardTitle>Users</CardTitle>
-            <CardDescription>Manage your system users</CardDescription>
+            <h2 className="text-2xl font-bold">Users</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage your system users
+            </p>
           </div>
           <Button asChild>
             <Link href="/admin/user/add">
               <Plus className="mr-2 h-4 w-4" /> Add User
             </Link>
           </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search users..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-              </div>
+        </div>
 
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 px-3"
-                    >
-                      <Filter className="h-4 w-4" />
-                      <span>Filters</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-64 p-3 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
-                    sideOffset={8}
-                  >
-                    <div className="space-y-3">
-                      {/* Header */}
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium">Filters</h4>
-                        {roleFilter && roleFilter !== "all" && (
-                          <button
-                            onClick={clearFilters}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                          >
-                            Clear all
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Role Filter */}
-                      <div className="space-y-2">
-                        <label className="text-xs text-muted-foreground">
-                          Role
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          <button
-                            onClick={() => {
-                              setRoleFilter("all");
-                              setCurrentPage(1);
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border ${
-                              roleFilter === "all"
-                                ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            All
-                          </button>
-                          <button
-                            onClick={() => {
-                              setRoleFilter("customer");
-                              setCurrentPage(1);
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border ${
-                              roleFilter === "customer"
-                                ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800 text-green-600 dark:text-green-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            Customer
-                          </button>
-                          <button
-                            onClick={() => {
-                              setRoleFilter("admin");
-                              setCurrentPage(1);
-                            }}
-                            className={`text-xs py-1.5 px-2 rounded-md border ${
-                              roleFilter === "admin"
-                                ? "bg-purple-50 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 text-purple-600 dark:text-purple-400"
-                                : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
-                            }`}
-                          >
-                            Admin
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search users..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
             </div>
 
-            {renderActiveFilters()}
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 px-3"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>Filters</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-64 p-3 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+                  sideOffset={8}
+                >
+                  <div className="space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Filters</h4>
+                      {roleFilter && roleFilter !== "all" && (
+                        <button
+                          onClick={clearFilters}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
 
-            {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">
-                    Loading users...
-                  </p>
-                </div>
-              </div>
-            ) : users.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <div className="mt-6">{renderTableView()}</div>
-            )}
+                    {/* Role Filter */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground">
+                        Role
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => {
+                            setRoleFilter("all");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            roleFilter === "all"
+                              ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          All
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRoleFilter("customer");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            roleFilter === "customer"
+                              ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800 text-green-600 dark:text-green-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          Customer
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRoleFilter("admin");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            roleFilter === "admin"
+                              ? "bg-purple-50 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 text-purple-600 dark:text-purple-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          Admin
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col md:flex-row items-center justify-between gap-4">
+
+          {renderActiveFilters()}
+
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Loading users...
+                </p>
+              </div>
+            </div>
+          ) : users.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <div className="mt-6">{renderTableView()}</div>
+          )}
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground text-center md:text-left truncate">
               {`Showing ${users.length} of ${totalItems} users`}
@@ -459,8 +453,8 @@ export function UserList({
               onPageChange={handlePageChange}
             />
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

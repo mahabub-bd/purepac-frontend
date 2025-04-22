@@ -1,15 +1,8 @@
 "use client";
 
-
 import { RoleForm } from "@/components/admin/role/role-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import { Role } from "@/utils/types";
 import { Loader2 } from "lucide-react";
@@ -34,7 +27,7 @@ export default function EditRolePage() {
       } catch (error) {
         console.error("Error fetching role:", error);
         toast.error("Failed to load role data");
-        router.push("/admin/roles");
+        router.back();
       } finally {
         setIsLoading(false);
       }
@@ -45,7 +38,7 @@ export default function EditRolePage() {
 
   const handleSuccess = () => {
     toast.success("Role updated successfully");
-    router.push("/admin/user/role/role-list");
+    router.back();
   };
 
   if (isLoading) {
@@ -76,23 +69,20 @@ export default function EditRolePage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Role Information</CardTitle>
-              <CardDescription>Update the role details.</CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/user/role/role-list">Back to Role List</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <CardTitle>Role Information</CardTitle>
+            <CardDescription>Update the role details.</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <RoleForm mode="edit" role={role} onSuccess={handleSuccess} />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/user/role/role-list">Back to Role List</Link>
+          </Button>
+        </div>
+      </div>
+
+      <RoleForm mode="edit" role={role} onSuccess={handleSuccess} />
     </div>
   );
 }

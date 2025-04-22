@@ -2,13 +2,7 @@
 
 import { ProductForm } from "@/components/admin/products/product-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import type { Brand, Category, Product } from "@/utils/types";
 import { Loader2 } from "lucide-react";
@@ -81,28 +75,25 @@ export default function EditProductPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Edit Product</CardTitle>
-              <CardDescription>Update the product information.</CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/products/products-list">Back to Products</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center mt-6">
+          <div>
+            <CardTitle>Edit Product</CardTitle>
+            <CardDescription>Update the product information.</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <ProductForm
-            mode="edit"
-            product={product}
-            brands={brands}
-            categories={categories}
-          />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/products/products-list">Back to Products</Link>
+          </Button>
+        </div>
+      </div>
+
+      <ProductForm
+        mode="edit"
+        product={product}
+        brands={brands}
+        categories={categories}
+      />
     </div>
   );
 }

@@ -2,13 +2,7 @@
 
 import { UserForm } from "@/components/admin/user/user-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
 import { useRouter } from "next/navigation";
@@ -23,25 +17,22 @@ export default function AddUserPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>User Information</CardTitle>
-              <CardDescription>
-                Enter the details for the new user.
-              </CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/user/user-list">Back to User List</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>User Information</CardTitle>
+            <CardDescription>
+              Enter the details for the new user.
+            </CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <UserForm mode="create" onSuccess={handleSuccess} />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/user/user-list">Back to User List</Link>
+          </Button>
+        </div>
+      </div>
+
+      <UserForm mode="create" onSuccess={handleSuccess} />
     </div>
   );
 }

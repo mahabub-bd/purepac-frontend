@@ -2,13 +2,7 @@
 
 import { CustomerForm } from "@/components/admin/customer/customer-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 
 import { fetchData } from "@/utils/api-utils";
 import type { User } from "@/utils/types";
@@ -76,25 +70,22 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>User Information</CardTitle>
-              <CardDescription>Update the user details.</CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/customer/customer-list">
-                Back to CustomerList
-              </Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <CardTitle>User Information</CardTitle>
+            <CardDescription>Update the user details.</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <CustomerForm mode="edit" user={user} onSuccess={handleSuccess} />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/customer/customer-list">
+              Back to CustomerList
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      <CustomerForm mode="edit" user={user} onSuccess={handleSuccess} />
     </div>
   );
 }

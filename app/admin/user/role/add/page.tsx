@@ -2,13 +2,7 @@
 
 import { RoleForm } from "@/components/admin/role/role-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -18,29 +12,26 @@ export default function AddRolePage() {
 
   const handleSuccess = () => {
     toast.success("Role created successfully");
-    router.push("/admin/user/role/role-list");
+    router.back();
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Role Information</CardTitle>
-              <CardDescription>
-                Enter the details for the new role.
-              </CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/user/role/role-list">Back to Role List</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <CardTitle>Role Information</CardTitle>
+            <CardDescription>
+              Enter the details for the new role.
+            </CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <RoleForm mode="create" onSuccess={handleSuccess} />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/user/role/role-list">Back to Role List</Link>
+          </Button>
+        </div>
+      </div>
+
+      <RoleForm mode="create" onSuccess={handleSuccess} />
     </div>
   );
 }

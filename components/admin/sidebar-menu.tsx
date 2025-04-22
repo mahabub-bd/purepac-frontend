@@ -83,12 +83,11 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
     try {
       setIsLoggingOut(true);
       const result: authResponse = await logout();
-      console.log("Logout result:", result); // Debugging line
 
       if (result.statusCode === 200) {
         toast.success("Logged out successfully");
         router.push("/auth/sign-in");
-        router.refresh(); // Ensure client state updates
+        router.refresh(); 
       } else {
         toast.error("Failed to log out");
       }
@@ -178,7 +177,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 pt-8  flex flex-col border-r transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-30 pt-4  flex flex-col border-r transition-all duration-300 ease-in-out",
 
           collapsed ? "w-[70px]" : "w-[250px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
@@ -388,7 +387,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
           </div>
         </div>
 
-        <div className="border-t p-4">
+        <div className="border-t p-4 md:hidden flex md:items-center md:justify-between">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

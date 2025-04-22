@@ -3,14 +3,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -372,7 +364,7 @@ export function ProductList({
   };
 
   const renderTableView = () => (
-    <div className="rounded-md border md:p-6 p-2">
+    <div className="md:p-6 p-2">
       <Table>
         <TableHeader>
           <TableRow>
@@ -468,11 +460,13 @@ export function ProductList({
 
   return (
     <>
-      <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <div className="w-full md:p-6 p-2">
+        <div className="flex flex-row items-center justify-between mb-6">
           <div>
-            <CardTitle>Products</CardTitle>
-            <CardDescription>Manage your product inventory</CardDescription>
+            <h2 className="text-2xl font-bold">Products</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage your product inventory
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button asChild>
@@ -481,153 +475,153 @@ export function ProductList({
               </Link>
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search products..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-              </div>
+        </div>
 
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[200px]">
-                    <div className="grid gap-3 p-2">
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-semibold">Category</h4>
-                        <Select
-                          value={categoryFilter}
-                          onValueChange={(value) => {
-                            setCategoryFilter(value);
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue placeholder="All Categories" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            {categories.map((category) => (
-                              <SelectItem
-                                key={category.id}
-                                value={category.id.toString()}
-                              >
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-semibold">Brand</h4>
-                        <Select
-                          value={brandFilter}
-                          onValueChange={(value) => {
-                            setBrandFilter(value);
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue placeholder="All Brands" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Brands</SelectItem>
-                            {brands.map((brand) => (
-                              <SelectItem
-                                key={brand.id}
-                                value={brand.id.toString()}
-                              >
-                                {brand.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-semibold">Status</h4>
-                        <Select
-                          value={statusFilter}
-                          onValueChange={(value) => {
-                            setStatusFilter(value);
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue placeholder="All Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-semibold">Featured</h4>
-                        <Select
-                          value={featuredFilter}
-                          onValueChange={(value) => {
-                            setFeaturedFilter(value);
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue placeholder="All" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="true">Featured</SelectItem>
-                            <SelectItem value="false">Not Featured</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {(categoryFilter ||
-                        brandFilter ||
-                        statusFilter ||
-                        featuredFilter) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={clearFilters}
-                          className="mt-2"
-                        >
-                          Reset Filters
-                        </Button>
-                      )}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search products..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
             </div>
 
-            {renderActiveFilters()}
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <div className="grid gap-3 p-2">
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-semibold">Category</h4>
+                      <Select
+                        value={categoryFilter}
+                        onValueChange={(value) => {
+                          setCategoryFilter(value);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          {categories.map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-            {isLoading ? (
-              <Loading />
-            ) : products.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <div className="mt-6">{renderTableView()}</div>
-            )}
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-semibold">Brand</h4>
+                      <Select
+                        value={brandFilter}
+                        onValueChange={(value) => {
+                          setBrandFilter(value);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="All Brands" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Brands</SelectItem>
+                          {brands.map((brand) => (
+                            <SelectItem
+                              key={brand.id}
+                              value={brand.id.toString()}
+                            >
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-semibold">Status</h4>
+                      <Select
+                        value={statusFilter}
+                        onValueChange={(value) => {
+                          setStatusFilter(value);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-semibold">Featured</h4>
+                      <Select
+                        value={featuredFilter}
+                        onValueChange={(value) => {
+                          setFeaturedFilter(value);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="All" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="true">Featured</SelectItem>
+                          <SelectItem value="false">Not Featured</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {(categoryFilter ||
+                      brandFilter ||
+                      statusFilter ||
+                      featuredFilter) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="mt-2"
+                      >
+                        Reset Filters
+                      </Button>
+                    )}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col md:flex-row items-center justify-between gap-4">
+
+          {renderActiveFilters()}
+
+          {isLoading ? (
+            <Loading />
+          ) : products.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <div className="mt-6">{renderTableView()}</div>
+          )}
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground text-center md:text-left truncate">
               {`Showing ${products.length} of ${totalItems} products`}
@@ -642,8 +636,8 @@ export function ProductList({
               onPageChange={handlePageChange}
             />
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

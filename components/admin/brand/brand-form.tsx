@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -102,7 +101,7 @@ export function BrandForm({ mode, brand }: BrandFormProps) {
             ? "Brand created successfully"
             : "Brand updated successfully";
         toast.success(successMessage);
-        router.push("/admin/brand/brand-list");
+        router.back();
       } else {
         toast.error(response?.message || "An error occurred");
       }
@@ -125,117 +124,115 @@ export function BrandForm({ mode, brand }: BrandFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Card>
-          <CardContent className="pt-6 space-y-6">
-            {/* Basic Information Section */}
-            <Section title="Basic Information">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Brand Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter brand name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div className="p-6 space-y-6">
+          {/* Basic Information Section */}
+          <Section title="Basic Information">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Brand Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter brand name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter brand description"
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Section>
+
+          {/* Media & Status Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Section title="Media">
               <FormField
                 control={form.control}
-                name="description"
-                render={({ field }) => (
+                name="imageUrl"
+                render={() => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter brand description"
-                        className="min-h-[100px]"
-                        {...field}
+                    <FormLabel>Brand Logo</FormLabel>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4">
+                        {imagePreview ? (
+                          <div className="relative w-32 h-32 border rounded-md overflow-hidden bg-gray-50">
+                            <Image
+                              src={imagePreview}
+                              alt="Brand preview"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center w-32 h-32 border rounded-md bg-muted/20">
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              document.getElementById("brand-upload")?.click()
+                            }
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Choose File
+                          </Button>
+                          <span className="text-sm text-muted-foreground">
+                            {fileName || "No file chosen"}
+                          </span>
+                        </div>
+                      </div>
+                      <Input
+                        id="brand-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
                       />
-                    </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </Section>
 
-            {/* Media & Status Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Section title="Media">
+            <Section title="Status">
+              <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
-                  name="imageUrl"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Brand Logo</FormLabel>
-                      <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-4">
-                          {imagePreview ? (
-                            <div className="relative w-32 h-32 border rounded-md overflow-hidden bg-gray-50">
-                              <Image
-                                src={imagePreview}
-                                alt="Brand preview"
-                                fill
-                                className="object-contain"
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center w-32 h-32 border rounded-md bg-muted/20">
-                              <Upload className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="flex flex-col gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() =>
-                                document.getElementById("brand-upload")?.click()
-                              }
-                            >
-                              <Upload className="mr-2 h-4 w-4" />
-                              Choose File
-                            </Button>
-                            <span className="text-sm text-muted-foreground">
-                              {fileName || "No file chosen"}
-                            </span>
-                          </div>
-                        </div>
-                        <Input
-                          id="brand-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleFileChange}
-                        />
-                      </div>
-                      <FormMessage />
-                    </FormItem>
+                  name="isActive"
+                  render={({ field }) => (
+                    <SwitchCard
+                      label="Active Status"
+                      description="Brand will be visible to customers"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   )}
                 />
-              </Section>
-
-              <Section title="Status">
-                <div className="grid grid-cols-1 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <SwitchCard
-                        label="Active Status"
-                        description="Brand will be visible to customers"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    )}
-                  />
-                </div>
-              </Section>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </Section>
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>

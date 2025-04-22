@@ -2,13 +2,7 @@
 
 import { MenuForm } from "@/components/admin/menu/menu-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import type { MenuItem } from "@/utils/types";
 import { Loader2 } from "lucide-react";
@@ -55,25 +49,20 @@ export default function EditMenuPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Edit Menu Item</CardTitle>
-              <CardDescription>
-                Update the menu item information.
-              </CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/settings/menu-list">Back to Menu</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Edit Menu Item</CardTitle>
+            <CardDescription>Update the menu item information.</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <MenuForm mode="edit" menuItem={menuItem} />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/settings/menu-list">Back to Menu</Link>
+          </Button>
+        </div>
+      </div>
+
+      <MenuForm mode="edit" menuItem={menuItem} />
     </div>
   );
 }

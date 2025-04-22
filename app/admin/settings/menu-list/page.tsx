@@ -1,4 +1,6 @@
+import Loading from "@/app/loading";
 import { MenuList } from "@/components/admin/menu/menu-list";
+import { Suspense } from "react";
 
 export default async function MenusPage({
   searchParams,
@@ -17,12 +19,14 @@ export default async function MenusPage({
       : 10;
 
   return (
-    <div className="p-6 space-y-6">
-      <MenuList
-        initialPage={page}
-        initialLimit={limit}
-        initialSearchParams={resolvedParams}
-      />
+    <div className="p-6 space-y-6 border rounded-sm">
+      <Suspense fallback={<Loading />}>
+        <MenuList
+          initialPage={page}
+          initialLimit={limit}
+          initialSearchParams={resolvedParams}
+        />
+      </Suspense>
     </div>
   );
 }

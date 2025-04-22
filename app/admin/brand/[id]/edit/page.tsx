@@ -2,13 +2,7 @@
 
 import { BrandForm } from "@/components/admin/brand/brand-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import type { Brand } from "@/utils/types";
 import { Loader2 } from "lucide-react";
@@ -55,23 +49,20 @@ export default function EditBrandPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Edit Brand</CardTitle>
-              <CardDescription>Update the brand information.</CardDescription>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/admin/brand">Back to Brands</Link>
-            </Button>
+    <div className="md:p-6 p:2 space-y-6 border rouunded-sm">
+      <div className="md:p-6 p:2">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <CardTitle>Edit Brand</CardTitle>
+            <CardDescription>Update the brand information.</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <BrandForm mode="edit" brand={brand} />
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/admin/brand/brand-list">Back to Brands</Link>
+          </Button>
+        </div>
+      </div>
+
+      <BrandForm mode="edit" brand={brand} />
     </div>
   );
 }

@@ -26,6 +26,7 @@ import type { MenuItem } from "@/utils/types";
 import {
   Filter,
   LayoutList,
+  Loader2,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -511,7 +512,14 @@ export function MenuList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <Loading />
+             <div className="flex justify-center items-center py-12">
+             <div className="flex flex-col items-center gap-2">
+               <Loader2 className="h-8 w-8 animate-spin text-primary" />
+               <p className="text-sm text-muted-foreground">
+                 Loading Menus...
+               </p>
+             </div>
+           </div>
           ) : menuItems.length === 0 ? (
             renderEmptyState()
           ) : (

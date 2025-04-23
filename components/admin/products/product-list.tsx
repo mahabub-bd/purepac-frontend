@@ -25,13 +25,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import Loading from "@/app/loading";
 import { PaginationComponent } from "@/components/common/pagination";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData, fetchData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand, Category, Product } from "@/utils/types";
 import {
   Filter,
+  Loader2,
   MoreHorizontal,
   Package,
   Pencil,
@@ -613,7 +613,14 @@ export function ProductList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <Loading />
+            <div className="flex justify-center items-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Loading Products...
+                </p>
+              </div>
+            </div>
           ) : products.length === 0 ? (
             renderEmptyState()
           ) : (

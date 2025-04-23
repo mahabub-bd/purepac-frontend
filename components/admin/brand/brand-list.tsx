@@ -1,6 +1,5 @@
 "use client";
 
-import Loading from "@/app/loading";
 import { PaginationComponent } from "@/components/common/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand } from "@/utils/types";
 import {
   Filter,
+  Loader2,
   MoreHorizontal,
   Package,
   Pencil,
@@ -416,7 +416,14 @@ export function BrandList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <Loading />
+            <div className="flex justify-center items-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Loading Brands...
+                </p>
+              </div>
+            </div>
           ) : brands.length === 0 ? (
             renderEmptyState()
           ) : (

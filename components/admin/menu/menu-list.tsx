@@ -2,7 +2,6 @@
 
 import type React from "react";
 
-import Loading from "@/app/loading";
 import { PaginationComponent } from "@/components/common/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -512,14 +511,14 @@ export function MenuList({
           {renderActiveFilters()}
 
           {isLoading ? (
-             <div className="flex justify-center items-center py-12">
-             <div className="flex flex-col items-center gap-2">
-               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-               <p className="text-sm text-muted-foreground">
-                 Loading Menus...
-               </p>
-             </div>
-           </div>
+            <div className="flex justify-center items-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Loading Menus...
+                </p>
+              </div>
+            </div>
           ) : menuItems.length === 0 ? (
             renderEmptyState()
           ) : (

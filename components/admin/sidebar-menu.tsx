@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { fetchData } from "@/utils/api-utils";
+import { fetchProtectedData } from "@/utils/api-utils";
 import type { authResponse, MenuItem } from "@/utils/types";
 import {
   ChevronDown,
@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { IconRenderer } from "../common/IconRenderer";
 
 interface UserTypes {
+  id: number;
   name?: string;
   email?: string;
   isAdmin?: boolean;
@@ -63,11 +64,9 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
     const fetchMenuData = async () => {
       setIsLoading(true);
       try {
-        const endpoint = user?.isAdmin
-          ? "menu/tree?isAdminMenu=true&limit=50"
-          : "menu/tree?isAdminMenu=false&limit=50";
+        const endpoint = `menu-permissions/accessible-menus/${user?.id}`;
 
-        const response: MenuItem[] = await fetchData(endpoint);
+        const response: MenuItem[] = await fetchProtectedData(endpoint);
         setMenuData(response);
       } catch (error) {
         console.error("Error fetching menu data:", error);
@@ -77,7 +76,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
     };
 
     fetchMenuData();
-  }, [user?.isAdmin]);
+  }, [user?.id]);
 
   const handleLogout = async () => {
     try {
@@ -87,7 +86,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
       if (result.statusCode === 200) {
         toast.success("Logged out successfully");
         router.push("/auth/sign-in");
-        router.refresh(); 
+        router.refresh();
       } else {
         toast.error("Failed to log out");
       }

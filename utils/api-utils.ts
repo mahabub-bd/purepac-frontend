@@ -18,7 +18,6 @@ export async function fetchData<T>(endpoint: string): Promise<T> {
     const response = await fetch(url);
 
     if (!response.ok) {
-      // Try to parse error response
       let errorMessage;
       try {
         const errorData = await response.json();
@@ -40,6 +39,45 @@ export async function fetchData<T>(endpoint: string): Promise<T> {
   }
 }
 
+// For protected endpoints that require authentication
+export async function fetchProtectedData<T>(endpoint: string): Promise<T> {
+  const url = `${apiUrl}/${endpoint}`;
+  const token = await getToken();
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `HTTP error! Status: ${response.status}`;
+      } catch {
+        errorMessage = `HTTP error! Status: ${response.status}`;
+      }
+
+      if (response.status === 401) {
+        console.error("Unauthorized access - possibly expired token");
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    return result.data;
+  } catch (error: unknown) {
+    console.error(`Error fetching protected data from ${endpoint}:`, error);
+    throw error;
+  }
+}
 export async function fetchDataPagination<T>(endpoint: string): Promise<T> {
   const url = `${apiUrl}/${endpoint}`;
 

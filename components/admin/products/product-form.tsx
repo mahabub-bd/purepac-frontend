@@ -45,7 +45,7 @@ const productSchema = z.object({
   description: z.string().min(1, "Description is required"),
   unitprice: z.coerce.number().min(0.01, "Unit price must be greater than 0"),
   stock: z.coerce.number().int().nonnegative("Stock cannot be negative"),
-  unit: z.string().min(1, "Unit is required"),
+  unitId: z.string().min(1, "Unit is required"),
   productSku: z.string().min(1, "SKU is required"),
   imageUrl: z.string().optional(),
   isActive: z.boolean().default(true),
@@ -84,7 +84,7 @@ export function ProductForm({
       description: product?.description || "",
       unitprice: product?.unitprice || 0,
       stock: product?.stock || 0,
-      unit: product?.unit?.id?.toString() || "",
+      unitId: product?.unit?.id?.toString() || "",
       productSku: product?.productSku || "",
       imageUrl: product?.attachment?.url || "",
       isActive: product?.isActive ?? true,
@@ -262,7 +262,7 @@ export function ProductForm({
 
               <FormField
                 control={form.control}
-                name="unit"
+                name="unitId"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Unit</FormLabel>

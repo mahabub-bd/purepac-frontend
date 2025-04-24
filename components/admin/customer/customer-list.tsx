@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/utils";
 import { fetchDataPagination } from "@/utils/api-utils";
-import type { User } from "@/utils/types";
+import type { ApiResponseusers, User } from "@/utils/types";
 import {
   Filter,
   Loader2,
@@ -36,21 +36,6 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-
-interface ApiResponse {
-  message: string;
-  statusCode: number;
-  data: {
-    customers: User[];
-    others: User[];
-    pagination: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-  };
-}
 
 interface UserListProps {
   initialPage?: number;
@@ -108,7 +93,7 @@ export function CustomerList({
       if (searchQuery) params.append("search", searchQuery);
       if (roleFilter && roleFilter !== "all") params.append("role", roleFilter);
 
-      const response = await fetchDataPagination<ApiResponse>("users");
+      const response = await fetchDataPagination<ApiResponseusers>("users");
 
       const allUsers = [...response.data.customers];
 

@@ -25,7 +25,7 @@ interface Role {
   rolename: string;
   description: string;
   isActive: boolean;
-  createdDate: string;
+  createdAt: string;
   updatedDate: string;
 }
 

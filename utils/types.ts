@@ -107,20 +107,26 @@ export interface Unit {
   id: number;
   name: string;
   isActive: boolean;
-  createdDate: string;
+  createdAt: string;
   updatedDate: string;
   createdBy: User;
   updatedBy: User;
 }
 
-// export enum Role {
-//   CUSTOMER = "customer",
-//   ADMIN = "admin",
-//   SUPERADMIN = "superadmin",
-//   EDITOR = "editor",
-//   MODERATOR = "moderator",
-// }
-
+export interface ApiResponseusers {
+  message: string;
+  statusCode: number;
+  data: {
+    customers: User[];
+    others: User[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
+}
 export type authResponse = {
   message: string;
   statusCode: number;
@@ -156,7 +162,7 @@ export interface Role {
   rolename: string;
   description: string;
   isActive: boolean;
-  createdDate: string;
+  createdAt: string;
 
   updatedDate: string;
 

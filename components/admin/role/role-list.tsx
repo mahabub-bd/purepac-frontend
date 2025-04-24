@@ -29,6 +29,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { formatDateTime } from "../../../lib/utils";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 
 export function RoleList() {
@@ -115,7 +116,7 @@ export function RoleList() {
                 </Badge>
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                {new Date(role.createdDate).toLocaleDateString()}
+                {formatDateTime(role.createdAt)}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>

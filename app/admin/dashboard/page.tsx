@@ -7,8 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getTopCategoryByProductCount } from "@/lib/utils";
-import { fetchData } from "@/utils/api-utils";
-import type { Category, Product, User } from "@/utils/types";
+import { fetchData, fetchDataPagination } from "@/utils/api-utils";
+import type { ApiResponseusers, Category, Product } from "@/utils/types";
 
 import {
   Activity,
@@ -22,11 +22,14 @@ import {
 
 export default async function DashboardPage() {
   const products = await fetchData<Product[]>("products");
-  const customers = await fetchData<User[]>("users?roleType=customer");
+
   const categories = await fetchData<Category[]>("categories");
+  const response = await fetchDataPagination<ApiResponseusers>("users");
+
+  const customers = [...response.data.customers];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

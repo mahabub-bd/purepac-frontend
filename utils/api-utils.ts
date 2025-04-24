@@ -111,12 +111,14 @@ export async function postData<T = any>(
   values?: any
 ): Promise<ApiResponse<T>> {
   const url = `${apiUrl}/${endpoint}`;
+  const token = await getToken(); // Get the token just like in fetchProtectedData
 
   try {
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Add the Authorization header
       },
       body: JSON.stringify(values),
     });
@@ -132,6 +134,11 @@ export async function postData<T = any>(
       } catch {
         errorMessage = `HTTP error! Status: ${response.status}`;
       }
+
+      if (response.status === 401) {
+        console.error("Unauthorized access - possibly expired token");
+      }
+
       throw new Error(errorMessage);
     }
 
@@ -273,12 +280,13 @@ export async function deleteData(
   id: string | number
 ): Promise<void> {
   const url = `${apiUrl}/${endpoint}/${id}`;
-
+  const token = await getToken();
   try {
     const response = await fetch(url, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 

@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, getRoleColor } from "@/lib/utils";
 import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import { User } from "@/utils/types";
 import {
@@ -267,7 +267,9 @@ export function UserList({
                 </Badge>
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                <Badge variant="outline" className="capitalize">
+                <Badge
+                  className={`capitalize ${getRoleColor(user?.role?.rolename)}`}
+                >
                   {user?.role?.rolename}
                 </Badge>
               </TableCell>

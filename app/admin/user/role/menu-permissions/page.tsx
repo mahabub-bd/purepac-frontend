@@ -1,5 +1,6 @@
 "use client";
 
+import { IconRenderer } from "@/components/common/IconRenderer";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { capitalizeFirstLetter } from "@/lib/utils";
 import { fetchData, fetchProtectedData, patchData } from "@/utils/api-utils";
 import { MenuItem, Role } from "@/utils/types";
 import { ChevronDown, ChevronRight, Loader2, Search } from "lucide-react";
@@ -24,6 +26,7 @@ interface MenuPermission {
     id: number;
     name: string;
     isAdminMenu: boolean;
+    icon?: string;
   };
   role: {
     id: number;
@@ -46,7 +49,6 @@ export default function RoleMenuPermissions() {
   const [savingMenuId, setSavingMenuId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Separate menus into admin and user panels
   const { adminMenus, userMenus } = useMemo(() => {
     const adminMenus: MenuItem[] = [];
     const userMenus: MenuItem[] = [];
@@ -101,12 +103,10 @@ export default function RoleMenuPermissions() {
     };
   }, [adminMenus, userMenus, searchTerm]);
 
-  // Check if the selected role is a customer role
   const isCustomerRole = useMemo(() => {
     return selectedRole?.rolename.toLowerCase().includes("customer");
   }, [selectedRole]);
 
-  // Fetch roles and menu tree on mount
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -118,12 +118,7 @@ export default function RoleMenuPermissions() {
         if (rolesData) setRoles(rolesData);
         if (menuData) {
           setMenuTree(menuData);
-          // Expand all main menus by default
-          const initialExpandedState = menuData.reduce((acc, item) => {
-            if (item.isMainMenu) acc[item.id] = true;
-            return acc;
-          }, {} as Record<number, boolean>);
-          setExpandedMenus(initialExpandedState);
+          setExpandedMenus({}); // Start with all menus collapsed
         }
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -264,7 +259,15 @@ export default function RoleMenuPermissions() {
             ) : (
               <div className="w-5 flex-shrink-0" />
             )}
-            <span className="text-sm font-medium truncate">{item.name}</span>
+            <div className="flex items-center gap-2">
+              {item.icon && (
+                <IconRenderer
+                  name={item.icon}
+                  className="h-4 w-4 text-muted-foreground"
+                />
+              )}
+              <span className="text-sm font-medium truncate">{item.name}</span>
+            </div>
           </div>
           <div className="flex items-center ml-1 sm:ml-2 flex-shrink-0">
             {isLoading ? (
@@ -381,7 +384,7 @@ export default function RoleMenuPermissions() {
             <SelectContent>
               {roles.map((role) => (
                 <SelectItem key={role.id} value={role.id.toString()}>
-                  {role.rolename}
+                  {capitalizeFirstLetter(role.rolename)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -390,11 +393,13 @@ export default function RoleMenuPermissions() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-6 sm:py-8">
-          <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin" />
-          <span className="ml-2 text-sm sm:text-base">
-            Loading permissions...
-          </span>
+        <div className="flex justify-center items-center py-12">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">
+              Loading Menu Permissions...
+            </p>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">

@@ -20,10 +20,10 @@ interface MenuPermission {
   roleId: number;
   menuId: number;
   canView: boolean;
-
   menu: {
     id: number;
     name: string;
+    isAdminMenu: boolean;
   };
   role: {
     id: number;
@@ -35,6 +35,7 @@ export default function RoleMenuPermissions() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [menuTree, setMenuTree] = useState<MenuItem[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>(
     {}
   );
@@ -45,9 +46,36 @@ export default function RoleMenuPermissions() {
   const [savingMenuId, setSavingMenuId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Memoized filtered menu tree
-  const filteredMenuTree = useMemo(() => {
-    if (!searchTerm) return menuTree;
+  // Separate menus into admin and user panels
+  const { adminMenus, userMenus } = useMemo(() => {
+    const adminMenus: MenuItem[] = [];
+    const userMenus: MenuItem[] = [];
+
+    const categorizeMenus = (items: MenuItem[]) => {
+      items.forEach((item) => {
+        if (item.isAdminMenu) {
+          adminMenus.push(item);
+        } else {
+          userMenus.push(item);
+        }
+      });
+    };
+
+    if (menuTree.length > 0) {
+      categorizeMenus(menuTree);
+    }
+
+    return { adminMenus, userMenus };
+  }, [menuTree]);
+
+  // Memoized filtered menu tree for both panels
+  const { filteredAdminMenus, filteredUserMenus } = useMemo(() => {
+    if (!searchTerm) {
+      return {
+        filteredAdminMenus: adminMenus,
+        filteredUserMenus: userMenus,
+      };
+    }
 
     const filterItems = (items: MenuItem[]): MenuItem[] => {
       return items
@@ -67,8 +95,16 @@ export default function RoleMenuPermissions() {
         .filter(Boolean) as MenuItem[];
     };
 
-    return filterItems([...menuTree]);
-  }, [menuTree, searchTerm]);
+    return {
+      filteredAdminMenus: filterItems([...adminMenus]),
+      filteredUserMenus: filterItems([...userMenus]),
+    };
+  }, [adminMenus, userMenus, searchTerm]);
+
+  // Check if the selected role is a customer role
+  const isCustomerRole = useMemo(() => {
+    return selectedRole?.rolename.toLowerCase().includes("customer");
+  }, [selectedRole]);
 
   // Fetch roles and menu tree on mount
   useEffect(() => {
@@ -97,6 +133,16 @@ export default function RoleMenuPermissions() {
 
     fetchInitialData();
   }, []);
+
+  // Set selected role when role ID changes
+  useEffect(() => {
+    if (selectedRoleId && roles.length > 0) {
+      const role = roles.find((r) => r.id.toString() === selectedRoleId);
+      setSelectedRole(role || null);
+    } else {
+      setSelectedRole(null);
+    }
+  }, [selectedRoleId, roles]);
 
   // Fetch menu permissions when role is selected
   useEffect(() => {
@@ -244,6 +290,71 @@ export default function RoleMenuPermissions() {
     );
   };
 
+  const renderPanel = (isAdminPanel: boolean) => {
+    const menus = isAdminPanel ? filteredAdminMenus : filteredUserMenus;
+    const panelName = isAdminPanel ? "Admin Panel" : "User Panel";
+    const searchPlaceholder = isAdminPanel
+      ? "Search admin menus..."
+      : "Search user menus...";
+    const noResultsMessage = searchTerm
+      ? `No ${panelName.toLowerCase()} menus match your search`
+      : `No ${panelName.toLowerCase()} menus available`;
+
+    return (
+      <div className="border rounded-sm md:p-6 p-2">
+        <div className="bg-muted py-2 sm:py-3 px-2 sm:px-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sticky top-0 z-10 gap-2 sm:gap-0">
+          <div className="flex items-center">
+            <span className="font-medium mr-2 sm:mr-4 text-sm sm:text-base">
+              {panelName} Menu
+            </span>
+            <div className="relative ml-2 sm:ml-4 flex-1 sm:flex-none">
+              <Search className="h-3 w-3 sm:h-4 sm:w-4 absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder={searchPlaceholder}
+                className="pl-6 sm:pl-8 h-7 sm:h-8 rounded-md border border-input bg-background px-2 sm:px-3 py-1 text-xs sm:text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-full sm:w-auto"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between sm:justify-normal gap-1 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExpandAll(true)}
+              className="text-xs h-7 sm:h-8 px-2 sm:px-3"
+            >
+              Expand All
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExpandAll(false)}
+              className="text-xs h-7 sm:h-8 px-2 sm:px-3"
+            >
+              Collapse All
+            </Button>
+            <span className="font-medium ml-2 sm:ml-4 text-sm sm:text-base">
+              Can View
+            </span>
+          </div>
+        </div>
+        <div className="">
+          {menus.length > 0 ? (
+            <div className="p-1 sm:p-2">
+              {menus.map((item) => renderMenuItem(item))}
+            </div>
+          ) : (
+            <div className="py-6 sm:py-8 text-center text-muted-foreground text-sm sm:text-base">
+              {noResultsMessage}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full max-w-full p-2 sm:p-4 md:p-6">
       <div className="mb-4 sm:mb-6">
@@ -286,58 +397,22 @@ export default function RoleMenuPermissions() {
           </span>
         </div>
       ) : (
-        <div className="border rounded-md shadow-sm">
-          <div className="bg-muted py-2 sm:py-3 px-2 sm:px-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sticky top-0 z-10 gap-2 sm:gap-0">
-            <div className="flex items-center">
-              <span className="font-medium mr-2 sm:mr-4 text-sm sm:text-base">
-                Menu
-              </span>
-              <div className="relative ml-2 sm:ml-4 flex-1 sm:flex-none">
-                <Search className="h-3 w-3 sm:h-4 sm:w-4 absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search menus..."
-                  className="pl-6 sm:pl-8 h-7 sm:h-8 rounded-md border border-input bg-background px-2 sm:px-3 py-1 text-xs sm:text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-full sm:w-auto"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+        <div className="space-y-6">
+          {selectedRoleId && (
+            <>
+              {/* Render Admin Panel for non-customer roles */}
+              {!isCustomerRole && renderPanel(true)}
+
+              {/* Render User Panel only for customer roles */}
+              {isCustomerRole && renderPanel(false)}
+            </>
+          )}
+
+          {!selectedRoleId && (
+            <div className="border rounded-md p-6 text-center text-muted-foreground">
+              Please select a role to view and manage permissions
             </div>
-            <div className="flex items-center justify-between sm:justify-normal gap-1 sm:gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExpandAll(true)}
-                className="text-xs h-7 sm:h-8 px-2 sm:px-3"
-              >
-                Expand All
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExpandAll(false)}
-                className="text-xs h-7 sm:h-8 px-2 sm:px-3"
-              >
-                Collapse All
-              </Button>
-              <span className="font-medium ml-2 sm:ml-4 text-sm sm:text-base">
-                Can View
-              </span>
-            </div>
-          </div>
-          <div className="max-h-[calc(100vh-250px)] overflow-y-auto">
-            {filteredMenuTree.length > 0 ? (
-              <div className="p-1 sm:p-2">
-                {filteredMenuTree.map((item) => renderMenuItem(item))}
-              </div>
-            ) : (
-              <div className="py-6 sm:py-8 text-center text-muted-foreground text-sm sm:text-base">
-                {searchTerm
-                  ? "No menus match your search"
-                  : "No menus available"}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       )}
     </div>

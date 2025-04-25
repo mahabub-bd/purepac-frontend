@@ -55,7 +55,9 @@ export interface Product {
   name: string;
   description: string;
   sellingPrice: number;
+  purchasePrice: number;
   unit: Unit;
+  supplier: Supplier;
   productSku: string;
   stock: number;
   attachment: Attachment;
@@ -170,7 +172,7 @@ export interface Role {
   updatedBy: User;
 }
 
-export interface Suppliers {
+export interface Supplier {
   id: number;
   name: string;
   email: string;

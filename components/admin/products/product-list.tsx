@@ -371,7 +371,9 @@ export function ProductList({
             <TableHead>Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
-            <TableHead>Price</TableHead>
+
+            <TableHead>Purchase Price</TableHead>
+            <TableHead>Sale Price</TableHead>
             <TableHead>Unit</TableHead>
             <TableHead className="hidden md:table-cell">Brand</TableHead>
             <TableHead className="hidden md:table-cell">Category</TableHead>
@@ -398,8 +400,13 @@ export function ProductList({
               <TableCell className="font-medium text-wrap">
                 {product.name}
               </TableCell>
-              <TableCell>{product.productSku}</TableCell>
-              <TableCell>{formatCurrencyEnglish(product.sellingPrice)}</TableCell>
+              <TableCell>{product?.productSku}</TableCell>
+              <TableCell>
+                {formatCurrencyEnglish(product?.purchasePrice)}
+              </TableCell>
+              <TableCell>
+                {formatCurrencyEnglish(product?.sellingPrice)}
+              </TableCell>
               <TableCell className="capitalize">
                 {product?.unit?.name}
               </TableCell>

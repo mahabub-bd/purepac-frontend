@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// Components
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -35,7 +34,13 @@ import {
   patchData,
   postData,
 } from "@/utils/api-utils";
-import { Unit, type Brand, type Category, type Product } from "@/utils/types";
+import {
+  Supplier,
+  Unit,
+  type Brand,
+  type Category,
+  type Product,
+} from "@/utils/types";
 import { useRouter } from "next/navigation";
 
 import { InfoBox, Section } from "../helper";
@@ -43,15 +48,21 @@ import { InfoBox, Section } from "../helper";
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().min(1, "Description is required"),
-  sellingPrice: z.coerce.number().min(0.01, "Unit price must be greater than 0"),
+  sellingPrice: z.coerce
+    .number()
+    .min(0.01, "Unit price must be greater than 0"),
+  purchasePrice: z.coerce
+    .number()
+    .min(0.01, "Unit price must be greater than 0"),
   stock: z.coerce.number().int().nonnegative("Stock cannot be negative"),
-  unitId: z.string().min(1, "Unit is required"),
+  unitId: z.number().min(1, "Brand is required"),
   productSku: z.string().min(1, "SKU is required"),
   imageUrl: z.string().optional(),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   brandId: z.number().min(1, "Brand is required"),
   categoryId: z.number().min(1, "Category is required"),
+  supplierId: z.number().min(1, "Supplier is required"),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -71,6 +82,7 @@ export function ProductForm({
 }: ProductFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [imagePreview, setImagePreview] = useState(
@@ -83,14 +95,16 @@ export function ProductForm({
       name: product?.name || "",
       description: product?.description || "",
       sellingPrice: product?.sellingPrice || 0,
+      purchasePrice: product?.purchasePrice || 0,
       stock: product?.stock || 0,
-      unitId: product?.unit?.id?.toString() || "",
+      unitId: product?.unit?.id || 0,
       productSku: product?.productSku || "",
       imageUrl: product?.attachment?.url || "",
       isActive: product?.isActive ?? true,
       isFeatured: product?.isFeatured ?? false,
       brandId: product?.brand?.id || 0,
       categoryId: product?.category?.id || 0,
+      supplierId: product?.supplier?.id || 0,
     },
   });
 
@@ -105,6 +119,20 @@ export function ProductForm({
     };
 
     fetchUnits();
+  }, []);
+
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const response = await fetchData<Supplier[]>("suppliers");
+
+        setSuppliers(response);
+      } catch (error) {
+        console.error("Error fetching units:", error);
+      }
+    };
+
+    fetchSuppliers();
   }, []);
 
   const generateSku = () => {
@@ -231,7 +259,7 @@ export function ProductForm({
 
           {/* Product Identification Section */}
           <Section title="Product Identification">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <FormField
                 control={form.control}
                 name="productSku"
@@ -268,8 +296,12 @@ export function ProductForm({
                     <FormLabel>Unit</FormLabel>
                     <FormControl className="w-full">
                       <Select
-                        onValueChange={field.onChange}
-                        value={field.value ? field.value : undefined}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={
+                          field.value && field.value > 0
+                            ? field.value.toString()
+                            : undefined
+                        }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select unit" />
@@ -290,7 +322,40 @@ export function ProductForm({
                   </FormItem>
                 )}
               />
-
+              <FormField
+                control={form.control}
+                name="supplierId"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Supplier </FormLabel>
+                    <FormControl className="w-full">
+                      <Select
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={
+                          field.value && field.value > 0
+                            ? field.value.toString()
+                            : undefined
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select Supplier" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {suppliers?.map((supplier: Supplier) => (
+                            <SelectItem
+                              key={supplier.id}
+                              value={supplier.id.toString()}
+                            >
+                              {supplier?.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="brandId"
@@ -364,13 +429,13 @@ export function ProductForm({
 
           {/* Pricing & Inventory Section */}
           <Section title="Pricing & Inventory">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="sellingPrice"
+                name="purchasePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit Price</FormLabel>
+                    <FormLabel>Purchase Price</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -383,7 +448,24 @@ export function ProductForm({
                   </FormItem>
                 )}
               />
-
+              <FormField
+                control={form.control}
+                name="sellingPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sale Price</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="stock"

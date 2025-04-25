@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { formPostData, patchData, postData } from "@/utils/api-utils";
 
-import { Suppliers } from "@/utils/types";
+import { Supplier } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import { Section } from "../helper";
 
@@ -42,7 +42,7 @@ type SupplierFormValues = z.infer<typeof supplierSchema>;
 
 interface SupplierFormProps {
   mode: "create" | "edit";
-  supplier?: Suppliers;
+  supplier?: Supplier;
 }
 
 export function SupplierForm({ mode, supplier }: SupplierFormProps) {

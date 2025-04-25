@@ -4,7 +4,7 @@ import { SupplierForm } from "@/components/admin/supplier/supplier-form"
 import { Button } from "@/components/ui/button"
 import { CardDescription, CardTitle } from "@/components/ui/card"
 import { fetchData } from "@/utils/api-utils"
-import { Suppliers } from "@/utils/types"
+import { Supplier } from "@/utils/types"
 
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -15,12 +15,12 @@ export default function EditSupplierPage() {
   const params = useParams()
   const supplierId = params.id as string
 
-  const [supplier, setSupplier] = useState<Suppliers | null>(null)
+  const [supplier, setSupplier] = useState<Supplier | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchSupplier = async () => {
     try {
-      const response = await fetchData<Suppliers>(`suppliers/${supplierId}`)
+      const response = await fetchData<Supplier>(`suppliers/${supplierId}`)
       setSupplier(response)
     } catch (error) {
       console.error("Error fetching supplier:", error)

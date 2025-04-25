@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
+import { formatCurrencyEnglish } from "@/lib/utils";
 
 import { getBlurData } from "@/utils/blur-generator";
 import type { Product } from "@/utils/types";
@@ -54,16 +54,16 @@ export default async function ProductCard({ product }: { product: Product }) {
         </p>
 
         {/* Price */}
-        {/* <div className="flex items-center justify-center my-2 sm:my-2 md:flex-row flex-col">
+        <div className="flex items-center justify-center my-2 sm:my-2 md:flex-row flex-col">
           <p className="font-semibold text-sm sm:text-md group-hover:text-primary transition-colors">
             {formatCurrencyEnglish(product?.sellingPrice)}
           </p>
           {product?.sellingPrice && (
-            <div className="font-medium ml-2 text-[10px] sm:text-xs text-gray-500">
+            <div className="font-medium ml-2 text-[10px] sm:text-xs text-gray-500 text-lines-2  line-through">
               {formatCurrencyEnglish(product?.sellingPrice)}
             </div>
           )}
-        </div> */}
+        </div>
       </Link>
 
       {/* Action Buttons */}

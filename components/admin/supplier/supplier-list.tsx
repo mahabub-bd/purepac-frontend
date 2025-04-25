@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 
-import { Suppliers } from "@/utils/types";
+import { Supplier } from "@/utils/types";
 import {
   Filter,
   Loader2,
@@ -63,7 +63,7 @@ export function SupplierList({
     return param ? param : initialSearchParams?.[key] || "";
   };
 
-  const [suppliers, setSuppliers] = useState<Suppliers[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [searchQuery, setSearchQuery] = useState(
     getInitialParam("search") as string
   );
@@ -72,7 +72,7 @@ export function SupplierList({
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<Suppliers | null>(
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
     null
   );
   const [totalItems, setTotalItems] = useState(0);
@@ -105,7 +105,7 @@ export function SupplierList({
         params.append("status", statusFilter);
 
       const response = await fetchDataPagination<{
-        data: Suppliers[];
+        data: Supplier[];
         total: number;
         totalPages: number;
       }>(`suppliers?${params.toString()}`);
@@ -134,7 +134,7 @@ export function SupplierList({
     setCurrentPage(page);
   };
 
-  const handleDeleteClick = (supplier: Suppliers) => {
+  const handleDeleteClick = (supplier: Supplier) => {
     setSelectedSupplier(supplier);
     setIsDeleteDialogOpen(true);
   };

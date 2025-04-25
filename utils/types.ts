@@ -54,7 +54,7 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-  unitprice: number;
+  sellingPrice: number;
   unit: Unit;
   productSku: string;
   stock: number;

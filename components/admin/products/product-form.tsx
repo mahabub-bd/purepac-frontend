@@ -43,7 +43,7 @@ import { InfoBox, Section } from "../helper";
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().min(1, "Description is required"),
-  unitprice: z.coerce.number().min(0.01, "Unit price must be greater than 0"),
+  sellingPrice: z.coerce.number().min(0.01, "Unit price must be greater than 0"),
   stock: z.coerce.number().int().nonnegative("Stock cannot be negative"),
   unitId: z.string().min(1, "Unit is required"),
   productSku: z.string().min(1, "SKU is required"),
@@ -82,7 +82,7 @@ export function ProductForm({
     defaultValues: {
       name: product?.name || "",
       description: product?.description || "",
-      unitprice: product?.unitprice || 0,
+      sellingPrice: product?.sellingPrice || 0,
       stock: product?.stock || 0,
       unitId: product?.unit?.id?.toString() || "",
       productSku: product?.productSku || "",
@@ -367,7 +367,7 @@ export function ProductForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="unitprice"
+                name="sellingPrice"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Unit Price</FormLabel>

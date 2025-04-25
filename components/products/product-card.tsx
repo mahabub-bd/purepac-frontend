@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-// import { formatCurrencyEnglish } from "@/lib/utils";
+
 
 import { getBlurData } from "@/utils/blur-generator";
 import type { Product } from "@/utils/types";

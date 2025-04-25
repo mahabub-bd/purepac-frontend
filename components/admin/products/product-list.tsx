@@ -399,7 +399,7 @@ export function ProductList({
                 {product.name}
               </TableCell>
               <TableCell>{product.productSku}</TableCell>
-              <TableCell>{formatCurrencyEnglish(product.unitprice)}</TableCell>
+              <TableCell>{formatCurrencyEnglish(product.sellingPrice)}</TableCell>
               <TableCell className="capitalize">
                 {product?.unit?.name}
               </TableCell>

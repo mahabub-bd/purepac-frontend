@@ -167,5 +167,20 @@ export interface Role {
   updatedDate: string;
 
   createdByUser: User;
-  updatedByUser: User;
+  updatedBy: User;
+}
+
+export interface Suppliers {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  isActive: boolean;
+
+  attachment: Attachment;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: User;
+  updatedBy: User;
 }

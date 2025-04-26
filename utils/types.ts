@@ -186,3 +186,20 @@ export interface Supplier {
   createdBy: User;
   updatedBy: User;
 }
+
+export interface Banner {
+  id: number;
+  title: string;
+  description: string;
+  targetUrl: string;
+  position: string;
+  type: string;
+  isActive: boolean;
+
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  image: Attachment;
+  createdBy: User;
+  updatedBy: User;
+}

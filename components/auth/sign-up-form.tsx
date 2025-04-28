@@ -1,16 +1,18 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
-import { toast } from "sonner";
+import { register } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { EyeIcon, EyeOffIcon, CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon, EyeIcon, EyeOffIcon, XIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function SignUpForm() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     phoneNumber: "",
     password: "",
@@ -18,6 +20,7 @@ export default function SignUpForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Password strength requirements
   const passwordRequirements = [
@@ -55,59 +58,62 @@ export default function SignUpForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Invalid email", {
-        description: "Please enter a valid email address",
-      });
-      return;
+    try {
+      // Prepare the data for registration
+      const registrationData = {
+        name: formData.name,
+        email: formData.email,
+        phoneNumber: `880${formData.phoneNumber}`, // Add country code
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      };
+
+      const result = await register(registrationData);
+
+      if (result.success) {
+        toast.success(result.message);
+        router.push(result.redirect || "/auth/sign-in");
+      } else {
+        if (result.errors) {
+          // Handle field-specific errors
+          Object.entries(result.errors).forEach(([field, messages]) => {
+            if (messages && messages.length > 0) {
+              toast.error(`Invalid ${field}`, {
+                description: messages.join(", "),
+              });
+            }
+          });
+        } else {
+          toast.error(result.message || "Registration failed");
+        }
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error("Registration error:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    // Validate Bangladesh mobile number
-    if (
-      formData.phoneNumber.length !== 10 ||
-      !formData.phoneNumber.startsWith("1")
-    ) {
-      toast.error("Invalid phone number", {
-        description:
-          "Please enter a valid Bangladesh mobile number starting with 1",
-      });
-      return;
-    }
-
-    // Validate password strength
-    const failedRequirements = passwordRequirements.filter(
-      (req) => !req.test(formData.password)
-    );
-    if (failedRequirements.length > 0) {
-      toast.error("Weak password", {
-        description: `Your password doesn't meet the following requirements: ${failedRequirements
-          .map((r) => r.label)
-          .join(", ")}`,
-      });
-      return;
-    }
-
-    // Validate password match
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords don't match", {
-        description: "Please make sure your passwords match",
-      });
-      return;
-    }
-
-    // Simulate account creation
-    toast.success("Account created", {
-      description: "Your account has been successfully created",
-    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Full Name</Label>
+        <Input
+          id="name"
+          name="name"
+          type="text"
+          placeholder="Your full name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -122,7 +128,7 @@ export default function SignUpForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phoneNumber"> Mobile Number</Label>
+        <Label htmlFor="phoneNumber">Mobile Number</Label>
         <div className="flex">
           <div className="flex items-center justify-center px-3 border border-r-0 rounded-l-md bg-muted text-muted-foreground">
             +880
@@ -140,7 +146,7 @@ export default function SignUpForm() {
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          Enter your 11-digit mobile number without the country code
+          Enter your 10-digit mobile number without the country code
         </p>
       </div>
 
@@ -240,8 +246,8 @@ export default function SignUpForm() {
           )}
       </div>
 
-      <Button type="submit" className="w-full mt-6">
-        Create Account
+      <Button type="submit" className="w-full mt-6" disabled={isLoading}>
+        {isLoading ? "Creating Account..." : "Create Account"}
       </Button>
     </form>
   );

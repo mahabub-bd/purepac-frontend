@@ -11,6 +11,22 @@ const loginSchema = z.object({
   password: z.string().min(6),
 });
 
+const registerSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+    confirmPassword: z
+      .string()
+      .min(6, "Confirm Password must be at least 6 characters long"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type RegisterFormData = z.infer<typeof registerSchema>;
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 
 export async function setUserCookies(userData: any) {
@@ -137,6 +153,34 @@ export async function login(formData: LoginFormData) {
   }
 }
 
+export async function register(formData: RegisterFormData) {
+  const validatedFields = registerSchema.safeParse(formData);
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message: "Invalid form data",
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const response = await postData("auth/register", validatedFields.data);
+    console.log(response);
+
+    return {
+      success: true,
+      message: response?.message || "Registration successful. Please login.",
+      redirect: "/auth/sign-in",
+    };
+  } catch (error) {
+    console.error("Registration error:", error);
+    return {
+      success: false,
+      message: "Registration failed. Please try again.",
+    };
+  }
+}
 export async function logout(): Promise<authResponse> {
   const cookieStore = await cookies();
 

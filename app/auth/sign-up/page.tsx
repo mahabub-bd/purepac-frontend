@@ -1,31 +1,24 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import SignUpForm from "@/components/auth/sign-up-form";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function RegisterForm() {
   return (
-    <Card className="w-sm md:w-md lg:w-lg mx-auto">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
-          Welcome to Purepac
-        </CardTitle>
-        <CardDescription className="text-center">
+    <div className="w-sm md:w-md lg:w-lg mx-auto md:p-8 p-4 shadow-2xl rounded-lg">
+      <div className="space-y-1 mb-6">
+        <h1 className="text-2xl font-bold text-center">Welcome to Purepac</h1>
+        <p className="text-sm text-muted-foreground text-center">
           Fill in your details to create a new account
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-6">
+        </p>
+      </div>
+
+      <div className="p-2">
         <SignUpForm />
-      </CardContent>
-      <p className="text-sm text-muted-foreground text-center">
+      </div>
+
+      <p className="text-sm text-muted-foreground text-center mt-4">
         Already have an account?{" "}
         <Link href="/auth/sign-in" className="ml-1">
           <Button variant="link" className="p-0 h-auto font-medium">
@@ -33,6 +26,6 @@ export default function RegisterForm() {
           </Button>
         </Link>
       </p>
-    </Card>
+    </div>
   );
 }

@@ -203,3 +203,22 @@ export interface Banner {
   createdBy: User;
   updatedBy: User;
 }
+
+export interface Purchase {
+  id: number;
+  purchaseNumber: string;
+  quantity: number;
+  totalValue: string;
+  purchaseDate: string;
+  status: string;
+  notes: string;
+  paymentStatus: string;
+  amountPaid: string;
+  paymentDueDate: string;
+  createdAt: string;
+  updatedAt: string;
+  product: Product;
+  supplier: Supplier;
+  createdBy: User;
+  updatedBy: User;
+}

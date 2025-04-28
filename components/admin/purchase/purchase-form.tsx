@@ -30,7 +30,7 @@ import { Calendar } from "@/components/ui/calendar";
 
 import { cn, formatDateTime } from "@/lib/utils";
 import { fetchData, patchData, postData } from "@/utils/api-utils";
-import type { Product, Purchase, Supplier } from "@/utils/types";
+import type { Product, Purchase } from "@/utils/types";
 
 import {
   Popover,
@@ -58,27 +58,11 @@ type PurchaseFormValues = z.infer<typeof purchaseSchema>;
 interface PurchaseFormProps {
   mode: "create" | "edit";
   purchase?: Purchase;
-  
 }
 
 export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-
-  useEffect(() => {
-    const fetchSuppliers = async () => {
-      try {
-        const suppliers = await fetchData<Supplier[]>("suppliers");
-        setSuppliers(suppliers);
-      } catch (error) {
-        console.error("Error fetching suppliers:", error);
-        toast.error("Failed to load suppliers");
-      }
-    };
-
-    fetchSuppliers();
-  }, []);
 
   const router = useRouter();
 
@@ -86,7 +70,7 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
       productId: purchase?.product.id || undefined,
-      supplierId: purchase?.supplier.id || undefined,
+      supplierId: purchase?.product?.supplier?.id || undefined,
       quantity: purchase?.quantity || 1,
       purchaseDate: purchase?.purchaseDate
         ? new Date(purchase.purchaseDate)
@@ -164,7 +148,7 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
         <div className="p-6 space-y-6">
           {/* Basic Information Section */}
           <Section title="Basic Information">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="purchaseDate"
@@ -190,7 +174,10 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-50" align="start">
+                      <PopoverContent
+                        className="w-auto  z-50 bg-white border rounded-md"
+                        align="start"
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -237,40 +224,9 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="supplierId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Supplier</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      defaultValue={field.value?.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a supplier" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {suppliers.map((supplier) => (
-                          <SelectItem
-                            key={supplier.id}
-                            value={supplier.id.toString()}
-                          >
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="quantity"
@@ -322,7 +278,7 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
 
           {/* Payment Section */}
           <Section title="Payment">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="paymentStatus"
@@ -407,7 +363,10 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-50" align="start">
+                      <PopoverContent
+                        className="w-auto p-0 z-50 bg-white"
+                        align="start"
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value}

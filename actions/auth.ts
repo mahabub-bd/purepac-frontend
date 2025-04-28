@@ -15,6 +15,7 @@ const registerSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email address"),
+    mobileNumber: z.string().min(11, "Number should be 11 digit"),
     password: z.string().min(6, "Password must be at least 6 characters long"),
     confirmPassword: z
       .string()
@@ -166,7 +167,6 @@ export async function register(formData: RegisterFormData) {
 
   try {
     const response = await postData("auth/register", validatedFields.data);
-    console.log(response);
 
     return {
       success: true,

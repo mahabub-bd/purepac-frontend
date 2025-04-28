@@ -14,7 +14,7 @@ export default function SignUpForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phoneNumber: "",
+    mobileNumber: "",
     password: "",
     confirmPassword: "",
   });
@@ -50,7 +50,7 @@ export default function SignUpForm() {
     const { name, value } = e.target;
 
     // Special handling for phone number to only allow digits
-    if (name === "phoneNumber") {
+    if (name === "mobileNumber") {
       const digitsOnly = value.replace(/\D/g, "");
       setFormData({ ...formData, [name]: digitsOnly });
     } else {
@@ -67,7 +67,7 @@ export default function SignUpForm() {
       const registrationData = {
         name: formData.name,
         email: formData.email,
-        phoneNumber: `880${formData.phoneNumber}`, // Add country code
+        mobileNumber: `880${formData.mobileNumber}`, // Add country code
         password: formData.password,
         confirmPassword: formData.confirmPassword,
       };
@@ -139,7 +139,7 @@ export default function SignUpForm() {
             type="tel"
             placeholder="1XXXXXXXXX"
             className="rounded-l-none"
-            value={formData.phoneNumber}
+            value={formData.mobileNumber}
             onChange={handleChange}
             maxLength={10}
             required

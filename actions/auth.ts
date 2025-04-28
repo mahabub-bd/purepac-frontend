@@ -16,10 +16,10 @@ const registerSchema = z
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email address"),
     mobileNumber: z.string().min(11, "Number should be 11 digit"),
-    password: z.string().min(6, "Password must be at least 6 characters long"),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
     confirmPassword: z
       .string()
-      .min(6, "Confirm Password must be at least 6 characters long"),
+      .min(8, "Confirm Password must be at least 8 characters long"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

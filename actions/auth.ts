@@ -173,12 +173,32 @@ export async function register(formData: RegisterFormData) {
       message: response?.message || "Registration successful. Please login.",
       redirect: "/auth/sign-in",
     };
-  } catch (error) {
+  } catch (error: any) {
+    // Add type annotation here
     console.error("Registration error:", error);
-    return {
-      success: false,
-      message: "Registration failed. Please try again.",
-    };
+
+    // Handle Axios error response
+    if (error.response) {
+      // Server responded with a status code outside 2xx range
+      const errorData = error.response.data;
+      return {
+        success: false,
+        message: errorData.message || "Registration failed",
+        errors: errorData.errors || undefined,
+      };
+    } else if (error.request) {
+      // Request was made but no response received
+      return {
+        success: false,
+        message: "No response from server. Please try again.",
+      };
+    } else {
+      // Something happened in setting up the request
+      return {
+        success: false,
+        message: error.message || "Registration failed",
+      };
+    }
   }
 }
 export async function logout(): Promise<authResponse> {

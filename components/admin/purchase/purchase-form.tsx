@@ -1,13 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -18,6 +20,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -25,31 +32,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
-import { Calendar } from "@/components/ui/calendar";
+import { Section } from "../helper";
 
 import { cn, formatDateTime } from "@/lib/utils";
 import { fetchData, patchData, postData } from "@/utils/api-utils";
 import type { Product, Purchase } from "@/utils/types";
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@radix-ui/react-popover";
-import { CalendarIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Section } from "../helper";
 
 const purchaseSchema = z.object({
   productId: z.number().min(1, "Product is required"),
   supplierId: z.number().min(1, "Supplier is required"),
   quantity: z.number().min(1, "Quantity must be at least 1"),
   purchaseDate: z.date(),
-  status: z.enum(["pending", "completed", "cancelled"]),
-  paymentStatus: z.enum(["paid", "due", "partial"]), // Changed from "unpaid" to "due"
-  amountPaid: z.number().min(0, "Amount paid cannot be negative").optional(), // Changed to number
-  paymentDueDate: z.date().optional(),
+  status: z.enum(["pending", "shipped", "delivered", "cancelled"]),
   notes: z.string().optional(),
 });
 
@@ -61,10 +55,10 @@ interface PurchaseFormProps {
 }
 
 export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const form = useForm<PurchaseFormValues>({
     resolver: zodResolver(purchaseSchema),
@@ -75,68 +69,82 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
       purchaseDate: purchase?.purchaseDate
         ? new Date(purchase.purchaseDate)
         : new Date(),
-      status: purchase?.status as
-        | "pending"
-        | "completed"
-        | "cancelled"
-        | undefined,
-      paymentStatus: purchase?.paymentStatus as
-        | "paid"
-        | "due" // Changed from "unpaid" to "due"
-        | "partial"
-        | undefined,
-      amountPaid: purchase?.amountPaid
-        ? Number(purchase.amountPaid)
-        : undefined, // Convert to number
-      paymentDueDate: purchase?.paymentDueDate
-        ? new Date(purchase.paymentDueDate)
-        : undefined,
+      status:
+        (purchase?.status as
+          | "pending"
+          | "delivered"
+          | "cancelled"
+          | "shipped") || "pending",
       notes: purchase?.notes || "",
     },
   });
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setIsLoadingProducts(true);
       try {
         const products = await fetchData<Product[]>("products");
+        if (!products || products.length === 0) {
+          toast.error("No products available");
+          router.back();
+          return;
+        }
         setProducts(products);
       } catch (error) {
         console.error("Error fetching products:", error);
         toast.error("Failed to load products");
+        router.back();
+      } finally {
+        setIsLoadingProducts(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (data: PurchaseFormValues) => {
     setIsSubmitting(true);
 
     try {
+      const selectedProduct = products.find((p) => p.id === data.productId);
+
+      if (!selectedProduct && mode === "create") {
+        throw new Error("Selected product not found");
+      }
+
       const purchaseData = {
-        ...data,
-        amountPaid: data.amountPaid || 0, // Changed to number
+        productId: data.productId,
+        supplierId: selectedProduct?.supplier?.id,
+        quantity: data.quantity,
+        purchaseDate: data.purchaseDate.toISOString(),
+        status: data.status,
+        notes: data.notes,
       };
 
-      const endpoint =
-        mode === "create" ? "purchases" : `purchases/${purchase?.id}`;
+      const endpoint = "purchases";
       const method = mode === "create" ? postData : patchData;
+      const url = mode === "create" ? endpoint : `${endpoint}/${purchase?.id}`;
 
-      const response = await method(endpoint, purchaseData);
+      const response = await method(url, purchaseData);
+      console.log(response);
 
-      if (response?.statusCode === 200 || response?.statusCode === 201) {
-        const successMessage =
+      if (response.statusCode === 201 || response.statusCode === 200) {
+        toast.success(
           mode === "create"
             ? "Purchase created successfully"
-            : "Purchase updated successfully";
-        toast.success(successMessage);
+            : "Purchase updated successfully"
+        );
         router.back();
       } else {
-        toast.error(response?.message || "An error occurred");
+        toast.error(response?.message || "Operation failed");
       }
     } catch (error) {
-      console.error("Error submitting purchase form:", error);
-      toast.error("An unexpected error occurred");
+      console.error("Error submitting form:", error);
+      if (error instanceof Error) {
+        toast.error(error.message || "An unexpected error occurred");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -146,7 +154,6 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="p-6 space-y-6">
-          {/* Basic Information Section */}
           <Section title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
@@ -175,7 +182,7 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent
-                        className="w-auto  z-50 bg-white border rounded-md"
+                        className="w-auto p-0 z-50 bg-white border rounded-md"
                         align="start"
                       >
                         <Calendar
@@ -201,21 +208,39 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                   <FormItem className="flex flex-col">
                     <FormLabel>Product</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      defaultValue={field.value?.toString()}
+                      onValueChange={(value) => {
+                        const productId = Number(value);
+                        field.onChange(productId);
+                        const selectedProduct = products.find(
+                          (p) => p.id === productId
+                        );
+                        if (selectedProduct?.supplier) {
+                          form.setValue(
+                            "supplierId",
+                            selectedProduct?.supplier?.id
+                          );
+                        }
+                      }}
+                      value={field.value?.toString()}
+                      disabled={isLoadingProducts}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a product" />
+                          {isLoadingProducts ? (
+                            <SelectValue placeholder="Loading products..." />
+                          ) : (
+                            <SelectValue placeholder="Select a product" />
+                          )}
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {products.map((product) => (
+                        {products.map((product: Product) => (
                           <SelectItem
                             key={product.id}
                             value={product.id.toString()}
                           >
-                            {product.name}
+                            {product.name} (Supplier:{" "}
+                            {product?.supplier?.name || "Unknown"})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -265,8 +290,9 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -276,114 +302,6 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
             </div>
           </Section>
 
-          {/* Payment Section */}
-          <Section title="Payment">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="paymentStatus"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select payment status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="due">Due</SelectItem>{" "}
-                        {/* Changed from "unpaid" to "due" */}
-                        <SelectItem value="partial">Partial</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {(form.watch("paymentStatus") === "partial" ||
-                form.watch("paymentStatus") === "paid") && (
-                <FormField
-                  control={form.control}
-                  name="amountPaid"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {form.watch("paymentStatus") === "paid"
-                          ? "Amount Paid"
-                          : "Amount Paid (Partial)"}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="Enter amount paid"
-                          className="w-full"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <FormField
-                control={form.control}
-                name="paymentDueDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Payment Due Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              formatDateTime(field.value.toISOString())
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto p-0 z-50 bg-white"
-                        align="start"
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date("1900-01-01")}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </Section>
-
-          {/* Notes Section */}
           <Section title="Notes">
             <FormField
               control={form.control}
@@ -406,7 +324,7 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
         </div>
 
         <div className="flex justify-end p-6">
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting || isLoadingProducts}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -93,7 +93,7 @@ export function CustomerList({
       if (searchQuery) params.append("search", searchQuery);
       if (roleFilter && roleFilter !== "all") params.append("role", roleFilter);
 
-      const response = await fetchDataPagination<ApiResponseusers>("users");
+      const response = await fetchDataPagination<ApiResponseusers>(`users`);
 
       const allUsers = [...response.data.customers];
 

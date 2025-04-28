@@ -55,7 +55,7 @@ export default function MobileLoginFormWithServerActions() {
 
       const response = await mobileLogin(formattedNumber);
 
-      if (response.otpExpiresAt) {
+      if ("otpExpiresAt" in response && response.otpExpiresAt) {
         setOtpExpiresAt(response.otpExpiresAt);
       }
 

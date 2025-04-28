@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDateTime } from "@/lib/utils";
 import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import type { Purchase } from "@/utils/types";
 import {
@@ -236,65 +237,83 @@ export function PurchaseList({
             <TableHead>Supplier</TableHead>
             <TableHead className="text-right">Quantity</TableHead>
             <TableHead className="text-right">Total Value</TableHead>
+            <TableHead className="text-right">Paid Amount</TableHead>
+            <TableHead className="text-right">Payment Status</TableHead>
             <TableHead className="hidden md:table-cell">Date</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
-          {purchases.map((purchase) => (
-            <TableRow key={purchase.id}>
-              <TableCell className="font-medium">
-                {purchase.purchaseNumber}
-              </TableCell>
-              <TableCell>{purchase.product.name}</TableCell>
-              <TableCell>{purchase.supplier.name}</TableCell>
-              <TableCell className="text-right">{purchase.quantity}</TableCell>
-              <TableCell className="text-right">
-                {purchase.totalValue}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {new Date(purchase.purchaseDate).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <Badge
-                  variant={
-                    purchase.status === "completed"
-                      ? "default"
-                      : purchase.status === "pending"
-                      ? "outline"
-                      : "destructive"
-                  }
-                >
-                  {purchase.status.charAt(0).toUpperCase() +
-                    purchase.status.slice(1)}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Open menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/admin/purchase/${purchase.id}/edit`}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-600"
-                      onClick={() => handleDeleteClick(purchase)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
+          {purchases.map((purchase) => {
+            const {
+              id,
+              purchaseNumber,
+              product,
+              supplier,
+              quantity,
+              totalValue,
+              amountPaid,
+              paymentStatus,
+              purchaseDate,
+              status,
+            } = purchase;
+
+            const formattedStatus = status
+              ? status.charAt(0).toUpperCase() + status.slice(1)
+              : "";
+
+            const badgeVariant =
+              status === "completed"
+                ? "default"
+                : status === "pending"
+                ? "outline"
+                : "destructive";
+
+            return (
+              <TableRow key={id}>
+                <TableCell className="font-medium">{purchaseNumber}</TableCell>
+                <TableCell>{product?.name}</TableCell>
+                <TableCell>{supplier?.name}</TableCell>
+                <TableCell className="text-right">{quantity}</TableCell>
+                <TableCell className="text-right">{totalValue}</TableCell>
+                <TableCell className="text-right">{amountPaid}</TableCell>
+                <TableCell className="capitalize text-center">
+                  {paymentStatus}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {formatDateTime(purchaseDate)}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <Badge variant={badgeVariant}>{formattedStatus}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/admin/purchase/${id}/edit`}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => handleDeleteClick(purchase)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

@@ -63,11 +63,10 @@ export default function SignUpForm() {
     setIsLoading(true);
 
     try {
-      // Prepare the data for registration
       const registrationData = {
         name: formData.name,
         email: formData.email,
-        mobileNumber: `880${formData.mobileNumber}`, // Add country code
+        mobileNumber: `880${formData.mobileNumber}`, // This is correct
         password: formData.password,
         confirmPassword: formData.confirmPassword,
       };
@@ -80,13 +79,15 @@ export default function SignUpForm() {
       } else {
         if (result.errors) {
           // Handle field-specific errors
-          Object.entries(result.errors).forEach(([field, messages]) => {
-            if (messages && messages.length > 0) {
-              toast.error(`Invalid ${field}`, {
-                description: messages.join(", "),
-              });
+          Object.entries(result.errors as Record<string, string[]>).forEach(
+            ([field, messages]) => {
+              if (messages && Array.isArray(messages) && messages.length > 0) {
+                toast.error(`Invalid ${field}`, {
+                  description: messages.join(", "),
+                });
+              }
             }
-          });
+          );
         } else {
           toast.error(result.message || "Registration failed");
         }
@@ -135,7 +136,7 @@ export default function SignUpForm() {
           </div>
           <Input
             id="phoneNumber"
-            name="phoneNumber"
+            name="mobileNumber" // Changed from phoneNumber to mobileNumber
             type="tel"
             placeholder="1XXXXXXXXX"
             className="rounded-l-none"

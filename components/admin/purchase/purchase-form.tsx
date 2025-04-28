@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -29,13 +29,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 
 import { cn, formatDateTime } from "@/lib/utils";
-import { patchData, postData } from "@/utils/api-utils";
+import { fetchData, patchData, postData } from "@/utils/api-utils";
 import type { Product, Purchase, Supplier } from "@/utils/types";
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Section } from "../helper";
-import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 
 const purchaseSchema = z.object({
   purchaseNumber: z.string().min(1, "Purchase number is required"),
@@ -63,10 +67,11 @@ interface PurchaseFormProps {
 export function PurchaseForm({
   mode,
   purchase,
-  products,
+
   suppliers,
 }: PurchaseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   const router = useRouter();
 
   const form = useForm<PurchaseFormValues>({
@@ -97,7 +102,19 @@ export function PurchaseForm({
       notes: purchase?.notes || "",
     },
   });
-
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const products = await fetchData<Product[]>("products");
+        setProducts(products);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        toast.error("Failed to load products");
+      }
+    };
+  
+    fetchProducts();
+  }, []);
   const handleSubmit = async (data: PurchaseFormValues) => {
     setIsSubmitting(true);
 

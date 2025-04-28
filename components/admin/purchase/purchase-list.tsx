@@ -66,7 +66,9 @@ export function PurchaseList({
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
+  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(
+    null
+  );
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [limit] = useState(initialLimit);
@@ -242,20 +244,30 @@ export function PurchaseList({
         <TableBody>
           {purchases.map((purchase) => (
             <TableRow key={purchase.id}>
-              <TableCell className="font-medium">{purchase.purchaseNumber}</TableCell>
+              <TableCell className="font-medium">
+                {purchase.purchaseNumber}
+              </TableCell>
               <TableCell>{purchase.product.name}</TableCell>
               <TableCell>{purchase.supplier.name}</TableCell>
               <TableCell className="text-right">{purchase.quantity}</TableCell>
-              <TableCell className="text-right">{purchase.totalValue}</TableCell>
+              <TableCell className="text-right">
+                {purchase.totalValue}
+              </TableCell>
               <TableCell className="hidden md:table-cell">
                 {new Date(purchase.purchaseDate).toLocaleDateString()}
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                <Badge variant={
-                  purchase.status === 'completed' ? 'default' : 
-                  purchase.status === 'pending' ? 'outline' : 'destructive'
-                }>
-                  {purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}
+                <Badge
+                  variant={
+                    purchase.status === "completed"
+                      ? "default"
+                      : purchase.status === "pending"
+                      ? "outline"
+                      : "destructive"
+                  }
+                >
+                  {purchase.status.charAt(0).toUpperCase() +
+                    purchase.status.slice(1)}
                 </Badge>
               </TableCell>
               <TableCell className="text-right">

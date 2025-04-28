@@ -23,7 +23,7 @@ export default function AddPurchasePage() {
         </div>
       </div>
       <div>
-        <PurchaseForm mode="create" products={[]} suppliers={[]} />
+        <PurchaseForm mode="create" />
       </div>
     </div>
   );

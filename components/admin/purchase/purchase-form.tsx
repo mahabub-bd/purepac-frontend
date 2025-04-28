@@ -42,15 +42,13 @@ import { useRouter } from "next/navigation";
 import { Section } from "../helper";
 
 const purchaseSchema = z.object({
-  purchaseNumber: z.string().min(1, "Purchase number is required"),
   productId: z.number().min(1, "Product is required"),
   supplierId: z.number().min(1, "Supplier is required"),
   quantity: z.number().min(1, "Quantity must be at least 1"),
-  totalValue: z.string().min(1, "Total value is required"),
   purchaseDate: z.date(),
   status: z.enum(["pending", "completed", "cancelled"]),
-  paymentStatus: z.enum(["paid", "unpaid", "partial"]),
-  amountPaid: z.string().optional(),
+  paymentStatus: z.enum(["paid", "due", "partial"]), // Changed from "unpaid" to "due"
+  amountPaid: z.number().min(0, "Amount paid cannot be negative").optional(), // Changed to number
   paymentDueDate: z.date().optional(),
   notes: z.string().optional(),
 });
@@ -60,28 +58,36 @@ type PurchaseFormValues = z.infer<typeof purchaseSchema>;
 interface PurchaseFormProps {
   mode: "create" | "edit";
   purchase?: Purchase;
-  products: Product[];
-  suppliers: Supplier[];
+  
 }
 
-export function PurchaseForm({
-  mode,
-  purchase,
-
-  suppliers,
-}: PurchaseFormProps) {
+export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const suppliers = await fetchData<Supplier[]>("suppliers");
+        setSuppliers(suppliers);
+      } catch (error) {
+        console.error("Error fetching suppliers:", error);
+        toast.error("Failed to load suppliers");
+      }
+    };
+
+    fetchSuppliers();
+  }, []);
+
   const router = useRouter();
 
   const form = useForm<PurchaseFormValues>({
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
-      purchaseNumber: purchase?.purchaseNumber || "",
       productId: purchase?.product.id || undefined,
       supplierId: purchase?.supplier.id || undefined,
       quantity: purchase?.quantity || 1,
-      totalValue: purchase?.totalValue || "",
       purchaseDate: purchase?.purchaseDate
         ? new Date(purchase.purchaseDate)
         : new Date(),
@@ -92,16 +98,19 @@ export function PurchaseForm({
         | undefined,
       paymentStatus: purchase?.paymentStatus as
         | "paid"
-        | "unpaid"
+        | "due" // Changed from "unpaid" to "due"
         | "partial"
         | undefined,
-      amountPaid: purchase?.amountPaid || "",
+      amountPaid: purchase?.amountPaid
+        ? Number(purchase.amountPaid)
+        : undefined, // Convert to number
       paymentDueDate: purchase?.paymentDueDate
         ? new Date(purchase.paymentDueDate)
         : undefined,
       notes: purchase?.notes || "",
     },
   });
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -112,16 +121,17 @@ export function PurchaseForm({
         toast.error("Failed to load products");
       }
     };
-  
+
     fetchProducts();
   }, []);
+
   const handleSubmit = async (data: PurchaseFormValues) => {
     setIsSubmitting(true);
 
     try {
       const purchaseData = {
         ...data,
-        amountPaid: data.amountPaid || "0",
+        amountPaid: data.amountPaid || 0, // Changed to number
       };
 
       const endpoint =
@@ -154,21 +164,7 @@ export function PurchaseForm({
         <div className="p-6 space-y-6">
           {/* Basic Information Section */}
           <Section title="Basic Information">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="purchaseNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Purchase Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter purchase number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormField
                 control={form.control}
                 name="purchaseDate"
@@ -181,7 +177,7 @@ export function PurchaseForm({
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "pl-3 text-left font-normal",
+                              "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
@@ -194,7 +190,7 @@ export function PurchaseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 z-50" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -210,21 +206,19 @@ export function PurchaseForm({
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="productId"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Product</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(Number(value))}
                       defaultValue={field.value?.toString()}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a product" />
                         </SelectTrigger>
                       </FormControl>
@@ -248,14 +242,14 @@ export function PurchaseForm({
                 control={form.control}
                 name="supplierId"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Supplier</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(Number(value))}
                       defaultValue={field.value?.toString()}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a supplier" />
                         </SelectTrigger>
                       </FormControl>
@@ -276,7 +270,7 @@ export function PurchaseForm({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormField
                 control={form.control}
                 name="quantity"
@@ -288,6 +282,7 @@ export function PurchaseForm({
                         type="number"
                         min="1"
                         placeholder="Enter quantity"
+                        className="w-full"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
@@ -299,17 +294,25 @@ export function PurchaseForm({
 
               <FormField
                 control={form.control}
-                name="totalValue"
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Value</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Enter total value"
-                        {...field}
-                      />
-                    </FormControl>
+                    <FormLabel>Purchase Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -317,128 +320,109 @@ export function PurchaseForm({
             </div>
           </Section>
 
-          {/* Status & Payment Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Section title="Status">
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Purchase Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </Section>
-
-            <Section title="Payment">
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="paymentStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select payment status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="paid">Paid</SelectItem>
-                          <SelectItem value="unpaid">Unpaid</SelectItem>
-                          <SelectItem value="partial">Partial</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {form.watch("paymentStatus") === "partial" && (
-                  <FormField
-                    control={form.control}
-                    name="amountPaid"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount Paid</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter amount paid"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          {/* Payment Section */}
+          <Section title="Payment">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FormField
+                control={form.control}
+                name="paymentStatus"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select payment status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="due">Due</SelectItem>{" "}
+                        {/* Changed from "unpaid" to "due" */}
+                        <SelectItem value="partial">Partial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
 
+              {(form.watch("paymentStatus") === "partial" ||
+                form.watch("paymentStatus") === "paid") && (
                 <FormField
                   control={form.control}
-                  name="paymentDueDate"
+                  name="amountPaid"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Payment Due Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                formatDateTime(field.value.toISOString())
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date("1900-01-01")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                    <FormItem>
+                      <FormLabel>
+                        {form.watch("paymentStatus") === "paid"
+                          ? "Amount Paid"
+                          : "Amount Paid (Partial)"}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Enter amount paid"
+                          className="w-full"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                          value={field.value || ""}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-            </Section>
-          </div>
+              )}
+
+              <FormField
+                control={form.control}
+                name="paymentDueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Payment Due Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              formatDateTime(field.value.toISOString())
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-50" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date("1900-01-01")}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </Section>
 
           {/* Notes Section */}
           <Section title="Notes">
@@ -451,7 +435,7 @@ export function PurchaseForm({
                   <FormControl>
                     <Textarea
                       placeholder="Enter any additional notes"
-                      className="min-h-[100px]"
+                      className="min-h-[100px] w-full"
                       {...field}
                     />
                   </FormControl>
@@ -462,7 +446,7 @@ export function PurchaseForm({
           </Section>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end p-6">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>

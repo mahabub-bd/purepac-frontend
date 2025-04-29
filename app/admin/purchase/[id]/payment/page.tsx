@@ -30,7 +30,7 @@ export default function AddPaymentPage() {
   if (!purchase) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p>Purchase not found</p>
+        <p>Loading...</p>
       </div>
     );
   }

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
+
 import { Payment, Purchase } from "@/utils/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
@@ -61,7 +62,7 @@ export default function PaymentsListPage() {
     <div className="md:p-6 p-2 space-y-6 border rounded-sm">
       <div className="md:p-6 p-2">
         <div className="flex justify-between items-center mb-6">
-          <div>
+          <div className="grid grid-cols-1 gap-2">
             <CardTitle>
               Payments for Purchase #{purchase.purchaseNumber}
             </CardTitle>

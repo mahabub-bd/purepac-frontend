@@ -1,7 +1,7 @@
 "use client";
 
 import { logout } from "@/actions/auth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage ,} from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -97,23 +97,24 @@ export default function AuthBtn({
           disabled={isLoggingOut}
           aria-label="User menu"
         >
-          <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
-            {user?.profilePhoto?.url && (
-              <AvatarImage
-                src={user?.profilePhoto?.url || "/placeholder.svg"}
-                alt={user.name || "User avatar"}
-                referrerPolicy="no-referrer"
-              />
-            )}
-            <AvatarFallback
-              className={cn(
-                "text-xs font-medium",
-                compact ? "text-[10px]" : "text-xs"
-              )}
-            >
-              {user.name ? getInitials(user.name) : "US"}
-            </AvatarFallback>
-          </Avatar>
+        <Avatar className={cn(compact ? "h-8 w-8" : "h-9 w-9")}>
+  {user?.profilePhoto?.url ? (
+    <AvatarImage
+      src={user.profilePhoto.url}
+      alt={user.name || "User avatar"}
+      className="object-cover"
+      referrerPolicy="no-referrer"
+    />
+  ) : null}
+  <AvatarFallback
+    className={cn(
+      "text-xs font-medium",
+      compact ? "text-[10px]" : "text-xs"
+    )}
+  >
+    {user.name ? getInitials(user.name) : "US"}
+  </AvatarFallback>
+</Avatar>
           <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-1 ring-white" />
         </Button>
       </DropdownMenuTrigger>

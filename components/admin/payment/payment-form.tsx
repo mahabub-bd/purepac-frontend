@@ -46,8 +46,8 @@ const paymentSchema = z.object({
   paymentDate: z.date({
     required_error: "Payment date is required",
   }),
-  method: z.number().min(1, "Payment method is required"),
-  paymentNumber: z.string().min(1, "Payment number is required"),
+  paymentMethodId: z.number().min(1, "Payment method is required"),
+
   referenceNumber: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -91,8 +91,8 @@ export function PaymentForm({ purchaseId, maxAmount }: PaymentFormProps) {
     defaultValues: {
       amount: maxAmount,
       paymentDate: new Date(),
-      method: 1, // Default to first method if available
-      paymentNumber: "",
+      paymentMethodId: 1,
+
       referenceNumber: "",
       notes: "",
     },
@@ -206,60 +206,36 @@ export function PaymentForm({ purchaseId, maxAmount }: PaymentFormProps) {
               />
 
               {/* Payment Method Field */}
+
               <FormField
                 control={form.control}
-                name="method"
+                name="paymentMethodId"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Payment Method</FormLabel>
-                    {isLoadingMethods ? (
-                      <Input
-                        disabled
-                        placeholder="Loading payment methods..."
-                        className="w-full"
-                      />
-                    ) : (
+                    <FormControl className="w-full">
                       <Select
-                        onValueChange={(value) =>
-                          field.onChange(parseInt(value))
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={
+                          field.value && field.value > 0
+                            ? field.value.toString()
+                            : undefined
                         }
-                        defaultValue={field.value.toString()}
                       >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select payment method" />
-                          </SelectTrigger>
-                        </FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Payment Method" />
+                        </SelectTrigger>
                         <SelectContent>
-                          {paymentMethods.map((method) => (
+                          {paymentMethods.map((method: PaymentMethod) => (
                             <SelectItem
-                              key={method.id}
-                              value={method.id.toString()}
+                              key={method?.id}
+                              value={method?.id.toString()}
                             >
-                              {method.name}
+                              {method?.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Payment Number Field */}
-              <FormField
-                control={form.control}
-                name="paymentNumber"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Payment Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter payment number"
-                        className="w-full"
-                        {...field}
-                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

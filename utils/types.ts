@@ -219,6 +219,35 @@ export interface Purchase {
   updatedAt: string;
   product: Product;
   supplier: Supplier;
+  payments: Payment;
+  createdBy: User;
+  updatedBy: User;
+}
+
+export interface Payment {
+  id: number;
+  paymentNumber: string;
+  amount: string;
+  paymentDate: string;
+  referenceNumber: string;
+  notes: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  purchase: Purchase;
+  createdBy: User;
+  updatedBy: User;
+  paymentMethod: PaymentMethod;
+}
+
+export interface PaymentMethod {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
   createdBy: User;
   updatedBy: User;
 }

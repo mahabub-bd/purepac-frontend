@@ -22,7 +22,9 @@ import { formatDateTime } from "@/lib/utils";
 import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import type { Purchase } from "@/utils/types";
 import {
+  DollarSign,
   Filter,
+  List,
   Loader2,
   MoreHorizontal,
   Package,
@@ -140,7 +142,6 @@ export function PurchaseList({
     try {
       await deleteData("purchases", selectedPurchase.id);
       fetchPurchases();
-      toast.success("Purchase deleted successfully");
     } catch (error) {
       console.error("Error deleting purchase:", error);
       toast.error("Failed to delete purchase. Please try again.");
@@ -246,7 +247,7 @@ export function PurchaseList({
         </TableHeader>
 
         <TableBody>
-          {purchases.map((purchase) => {
+          {purchases?.map((purchase) => {
             const {
               id,
               purchaseNumber,
@@ -300,6 +301,18 @@ export function PurchaseList({
                       <DropdownMenuItem asChild>
                         <Link href={`/admin/purchase/${id}/edit`}>
                           <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      {parseFloat(amountPaid) < parseFloat(totalValue) && (
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/purchase/${id}/payment`}>
+                            <DollarSign className="mr-2 h-4 w-4" /> Make Payment
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem asChild>
+                        <Link href={`/admin/purchase/${id}/payments`}>
+                          <List className="mr-2 h-4 w-4" /> View Payments
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem

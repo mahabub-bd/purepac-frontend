@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime } from "@/lib/utils";
+import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import type { Purchase } from "@/utils/types";
 import {
@@ -230,18 +230,19 @@ export function PurchaseList({
   };
 
   const renderTableView = () => (
-    <div className=" md:p-6 p-2">
+    <div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Purchase #</TableHead>
-            <TableHead>Product</TableHead>
             <TableHead>Supplier</TableHead>
-            <TableHead className="text-right">Quantity</TableHead>
+            <TableHead>Products</TableHead>
+            <TableHead className="text-right">Total Quantity</TableHead>
             <TableHead className="text-right">Total Value</TableHead>
             <TableHead className="text-right">Paid Amount</TableHead>
             <TableHead className="text-right">Payment Status</TableHead>
             <TableHead className="hidden md:table-cell">Date</TableHead>
+            <TableHead className="hidden md:table-cell">Created By</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -252,14 +253,14 @@ export function PurchaseList({
             const {
               id,
               purchaseNumber,
-              product,
               supplier,
-              quantity,
               totalValue,
               amountPaid,
               paymentStatus,
               purchaseDate,
               status,
+              createdBy,
+              items,
             } = purchase;
 
             const formattedStatus = status
@@ -267,29 +268,72 @@ export function PurchaseList({
               : "";
 
             const badgeVariant =
-              status === "completed"
+              status === "delivered"
                 ? "default"
                 : status === "pending"
                 ? "outline"
                 : "destructive";
 
+            const totalQuantity =
+              items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+
             return (
               <TableRow key={id}>
                 <TableCell className="font-medium">{purchaseNumber}</TableCell>
-                <TableCell>{product?.name}</TableCell>
+
                 <TableCell>{supplier?.name}</TableCell>
-                <TableCell className="text-right">{quantity}</TableCell>
-                <TableCell className="text-right">{totalValue}</TableCell>
-                <TableCell className="text-right">{amountPaid}</TableCell>
-                <TableCell className="capitalize text-center">
-                  {paymentStatus}
+
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    {items?.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="font-medium ">
+                          {item.product.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </TableCell>
+
+                <TableCell className="text-center">{totalQuantity}</TableCell>
+
+                <TableCell className="text-right">
+                  {formatCurrencyEnglish(Number(totalValue))}
+                </TableCell>
+
+                <TableCell className="text-right">
+                  {formatCurrencyEnglish(Number(amountPaid))}
+                </TableCell>
+
+                <TableCell className="capitalize text-center">
+                  <Badge
+                    variant={
+                      paymentStatus === "paid"
+                        ? "default"
+                        : paymentStatus === "partial"
+                        ? "secondary"
+                        : "destructive"
+                    }
+                  >
+                    {paymentStatus}
+                  </Badge>
+                </TableCell>
+
                 <TableCell className="hidden md:table-cell">
                   {formatDateTime(purchaseDate)}
                 </TableCell>
+
+                <TableCell className="hidden md:table-cell">
+                  {createdBy?.name}
+                </TableCell>
+
                 <TableCell className="hidden md:table-cell">
                   <Badge variant={badgeVariant}>{formattedStatus}</Badge>
                 </TableCell>
+
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

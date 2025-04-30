@@ -1,4 +1,4 @@
-import { PurePacLogo } from "@/public/images";
+import { GermanbutcherLogo } from "@/public/images";
 import Image from "next/image";
 import Link from "next/link";
 import MobileMenu from "./mobile-menu";
@@ -17,7 +17,7 @@ export function MobileHeader({ isAdminUser }: MobileHeaderProps) {
 
         <Link href="/" className="flex items-center mx-auto">
           <Image
-            src={PurePacLogo || "/placeholder.svg"}
+            src={GermanbutcherLogo || "/placeholder.svg"}
             alt="PurePac logo"
             width={100}
             height={60}

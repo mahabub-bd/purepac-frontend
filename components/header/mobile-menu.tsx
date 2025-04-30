@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import { PurePacLogo } from "@/public/images";
+import { GermanbutcherLogo } from "@/public/images";
 import CategoryLinks from "./category-links";
 import { NavLinks } from "./nav-links";
 
@@ -39,7 +39,7 @@ export default function MobileMenu({ isAdmin }: { isAdmin?: boolean }) {
           <div className="flex items-center justify-between p-4 border-b">
             <Link href="/" className="flex items-center" onClick={handleClose}>
               <Image
-                src={PurePacLogo || "/placeholder.svg"}
+                src={GermanbutcherLogo || "/placeholder.svg"}
                 alt="PurePac Logo"
                 width={80}
                 height={60}

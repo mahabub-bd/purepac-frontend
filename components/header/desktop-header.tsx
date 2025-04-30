@@ -1,4 +1,4 @@
-import { PurePacLogo } from "@/public/images";
+import { GermanbutcherLogo } from "@/public/images";
 import Image from "next/image";
 import Link from "next/link";
 import { NavLinks } from "./nav-links";
@@ -15,11 +15,10 @@ export function DesktopHeader({ isAdminUser }: DesktopHeaderProps) {
       <div className="flex items-center">
         <Link href="/" className="flex items-center mr-6">
           <Image
-            src={PurePacLogo || "/placeholder.svg"}
+            src={GermanbutcherLogo || "/placeholder.svg"}
             alt="PurePac logo"
-            width={120}
-            height={80}
-           
+            width={60}
+            height={60}
             priority
           />
         </Link>

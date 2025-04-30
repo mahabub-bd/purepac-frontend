@@ -1,18 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -20,24 +18,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Section } from "../helper";
 
-import { cn, formatDateTime } from "@/lib/utils";
+import Loading from "@/app/loading";
 import { fetchData, patchData, postData } from "@/utils/api-utils";
 import { purchaseSchema } from "@/utils/form-validation";
-import type { Product, Purchase } from "@/utils/types";
+import type { Product, Purchase, Supplier } from "@/utils/types";
 
 type PurchaseFormValues = z.infer<typeof purchaseSchema>;
 
@@ -49,65 +41,90 @@ interface PurchaseFormProps {
 export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedSupplierId, setSelectedSupplierId] = useState<number>();
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
 
   const form = useForm<PurchaseFormValues>({
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
-      productId: purchase?.product.id || undefined,
-      supplierId: purchase?.product?.supplier?.id || undefined,
-      quantity: purchase?.quantity || 1,
+      supplierId: purchase?.supplier?.id || undefined,
+      items: purchase?.items?.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        unitPrice: item.product.purchasePrice,
+      })) || [{ productId: undefined, quantity: 1, unitPrice: 0 }],
       purchaseDate: purchase?.purchaseDate
         ? new Date(purchase.purchaseDate)
         : new Date(),
       status:
         (purchase?.status as
           | "pending"
+          | "shipped"
           | "delivered"
-          | "cancelled"
-          | "shipped") || "pending",
+          | "cancelled") || "pending",
       notes: purchase?.notes || "",
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoadingProducts(true);
+    const fetchSuppliers = async () => {
       try {
-        const products = await fetchData<Product[]>("products");
-        if (!products || products.length === 0) {
-          toast.error("No products available");
-          router.back();
-          return;
+        const suppliers = await fetchData<Supplier[]>("suppliers");
+        setSuppliers(suppliers);
+
+        if (purchase?.supplier?.id) {
+          setIsProductsLoading(true);
+          const supplierProducts = await fetchData<Product[]>(
+            `products?supplier=${purchase.supplier.id}`
+          );
+          setProducts(supplierProducts);
         }
-        setProducts(products);
       } catch (error) {
-        console.error("Error fetching products:", error);
-        toast.error("Failed to load products");
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load initial data");
         router.back();
       } finally {
-        setIsLoadingProducts(false);
+        setIsProductsLoading(false);
       }
     };
 
-    fetchProducts();
-  }, [router]);
+    fetchSuppliers();
+  }, [router, purchase]);
+
+  const handleSupplierChange = async (supplierId: number) => {
+    try {
+      setIsProductsLoading(true);
+      const products = await fetchData<Product[]>(
+        `products?supplier=${supplierId}`
+      );
+      setProducts(products);
+      setSelectedSupplierId(supplierId);
+      form.resetField("items");
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
+    } finally {
+      setIsProductsLoading(false);
+    }
+  };
 
   const handleSubmit = async (data: PurchaseFormValues) => {
     setIsSubmitting(true);
 
     try {
-      const selectedProduct = products.find((p) => p.id === data.productId);
-
-      if (!selectedProduct && mode === "create") {
-        throw new Error("Selected product not found");
-      }
-
       const purchaseData = {
-        productId: data.productId,
-        supplierId: selectedProduct?.supplier?.id,
-        quantity: data.quantity,
+        supplierId: data.supplierId,
+        items: data.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
         purchaseDate: data.purchaseDate.toISOString(),
         status: data.status,
         notes: data.notes,
@@ -118,7 +135,6 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
       const url = mode === "create" ? endpoint : `${endpoint}/${purchase?.id}`;
 
       const response = await method(url, purchaseData);
-      console.log(response);
 
       if (response.statusCode === 201 || response.statusCode === 200) {
         toast.success(
@@ -132,11 +148,7 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      if (error instanceof Error) {
-        toast.error(error.message || "An unexpected error occurred");
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+      toast.error("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -146,120 +158,191 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="p-6 space-y-6">
-          <Section title="Basic Information">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Section title="Supplier Information">
+            <FormField
+              control={form.control}
+              name="supplierId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Supplier</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      const supplierId = Number(value);
+                      field.onChange(supplierId);
+                      handleSupplierChange(supplierId);
+                    }}
+                    value={field.value?.toString()}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers.map((supplier) => (
+                        <SelectItem
+                          key={supplier.id}
+                          value={supplier.id.toString()}
+                        >
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Section>
+
+          <Section title="Purchase Items">
+            <div className="space-y-4">
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex gap-4 items-end">
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.productId`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Product</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            const productId = Number(value);
+                            field.onChange(productId);
+                            const selectedProduct = products.find(
+                              (p) => p.id === productId
+                            );
+                            if (selectedProduct) {
+                              form.setValue(
+                                `items.${index}.unitPrice`,
+                                selectedProduct.purchasePrice
+                              );
+                            }
+                          }}
+                          value={field.value?.toString()}
+                          disabled={!selectedSupplierId || isProductsLoading}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue
+                              placeholder={
+                                isProductsLoading
+                                  ? "Loading products..."
+                                  : "Select product"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {isProductsLoading ? (
+                              <div className="py-2 text-center text-sm text-muted-foreground">
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                                Loading products...
+                              </div>
+                            ) : (
+                              products.map((product) => (
+                                <SelectItem
+                                  key={product.id}
+                                  value={product.id.toString()}
+                                >
+                                  {product.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.quantity`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Quantity</FormLabel>
+                        <Input
+                          type="number"
+                          min="1"
+                          className="w-full"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormItem className="flex-1">
+                    <FormLabel>Unit Price</FormLabel>
+                    <div className="w-full p-2 rounded-md border border-input bg-background text-sm">
+                      {form.watch(`items.${index}.unitPrice`).toFixed(2)}
+                    </div>
+                  </FormItem>
+
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="h-10"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() =>
+                  append({ productId: 1, quantity: 1, unitPrice: 0 })
+                }
+                disabled={!selectedSupplierId || isProductsLoading}
+              >
+                {isProductsLoading ? (
+                  <Loading />
+                ) : (
+                  <Plus className="mr-2 h-4 w-4" />
+                )}
+                Add Product
+              </Button>
+            </div>
+          </Section>
+
+          <Section title="Order Summary">
+            <div className="flex justify-between p-4 bg-muted rounded-lg">
+              <div className="font-medium">
+                Total Quantity:{" "}
+                {form
+                  .watch("items")
+                  .reduce((acc, item) => acc + item.quantity, 0)}
+              </div>
+              <div className="font-medium">
+                Total Price:{" "}
+                {form
+                  .watch("items")
+                  .reduce(
+                    (acc, item) => acc + item.quantity * item.unitPrice,
+                    0
+                  )
+                  .toFixed(2)}
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Purchase Details">
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="purchaseDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Purchase Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              formatDateTime(field.value.toISOString())
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto p-0 z-50 bg-white border rounded-md"
-                        align="start"
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="productId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Product</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        const productId = Number(value);
-                        field.onChange(productId);
-                        const selectedProduct = products.find(
-                          (p) => p.id === productId
-                        );
-                        if (selectedProduct?.supplier) {
-                          form.setValue(
-                            "supplierId",
-                            selectedProduct?.supplier?.id
-                          );
-                        }
-                      }}
-                      value={field.value?.toString()}
-                      disabled={isLoadingProducts}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          {isLoadingProducts ? (
-                            <SelectValue placeholder="Loading products..." />
-                          ) : (
-                            <SelectValue placeholder="Select a product" />
-                          )}
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {products.map((product: Product) => (
-                          <SelectItem
-                            key={product.id}
-                            value={product.id.toString()}
-                          >
-                            {product.name} (Supplier:{" "}
-                            {product?.supplier?.name || "Unknown"})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quantity</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        placeholder="Enter quantity"
-                        className="w-full"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
+                    <FormLabel>Purchase Date</FormLabel>
+                    <Input
+                      type="date"
+                      className="w-full"
+                      value={field.value.toISOString().split("T")[0]}
+                      onChange={(e) => field.onChange(new Date(e.target.value))}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -270,53 +353,40 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Purchase Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
                         <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-          </Section>
 
-          <Section title="Notes">
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter any additional notes"
-                      className="min-h-[100px] w-full"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <Input {...field} className="w-full" />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </Section>
         </div>
 
         <div className="flex justify-end p-6">
-          <Button type="submit" disabled={isSubmitting || isLoadingProducts}>
+          <Button type="submit" disabled={isSubmitting || isProductsLoading}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

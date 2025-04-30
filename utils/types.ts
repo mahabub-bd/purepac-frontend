@@ -204,6 +204,13 @@ export interface Banner {
   updatedBy: User;
 }
 
+export interface PurchaseItem {
+  id: number;
+  unitPrice: string;
+  quantity: number;
+  total: string;
+  product: Product;
+}
 export interface Purchase {
   id: number;
   purchaseNumber: string;
@@ -217,7 +224,7 @@ export interface Purchase {
   paymentDueDate: string;
   createdAt: string;
   updatedAt: string;
-  product: Product;
+  items: PurchaseItem[];
   supplier: Supplier;
   payments: Payment;
   createdBy: User;

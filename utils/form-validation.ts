@@ -103,9 +103,16 @@ const productSchema = z.object({
 });
 
 const purchaseSchema = z.object({
-  productId: z.number().min(1, "Product is required"),
   supplierId: z.number().min(1, "Supplier is required"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
+  items: z
+    .array(
+      z.object({
+        productId: z.number().min(1, "Product is required"),
+        quantity: z.number().min(1, "Minimum quantity is 1"),
+        unitPrice: z.number().min(0.01, "Minimum price is 0.01"),
+      })
+    )
+    .min(1, "At least one item required"),
   purchaseDate: z.date(),
   status: z.enum(["pending", "shipped", "delivered", "cancelled"]),
   notes: z.string().optional(),

@@ -39,6 +39,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { PageHeader } from "../page-header";
 
 interface ApiResponse {
   message: string;
@@ -311,19 +312,12 @@ export function UserList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Users</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your system users
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/admin/user/add">
-              <Plus className="mr-2 h-4 w-4" /> Add User
-            </Link>
-          </Button>
-        </div>
+        <PageHeader
+          title="Users"
+          description=" Manage your system users"
+          actionLabel="Add User"
+          actionHref="/admin/user/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">

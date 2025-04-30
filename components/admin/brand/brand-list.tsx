@@ -37,6 +37,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { PageHeader } from "../page-header";
 
 interface BrandListProps {
   initialPage: number;
@@ -299,20 +300,12 @@ export function BrandList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Brands</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage your product brands
-          </p>
-
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/admin/brand/add">
-                <Plus className="mr-2 h-4 w-4" /> Add Brand
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Brands"
+          description="Manage your product brands"
+          actionLabel="Add Brand"
+          actionHref="/admin/brand/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">

@@ -25,7 +25,6 @@ import type { Banner } from "@/utils/types";
 import {
   Filter,
   ImageIcon,
-  Loader2,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -39,6 +38,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { LoadingIndicator } from "../loading-indicator";
+import { PageHeader } from "../page-header";
 
 interface BannerListProps {
   initialPage: number;
@@ -332,22 +333,12 @@ export function BannerList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Banners</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your promotional banners
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/admin/banner/add">
-                <Plus className="mr-2 h-4 w-4" /> Add Banner
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Banners"
+          description="Manage your promotional banners"
+          actionLabel="Add Banner"
+          actionHref="/admin/banner/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -512,14 +503,7 @@ export function BannerList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading Banners...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message="Loading Banners..." />
           ) : banners.length === 0 ? (
             renderEmptyState()
           ) : (

@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/admin/loading-indicator";
+import { PageHeader } from "@/components/admin/page-header";
 import { IconRenderer } from "@/components/common/IconRenderer";
 import { Button } from "@/components/ui/button";
 import {
@@ -359,48 +361,37 @@ export default function RoleMenuPermissions() {
   };
 
   return (
-    <div className="w-full max-w-full p-2 sm:p-4 md:p-6">
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">
-          Role Menu Permissions
-        </h1>
-        <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
-          Assign menu permissions to different roles. Select a role and toggle
-          menu visibility.
-        </p>
+    <div className="w-full md:p-6 p-2">
+      <PageHeader
+        title="Menu Permissions"
+        description=" Assign menu permissions to different roles. Select a role and toggle
+          menu visibility."
+      />
 
-        <div className="mb-4 sm:mb-6">
-          <label className="text-sm font-medium mb-1 sm:mb-2 block">
-            Select Role
-          </label>
-          <Select
-            value={selectedRoleId}
-            onValueChange={setSelectedRoleId}
-            disabled={roles.length === 0}
-          >
-            <SelectTrigger className="w-full max-w-xs">
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              {roles.map((role) => (
-                <SelectItem key={role.id} value={role.id.toString()}>
-                  {capitalizeFirstLetter(role.rolename)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="mb-4 sm:mb-6">
+        <label className="text-sm font-medium mb-1 sm:mb-2 block">
+          Select Role
+        </label>
+        <Select
+          value={selectedRoleId}
+          onValueChange={setSelectedRoleId}
+          disabled={roles.length === 0}
+        >
+          <SelectTrigger className="w-full max-w-xs">
+            <SelectValue placeholder="Select a role" />
+          </SelectTrigger>
+          <SelectContent>
+            {roles?.map((role) => (
+              <SelectItem key={role.id} value={role.id.toString()}>
+                {capitalizeFirstLetter(role.rolename)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">
-              Loading Menu Permissions...
-            </p>
-          </div>
-        </div>
+        <LoadingIndicator message=" Loading Menu Permissions..." />
       ) : (
         <div className="space-y-6">
           {selectedRoleId && (

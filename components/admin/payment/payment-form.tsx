@@ -32,6 +32,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn, formatDateTime } from "@/lib/utils";
 import { fetchData, postData } from "@/utils/api-utils";
+import { paymentSchema } from "@/utils/form-validation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Section } from "../helper";
@@ -40,17 +41,6 @@ interface PaymentMethod {
   id: number;
   name: string;
 }
-
-const paymentSchema = z.object({
-  amount: z.number().min(0.01, "Amount must be greater than 0"),
-  paymentDate: z.date({
-    required_error: "Payment date is required",
-  }),
-  paymentMethodId: z.number().min(1, "Payment method is required"),
-
-  referenceNumber: z.string().optional(),
-  notes: z.string().optional(),
-});
 
 type PaymentFormValues = z.infer<typeof paymentSchema>;
 

@@ -22,7 +22,6 @@ import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import type { Category } from "@/utils/types";
 import {
   Filter,
-  Loader2,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -36,6 +35,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { LoadingIndicator } from "../loading-indicator";
+import { PageHeader } from "../page-header";
 
 interface CategoryListProps {
   initialPage: number;
@@ -318,21 +319,12 @@ export function CategoryList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Categories</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your product categories
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/admin/categories/add">
-                <Plus className="mr-2 h-4 w-4" /> Add Category
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Categories"
+          description="Manage your product categories"
+          actionLabel="Add Category"
+          actionHref="/admin/categories/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -436,14 +428,7 @@ export function CategoryList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading Categories...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message="Loading Categories..." />
           ) : categories.length === 0 ? (
             renderEmptyState()
           ) : (

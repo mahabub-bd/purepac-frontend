@@ -25,7 +25,6 @@ import type { MenuItem } from "@/utils/types";
 import {
   Filter,
   LayoutList,
-  Loader2,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -38,6 +37,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { LoadingIndicator } from "../loading-indicator";
+import { PageHeader } from "../page-header";
 
 interface MenuListProps {
   initialPage: number;
@@ -351,21 +352,12 @@ export function MenuList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Menu</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your website menu items
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/admin/settings/add">
-                <Plus className="mr-2 h-4 w-4" /> Add Menu Item
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Menus"
+          description="Manage your website menu items"
+          actionLabel="Add Menu"
+          actionHref="/admin/settings/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -511,14 +503,7 @@ export function MenuList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading Menus...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message=" Loading Menus..." />
           ) : menuItems.length === 0 ? (
             renderEmptyState()
           ) : (

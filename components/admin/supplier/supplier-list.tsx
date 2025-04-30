@@ -25,7 +25,6 @@ import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import { Supplier } from "@/utils/types";
 import {
   Filter,
-  Loader2,
   Mail,
   MoreHorizontal,
   Pencil,
@@ -42,6 +41,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { PageHeader } from "../page-header";
+import { LoadingIndicator } from "../loading-indicator";
 
 interface SupplierListProps {
   initialPage: number;
@@ -313,20 +314,12 @@ export function SupplierList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Suppliers</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage your product suppliers
-          </p>
-
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/admin/supplier/add">
-                <Plus className="mr-2 h-4 w-4" /> Add Supplier
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Suppliers"
+          description="Manage your product suppliers"
+          actionLabel="Add Supplier"
+          actionHref="/admin/supplier/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -430,14 +423,7 @@ export function SupplierList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading Suppliers...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message="Loading Suppliers..." />
           ) : suppliers.length === 0 ? (
             renderEmptyState()
           ) : (

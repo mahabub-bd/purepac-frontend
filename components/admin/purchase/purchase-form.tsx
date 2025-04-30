@@ -36,16 +36,8 @@ import { Section } from "../helper";
 
 import { cn, formatDateTime } from "@/lib/utils";
 import { fetchData, patchData, postData } from "@/utils/api-utils";
+import { purchaseSchema } from "@/utils/form-validation";
 import type { Product, Purchase } from "@/utils/types";
-
-const purchaseSchema = z.object({
-  productId: z.number().min(1, "Product is required"),
-  supplierId: z.number().min(1, "Supplier is required"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  purchaseDate: z.date(),
-  status: z.enum(["pending", "shipped", "delivered", "cancelled"]),
-  notes: z.string().optional(),
-});
 
 type PurchaseFormValues = z.infer<typeof purchaseSchema>;
 

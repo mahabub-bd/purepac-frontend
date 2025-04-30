@@ -22,16 +22,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import { formPostData, patchData, postData } from "@/utils/api-utils";
+import { brandSchema } from "@/utils/form-validation";
 import type { Brand } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import { Section } from "../helper";
-
-const brandSchema = z.object({
-  name: z.string().min(1, "Brand name is required"),
-  description: z.string().optional(),
-  isActive: z.boolean().default(true),
-  imageUrl: z.string().optional(),
-});
 
 type BrandFormValues = z.infer<typeof brandSchema>;
 

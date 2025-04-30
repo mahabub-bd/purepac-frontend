@@ -2,29 +2,11 @@
 
 import { logoutPost, postData } from "@/utils/api-utils";
 
+import { loginSchema, registerSchema } from "@/utils/form-validation";
 import { authResponse } from "@/utils/types";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { getUserFromToken } from "./jwt-utils";
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-const registerSchema = z
-  .object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email address"),
-    mobileNumber: z.string().min(11, "Number should be 11 digit"),
-    password: z.string().min(8, "Password must be at least 8 characters long"),
-    confirmPassword: z
-      .string()
-      .min(8, "Confirm Password must be at least 8 characters long"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -49,7 +31,6 @@ export async function setUserCookies(userData: any) {
     sameSite: "lax",
   });
 
-  // Ensure user info is properly constructed
   let userInfo = {
     id: 0,
     name: "Customer",
@@ -101,7 +82,7 @@ export async function setUserCookies(userData: any) {
     return true;
   } catch (error) {
     console.error("Error setting user cookies:", error);
-    // Clean up partial cookies
+
     cookieStore.delete("auth_token");
     cookieStore.delete("user");
     return false;
@@ -174,12 +155,9 @@ export async function register(formData: RegisterFormData) {
       redirect: "/auth/sign-in",
     };
   } catch (error: any) {
-    // Add type annotation here
     console.error("Registration error:", error);
 
-    // Handle Axios error response
     if (error.response) {
-      // Server responded with a status code outside 2xx range
       const errorData = error.response.data;
       return {
         success: false,
@@ -187,13 +165,11 @@ export async function register(formData: RegisterFormData) {
         errors: errorData.errors || undefined,
       };
     } else if (error.request) {
-      // Request was made but no response received
       return {
         success: false,
         message: "No response from server. Please try again.",
       };
     } else {
-      // Something happened in setting up the request
       return {
         success: false,
         message: error.message || "Registration failed",
@@ -220,8 +196,7 @@ export async function logout(): Promise<authResponse> {
       message: "Logout failed due to an error",
     };
   } finally {
-    cookieStore.delete("auth_token");
-    cookieStore.delete("user");
+    await deleteCookie(["auth_token", "user"]);
   }
 
   return {
@@ -233,11 +208,11 @@ export async function getUser() {
   const cookieStore = await cookies();
   const userCookie = cookieStore?.get("user");
 
-  if (!userCookie?.value) return null; // Check for value existence
+  if (!userCookie?.value) return null;
 
   try {
     const parsedValue = JSON.parse(userCookie.value);
-    // Add basic validation
+
     if (typeof parsedValue !== "object" || parsedValue === null) {
       console.error("Invalid user data format");
       return null;
@@ -245,7 +220,7 @@ export async function getUser() {
     return parsedValue;
   } catch (error) {
     console.error("Error parsing user data:", error);
-    // Clean up invalid cookie
+
     cookieStore.delete("user");
     return null;
   }
@@ -318,5 +293,24 @@ export async function verifyOtp(data: {
       success: false,
       message: "An error occurred. Please try again later.",
     };
+  }
+}
+
+export async function deleteCookie(
+  cookieNames: string | string[]
+): Promise<boolean> {
+  const cookieStore = await cookies();
+  const namesToDelete = Array.isArray(cookieNames)
+    ? cookieNames
+    : [cookieNames];
+
+  try {
+    namesToDelete.forEach((name) => {
+      cookieStore.delete(name);
+    });
+    return true;
+  } catch (error) {
+    console.error("Error deleting cookies:", error);
+    return false;
   }
 }

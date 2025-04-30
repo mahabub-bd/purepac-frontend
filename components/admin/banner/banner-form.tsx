@@ -30,23 +30,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formPostData, patchData, postData } from "@/utils/api-utils";
+import { bannerSchema } from "@/utils/form-validation";
 import type { Banner } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import { Section } from "../helper";
-
-const bannerSchema = z.object({
-  title: z.string().min(1, "Banner title is required"),
-  description: z.string().optional(),
-  targetUrl: z.string().url("Please enter a valid URL"),
-  position: z.string().min(1, "Position is required"),
-  type: z.string().min(1, "Type is required"),
-  isActive: z.boolean().default(true),
-  displayOrder: z.coerce
-    .number()
-    .int()
-    .min(0, "Display order must be a positive number"),
-  imageUrl: z.string().optional(),
-});
 
 type BannerFormValues = z.infer<typeof bannerSchema>;
 

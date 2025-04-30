@@ -18,19 +18,14 @@ import {
 } from "@/components/ui/table";
 import { deleteData, fetchData } from "@/utils/api-utils";
 import type { Role } from "@/utils/types";
-import {
-  Loader2,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Shield,
-  Trash2,
-} from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Shield, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { formatDateTime } from "../../../lib/utils";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { LoadingIndicator } from "../loading-indicator";
+import { PageHeader } from "../page-header";
 
 export function RoleList() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -151,30 +146,16 @@ export function RoleList() {
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Roles</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage system roles and permissions
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/admin/user/role/add">
-              <Plus className="mr-2 h-4 w-4" /> Add Role
-            </Link>
-          </Button>
-        </div>
+        <PageHeader
+          title="Roles"
+          description="Manage system roles and permissions"
+          actionLabel="Add Role"
+          actionHref="/admin/user/role/add"
+        />
 
         <div className="space-y-4">
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading roles...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message="Loading roles..." />
           ) : roles.length === 0 ? (
             renderEmptyState()
           ) : (

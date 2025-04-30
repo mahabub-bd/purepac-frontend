@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { fetchData, patchData, postData } from "@/utils/api-utils";
+import { userSchema } from "@/utils/form-validation";
 import { Role, User } from "@/utils/types";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,22 +28,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-
-const userSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" })
-    .optional()
-    .or(z.literal("")),
-  mobileNumber: z
-    .string()
-    .min(10, { message: "Please enter a valid mobile number" })
-    .startsWith("+880", { message: "Mobile number must start with +880" }),
-  roleId: z.string().min(1, { message: "Please select at least one role" }),
-  isVerified: z.boolean().default(false),
-});
 
 interface UserFormProps {
   user?: User;
@@ -69,7 +54,6 @@ export function UserForm({ user, mode, onSuccess }: UserFormProps) {
     const fetchRoles = async () => {
       try {
         const response = await fetchData<Role[]>("roles");
-
         setRoles(response);
       } catch (error) {
         console.error("Error fetching units:", error);

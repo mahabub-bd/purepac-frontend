@@ -36,6 +36,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { PageHeader } from "../page-header";
 
 interface UserListProps {
   initialPage?: number;
@@ -258,14 +259,7 @@ export function CustomerList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Customers</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your customers
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Customers" description="Manage your customers" />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">

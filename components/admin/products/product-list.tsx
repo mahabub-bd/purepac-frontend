@@ -47,6 +47,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { PageHeader } from "../page-header";
 
 interface ProductListProps {
   initialPage: number;
@@ -468,21 +469,12 @@ export function ProductList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Products</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your product inventory
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/admin/products/add">
-                <Plus className="mr-2 h-4 w-4" /> Add Product
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Products"
+          description="Manage your product inventory"
+          actionLabel="Add Product"
+          actionHref="/admin/products/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">

@@ -25,18 +25,10 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { formPostData, patchData, postData } from "@/utils/api-utils";
 
+import { supplierSchema } from "@/utils/form-validation";
 import { Supplier } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import { Section } from "../helper";
-
-const supplierSchema = z.object({
-  name: z.string().min(1, "Supplier name is required"),
-  email: z.string().email("Invalid email address").min(1, "Email is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  address: z.string().min(1, "Address is required"),
-  isActive: z.boolean().default(true),
-  imageUrl: z.string().optional(),
-});
 
 type SupplierFormValues = z.infer<typeof supplierSchema>;
 

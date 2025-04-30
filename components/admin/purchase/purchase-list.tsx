@@ -25,7 +25,6 @@ import {
   DollarSign,
   Filter,
   List,
-  Loader2,
   MoreHorizontal,
   Package,
   Pencil,
@@ -39,6 +38,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { PageHeader } from "../page-header";
+import { LoadingIndicator } from "../loading-indicator";
 
 interface PurchaseListProps {
   initialPage: number;
@@ -335,20 +336,12 @@ export function PurchaseList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <div className="flex flex-row items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Purchases</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage your product purchases
-          </p>
-
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/admin/purchase/add">
-                <Plus className="mr-2 h-4 w-4" /> Add Purchase
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Purchases"
+          description="Manage your product purchases"
+          actionLabel="Add Purchase"
+          actionHref="/admin/purchase/add"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -466,14 +459,7 @@ export function PurchaseList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading Purchases...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message="Loading Purchases..." />
           ) : purchases.length === 0 ? (
             renderEmptyState()
           ) : (

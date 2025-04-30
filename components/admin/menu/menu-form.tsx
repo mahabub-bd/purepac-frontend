@@ -29,17 +29,9 @@ import { fetchData, patchData, postData } from "@/utils/api-utils";
 import type { MenuItem } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import { Section } from "../helper";
+import { menuSchema } from "@/utils/form-validation";
 
-const menuSchema = z.object({
-  name: z.string().min(1, "Menu name is required"),
-  url: z.string().min(1, "URL is required"),
-  icon: z.string().optional().nullable(),
-  parentId: z.number().nullable().optional(),
-  order: z.number().min(0, "Order must be a positive number"),
-  isMainMenu: z.boolean().default(true),
-  isActive: z.boolean().default(true),
-  isAdminMenu: z.boolean().default(false),
-});
+
 
 type MenuFormValues = z.infer<typeof menuSchema>;
 

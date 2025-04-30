@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { patchData, postData } from "@/utils/api-utils";
+import { roleSchema } from "@/utils/form-validation";
+import { Role } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -20,24 +22,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-interface Role {
-  id: number;
-  rolename: string;
-  description: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedDate: string;
-}
 
-const roleSchema = z.object({
-  rolename: z
-    .string()
-    .min(2, { message: "Role name must be at least 2 characters" }),
-  description: z
-    .string()
-    .min(5, { message: "Description must be at least 5 characters" }),
-  isActive: z.boolean().default(true),
-});
+
+
 
 interface RoleFormProps {
   role?: Role;

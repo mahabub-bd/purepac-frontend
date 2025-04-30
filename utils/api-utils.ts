@@ -1,4 +1,4 @@
-import { getToken } from "@/actions/auth";
+import { deleteCookie, getToken } from "@/actions/auth";
 
 export type ApiResponse<T = any> = {
   id: any;
@@ -67,6 +67,7 @@ export async function fetchProtectedData<T>(endpoint: string): Promise<T> {
 
       if (response.status === 401) {
         console.error("Unauthorized access - possibly expired token");
+        await deleteCookie(["auth_token", "user"]);
       }
 
       throw new Error(errorMessage);

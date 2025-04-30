@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BannerPosition, BannerType } from "./types";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -29,8 +30,12 @@ const bannerSchema = z.object({
   title: z.string().min(1, "Banner title is required"),
   description: z.string().optional(),
   targetUrl: z.string().url("Please enter a valid URL"),
-  position: z.string().min(1, "Position is required"),
-  type: z.string().min(1, "Type is required"),
+  position: z.nativeEnum(BannerPosition, {
+    required_error: "Position is required",
+  }),
+  type: z.nativeEnum(BannerType, {
+    required_error: "Type is required",
+  }),
   isActive: z.boolean().default(true),
   displayOrder: z.coerce
     .number()
@@ -54,8 +59,6 @@ const userSchema = z.object({
   roleId: z.string().min(1, { message: "Please select at least one role" }),
   isVerified: z.boolean().default(false),
 });
-
-
 
 const menuSchema = z.object({
   name: z.string().min(1, "Menu name is required"),

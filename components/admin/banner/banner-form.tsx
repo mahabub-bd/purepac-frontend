@@ -1,10 +1,9 @@
 "use client";
 
-import type React from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Upload } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -31,8 +30,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formPostData, patchData, postData } from "@/utils/api-utils";
 import { bannerSchema } from "@/utils/form-validation";
-import type { Banner } from "@/utils/types";
-import { useRouter } from "next/navigation";
+import { Banner, BannerPosition, BannerType } from "@/utils/types";
 import { Section } from "../helper";
 
 type BannerFormValues = z.infer<typeof bannerSchema>;
@@ -55,8 +53,8 @@ export function BannerForm({ mode, banner }: BannerFormProps) {
       title: banner?.title || "",
       description: banner?.description || "",
       targetUrl: banner?.targetUrl || "",
-      position: banner?.position || "",
-      type: banner?.type || "",
+      position: banner?.position as BannerPosition,
+      type: banner?.type as BannerType,
       isActive: banner?.isActive ?? true,
       displayOrder: banner?.displayOrder ?? 0,
       imageUrl: banner?.image?.url || "",
@@ -91,7 +89,7 @@ export function BannerForm({ mode, banner }: BannerFormProps) {
 
       const bannerData = {
         ...data,
-        image: attachmentId,
+        imageId: attachmentId,
       };
 
       const endpoint = mode === "create" ? "banners" : `banners/${banner?.id}`;
@@ -187,22 +185,19 @@ export function BannerForm({ mode, banner }: BannerFormProps) {
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Banner Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select banner type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="hero">Hero Banner</SelectItem>
-                        <SelectItem value="promo">
-                          Promotional Banner
-                        </SelectItem>
-                        <SelectItem value="sidebar">Sidebar Banner</SelectItem>
-                        <SelectItem value="popup">Popup Banner</SelectItem>
+                        {Object.values(BannerType).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() +
+                              type.slice(1).toLowerCase()}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -216,23 +211,19 @@ export function BannerForm({ mode, banner }: BannerFormProps) {
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Position</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select banner position" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="home">Home Page</SelectItem>
-                        <SelectItem value="category">Category Pages</SelectItem>
-                        <SelectItem value="product">Product Pages</SelectItem>
-                        <SelectItem value="checkout">Checkout Page</SelectItem>
-                        <SelectItem value="global">
-                          Global (All Pages)
-                        </SelectItem>
+                        {Object.values(BannerPosition).map((position) => (
+                          <SelectItem key={position} value={position}>
+                            {position.charAt(0).toUpperCase() +
+                              position.slice(1).toLowerCase()}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -1,4 +1,5 @@
 import { HeadingPrimary } from "@/components/common/heading-primary";
+import { AnimatedCarousel } from "@/components/homepage/banner/hero/animated-carousel";
 import BrandList from "@/components/homepage/brands/brand-list";
 import CategoriesList from "@/components/homepage/Category/categories-list";
 import ProductList from "@/components/products/product-list";
@@ -6,6 +7,7 @@ import ProductList from "@/components/products/product-list";
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <AnimatedCarousel />
       {/* Categories Section */}
       <section className="md:py-10 py-5 bg-gray-50">
         <div className="container mx-auto ">

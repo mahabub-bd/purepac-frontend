@@ -38,8 +38,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
-import { PageHeader } from "../page-header";
 import { LoadingIndicator } from "../loading-indicator";
+import { PageHeader } from "../page-header";
 
 interface PurchaseListProps {
   initialPage: number;

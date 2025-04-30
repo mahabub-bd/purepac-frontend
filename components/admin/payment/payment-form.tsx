@@ -82,7 +82,6 @@ export function PaymentForm({ purchaseId, maxAmount }: PaymentFormProps) {
       amount: maxAmount,
       paymentDate: new Date(),
       paymentMethodId: 1,
-
       referenceNumber: "",
       notes: "",
     },

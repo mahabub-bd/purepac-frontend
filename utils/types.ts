@@ -251,3 +251,32 @@ export interface PaymentMethod {
   createdBy: User;
   updatedBy: User;
 }
+
+export enum BannerPosition {
+  TOP = "top",
+  MIDDLE = "middle",
+  BOTTOM = "bottom",
+  SIDEBAR = "sidebar",
+}
+
+export enum BannerType {
+  MAIN = "main",
+  PROMOTIONAL = "promotional",
+  FEATURED = "featured",
+}
+
+export interface Banner {
+  id: number;
+  title: string;
+  description: string;
+  targetUrl: string;
+  position: string;
+  type: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  image: Attachment;
+  createdBy: User;
+  updatedBy: User;
+}

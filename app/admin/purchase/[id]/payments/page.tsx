@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 
+import { PageHeader } from "@/components/admin/page-header";
 import { Payment, Purchase } from "@/utils/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
@@ -59,18 +59,17 @@ export default function PaymentsListPage() {
     parseFloat(purchase.totalValue) - parseFloat(purchase.amountPaid);
 
   return (
-    <div className="md:p-6 p-2 space-y-6 border rounded-sm">
+    <div className="w-full md:p-6 p-2 border rounded-sm">
       <div className="md:p-6 p-2">
         <div className="flex justify-between items-center mb-6">
-          <div className="grid grid-cols-1 gap-2">
-            <CardTitle>
-              Payments for Purchase #{purchase.purchaseNumber}
-            </CardTitle>
-            <CardDescription>
-              Total: {purchase.totalValue} | Paid: {purchase.amountPaid} |
-              Remaining: {remainingAmount.toFixed(2)}
-            </CardDescription>
-          </div>
+          <PageHeader
+            title={`Payments for Purchase # ${purchase.purchaseNumber}`}
+            description={` Total: ${purchase.totalValue} | Paid: ${
+              purchase.amountPaid
+            } |
+              Remaining: ${remainingAmount.toFixed(2)}`}
+          />
+
           {remainingAmount > 0 && (
             <Button asChild>
               <Link href={`/admin/purchase/${purchaseId}/payment`}>

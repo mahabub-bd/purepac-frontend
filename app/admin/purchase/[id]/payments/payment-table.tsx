@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, formatDateTime } from "@/lib/utils";
+import { cn, formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import { Payment } from "@/utils/types";
 
 interface PaymentsTableProps {
@@ -38,8 +38,8 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
   const renderPaymentRow = (payment: Payment) => (
     <TableRow key={payment.id}>
       <TableCell className="font-medium">{payment.paymentNumber}</TableCell>
-      <TableCell className="text-right">
-        {formatCurrency(payment.amount)}
+      <TableCell className="font-medium">
+        {formatCurrencyEnglish(Number(payment.amount))}
       </TableCell>
       <TableCell>{formatDateTime(payment.paymentDate)}</TableCell>
       <TableCell>{payment.paymentMethod?.name || "N/A"}</TableCell>
@@ -50,13 +50,6 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
       </TableCell>
     </TableRow>
   );
-
-  const formatCurrency = (amount: string) => {
-    return parseFloat(amount).toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
 
   const StatusBadge = ({ status }: { status: string }) => {
     const variant =
@@ -79,13 +72,13 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[120px]">Payment #</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-          <TableHead className="min-w-[120px]">Date</TableHead>
+          <TableHead>Payment #</TableHead>
+          <TableHead>Amount</TableHead>
+          <TableHead>Date</TableHead>
           <TableHead>Method</TableHead>
           <TableHead>Reference</TableHead>
           <TableHead>Paid By</TableHead>
-          <TableHead className="w-[100px]">Status</TableHead>
+          <TableHead >Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

@@ -60,6 +60,8 @@ export interface Product {
   description: string;
   sellingPrice: number;
   purchasePrice: number;
+  totalValueBySalePrice: number;
+  totalValueByPurchasePrice: number;
   unit: Unit;
   supplier: Supplier;
   productSku: string;
@@ -183,7 +185,7 @@ export interface Supplier {
   phone: string;
   address: string;
   isActive: boolean;
-
+  products: Product[];
   attachment: Attachment;
   createdAt: string;
   updatedAt: string;

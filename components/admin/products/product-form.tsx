@@ -43,10 +43,8 @@ import {
 } from "@/utils/types";
 import { useRouter } from "next/navigation";
 
-import { InfoBox, Section } from "../helper";
 import { productSchema } from "@/utils/form-validation";
-
-
+import { InfoBox, Section } from "../helper";
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -71,7 +69,13 @@ export function ProductForm({
   const [imagePreview, setImagePreview] = useState(
     product?.attachment?.url || ""
   );
+  const [selectedMainCategory, setSelectedMainCategory] = useState<
+    number | null
+  >(null);
+  const [subCategories, setSubCategories] = useState<Category[]>([]);
+  const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
   const router = useRouter();
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -92,31 +96,84 @@ export function ProductForm({
   });
 
   useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const response = await fetchData<Unit[]>("units");
-        setUnits(response);
-      } catch (error) {
-        console.error("Error fetching units:", error);
+    // Initialize main category and subcategories for edit mode
+    const initializeCategories = async () => {
+      if (mode === "edit" && product?.category) {
+        const mainCategory = categories.find(
+          (c) =>
+            c.id === product.category?.parentId ||
+            (c.isMainCategory && c.id === product.category?.id)
+        );
+
+        if (mainCategory) {
+          setSelectedMainCategory(mainCategory.id);
+          await fetchSubCategories(mainCategory.id);
+
+          // If category has a parent, it's a subcategory
+          if (product.category.parentId) {
+            form.setValue("categoryId", product.category.id);
+          }
+        }
       }
     };
 
-    fetchUnits();
-  }, []);
+    initializeCategories();
+  }, [product, categories, mode, form]);
 
   useEffect(() => {
-    const fetchSuppliers = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await fetchData<Supplier[]>("suppliers");
+        const [unitsResponse, suppliersResponse] = await Promise.all([
+          fetchData<Unit[]>("units"),
+          fetchData<Supplier[]>("suppliers"),
+        ]);
 
-        setSuppliers(response);
+        setUnits(unitsResponse);
+        setSuppliers(suppliersResponse);
       } catch (error) {
-        console.error("Error fetching units:", error);
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load initial data");
       }
     };
 
-    fetchSuppliers();
+    fetchInitialData();
   }, []);
+
+  const fetchSubCategories = async (parentId: number) => {
+    setIsLoadingSubCategories(true);
+    try {
+      const response = await fetchData<Category[]>(
+        `categories?parentId=${parentId}`
+      );
+      setSubCategories(response);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      toast.error("Failed to load subcategories");
+    } finally {
+      setIsLoadingSubCategories(false);
+    }
+  };
+
+  const handleMainCategoryChange = async (value: string) => {
+    const mainCategoryId = Number(value);
+    setSelectedMainCategory(mainCategoryId);
+
+    // Find the selected main category
+    const selectedCategory = categories.find((c) => c.id === mainCategoryId);
+
+    if (selectedCategory) {
+      // Fetch subcategories for this main category
+      await fetchSubCategories(mainCategoryId);
+
+      // If there are subcategories, reset the categoryId
+      if (subCategories.length > 0) {
+        form.setValue("categoryId", 0);
+      } else {
+        // If no subcategories, use the main category directly
+        form.setValue("categoryId", mainCategoryId);
+      }
+    }
+  };
 
   const generateSku = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -205,7 +262,6 @@ export function ProductForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="p-6 space-y-6">
-          {/* Basic Information Section */}
           <Section title="Basic Information">
             <FormField
               control={form.control}
@@ -240,177 +296,219 @@ export function ProductForm({
             />
           </Section>
 
-          {/* Product Identification Section */}
           <Section title="Product Identification">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <FormField
-                control={form.control}
-                name="productSku"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>SKU</FormLabel>
-                    <div className="flex gap-2 w-full">
-                      <FormControl className="w-full">
-                        <Input
-                          placeholder="Enter product SKU"
-                          {...field}
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={generateSku}
-                        className="whitespace-nowrap bg-green-200"
-                      >
-                        Generate SKU
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid grid-cols-1 gap-6">
+              {/* Row 1: SKU and Unit */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="productSku"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>SKU</FormLabel>
+                      <div className="grid gap-4  grid-cols-2 w-full">
+                        <FormControl className="w-full">
+                          <Input
+                            placeholder="Enter product SKU"
+                            {...field}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={generateSku}
+                          className="whitespace-nowrap bg-green-200"
+                        >
+                          Generate SKU
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="unitId"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Unit</FormLabel>
-                    <FormControl className="w-full">
-                      <Select
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={
-                          field.value && field.value > 0
-                            ? field.value.toString()
-                            : undefined
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {units?.map((unit: Unit) => (
-                            <SelectItem
-                              key={unit.id}
-                              value={unit.id.toString()}
-                            >
-                              {unit.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="supplierId"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Supplier </FormLabel>
-                    <FormControl className="w-full">
-                      <Select
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={
-                          field.value && field.value > 0
-                            ? field.value.toString()
-                            : undefined
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select Supplier" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {suppliers?.map((supplier: Supplier) => (
-                            <SelectItem
-                              key={supplier.id}
-                              value={supplier.id.toString()}
-                            >
-                              {supplier?.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="brandId"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Brand</FormLabel>
-                    <FormControl className="w-full">
-                      <Select
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={
-                          field.value && field.value > 0
-                            ? field.value.toString()
-                            : undefined
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select brand" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {brands.map((brand) => (
-                            <SelectItem
-                              key={brand.id}
-                              value={brand.id.toString()}
-                            >
-                              {brand.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Category</FormLabel>
-                    <FormControl className="w-full">
-                      <Select
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={
-                          field.value && field.value > 0
-                            ? field.value.toString()
-                            : undefined
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="unitId"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Unit</FormLabel>
+                      <FormControl className="w-full">
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          value={
+                            field.value && field.value > 0
+                              ? field.value.toString()
+                              : undefined
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {units?.map((unit: Unit) => (
+                              <SelectItem
+                                key={unit.id}
+                                value={unit.id.toString()}
+                              >
+                                {unit.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Row 2: Supplier and Brand */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="supplierId"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Supplier</FormLabel>
+                      <FormControl className="w-full">
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          value={
+                            field.value && field.value > 0
+                              ? field.value.toString()
+                              : undefined
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select Supplier" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {suppliers?.map((supplier: Supplier) => (
+                              <SelectItem
+                                key={supplier.id}
+                                value={supplier.id.toString()}
+                              >
+                                {supplier?.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="brandId"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Brand</FormLabel>
+                      <FormControl className="w-full">
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          value={
+                            field.value && field.value > 0
+                              ? field.value.toString()
+                              : undefined
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select brand" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {brands.map((brand) => (
+                              <SelectItem
+                                key={brand.id}
+                                value={brand.id.toString()}
+                              >
+                                {brand.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Row 3: Main Category and Sub Category */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormItem className="w-full">
+                  <FormLabel>Main Category</FormLabel>
+                  <Select
+                    onValueChange={handleMainCategoryChange}
+                    value={selectedMainCategory?.toString() || ""}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select main category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories
+                        .filter((c) => c.isMainCategory)
+                        .map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+
+                <FormItem className="w-full">
+                  <FormLabel>Sub Category</FormLabel>
+                  <Select
+                    onValueChange={(value) =>
+                      form.setValue("categoryId", Number(value))
+                    }
+                    value={form.watch("categoryId")?.toString() || ""}
+                    disabled={!selectedMainCategory || isLoadingSubCategories}
+                  >
+                    <SelectTrigger className="w-full">
+                      {isLoadingSubCategories ? (
+                        <span>Loading subcategories...</span>
+                      ) : (
+                        <SelectValue placeholder="Select sub category" />
+                      )}
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subCategories.length > 0 ? (
+                        subCategories.map((subCategory) => (
+                          <SelectItem
+                            key={subCategory.id}
+                            value={subCategory.id.toString()}
+                          >
+                            {subCategory.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="text-sm p-2 text-muted-foreground">
+                          No subcategories available
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              </div>
             </div>
           </Section>
 
-          {/* Pricing & Inventory Section */}
           <Section title="Pricing & Inventory">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
@@ -463,14 +561,12 @@ export function ProductForm({
                 )}
               />
             </div>
-
             <InfoBox
               title="Inventory Management"
               description="Stock levels will automatically update when orders are processed. You can manually adjust stock levels at any time."
             />
           </Section>
 
-          {/* Media & Status Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Section title="Media">
               <FormField
@@ -557,7 +653,7 @@ export function ProductForm({
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end p-6 border-t">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>

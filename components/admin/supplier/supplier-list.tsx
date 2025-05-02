@@ -41,8 +41,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
-import { PageHeader } from "../page-header";
 import { LoadingIndicator } from "../loading-indicator";
+import { PageHeader } from "../page-header";
 
 interface SupplierListProps {
   initialPage: number;
@@ -242,6 +242,7 @@ export function SupplierList({
             <TableHead>Name</TableHead>
             <TableHead className="hidden md:table-cell">Contact</TableHead>
             <TableHead className="hidden md:table-cell">Address</TableHead>
+            <TableHead className="hidden md:table-cell">Products</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -275,6 +276,9 @@ export function SupplierList({
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 {supplier.address || "No address provided"}
+              </TableCell>
+              <TableCell className="hidden md:table-cell text-left ">
+                {supplier.products?.length || 0}
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 <Badge variant={supplier.isActive ? "default" : "destructive"}>

@@ -10,7 +10,7 @@ interface LoadingIndicatorProps {
 export function LoadingIndicator({
   message = "Loading...",
   className = "",
-  iconSize = 8,
+  iconSize = 4,
   containerClassName = "py-12",
 }: LoadingIndicatorProps) {
   return (

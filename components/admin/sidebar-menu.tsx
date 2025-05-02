@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { GermanbutcherLogo } from "@/public/images";
 import { fetchProtectedData } from "@/utils/api-utils";
 import type { authResponse, MenuItem } from "@/utils/types";
 import {
@@ -46,10 +47,9 @@ interface UserTypes {
 interface SidebarProps {
   className?: string;
   user: UserTypes;
-  logo?: string;
 }
 
-export function SidebarMenu({ className, logo, user }: SidebarProps) {
+export function SidebarMenu({ className, user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -102,7 +102,7 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
     setMobileOpen(false);
   }, [pathname]);
 
-  const sidebarTitle = user?.isAdmin ? "Admin Panel" : "My Account";
+  const sidebarTitle = user?.isAdmin ? "German Butcher" : "My Account";
 
   const getInitials = (name: string): string => {
     return name
@@ -200,23 +200,14 @@ export function SidebarMenu({ className, logo, user }: SidebarProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2 py-2">
-                {logo ? (
-                  <Image
-                    src={logo || "/placeholder.svg"}
-                    alt="Logo"
-                    width={80}
-                    height={40}
-                    className="h-auto w-auto"
-                  />
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary py-3">
-                    {user?.isAdmin ? (
-                      <Package className="h-5 w-5 text-primary-foreground" />
-                    ) : (
-                      <User className="h-5 w-5 text-primary-foreground" />
-                    )}
-                  </div>
-                )}
+                <Image
+                  src={GermanbutcherLogo}
+                  alt="Logo"
+                  width={40}
+                  height={40}
+                  className="h-auto w-auto"
+                />
+
                 <span className="font-medium">{sidebarTitle}</span>
               </div>
             )}

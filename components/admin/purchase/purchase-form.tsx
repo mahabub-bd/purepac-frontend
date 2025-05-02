@@ -30,6 +30,7 @@ import Loading from "@/app/loading";
 import { fetchData, patchData, postData } from "@/utils/api-utils";
 import { purchaseSchema } from "@/utils/form-validation";
 import type { Product, Purchase, Supplier } from "@/utils/types";
+import { LoadingIndicator } from "../loading-indicator";
 
 type PurchaseFormValues = z.infer<typeof purchaseSchema>;
 
@@ -231,10 +232,7 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                           </SelectTrigger>
                           <SelectContent>
                             {isProductsLoading ? (
-                              <div className="py-2 text-center text-sm text-muted-foreground">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
-                                Loading products...
-                              </div>
+                              <LoadingIndicator message="Loading products..." />
                             ) : (
                               products.map((product) => (
                                 <SelectItem
@@ -308,27 +306,6 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
             </div>
           </Section>
 
-          <Section title="Order Summary">
-            <div className="flex justify-between p-4 bg-muted rounded-lg">
-              <div className="font-medium">
-                Total Quantity:{" "}
-                {form
-                  .watch("items")
-                  .reduce((acc, item) => acc + item.quantity, 0)}
-              </div>
-              <div className="font-medium">
-                Total Price:{" "}
-                {form
-                  .watch("items")
-                  .reduce(
-                    (acc, item) => acc + item.quantity * item.unitPrice,
-                    0
-                  )
-                  .toFixed(2)}
-              </div>
-            </div>
-          </Section>
-
           <Section title="Purchase Details">
             <div className="space-y-4">
               <FormField
@@ -381,6 +358,26 @@ export function PurchaseForm({ mode, purchase }: PurchaseFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
+          </Section>
+          <Section title="Order Summary">
+            <div className="flex justify-between p-4 bg-muted rounded-lg">
+              <div className="font-medium">
+                Total Quantity:{" "}
+                {form
+                  .watch("items")
+                  .reduce((acc, item) => acc + item.quantity, 0)}
+              </div>
+              <div className="font-medium">
+                Total Price:{" "}
+                {form
+                  .watch("items")
+                  .reduce(
+                    (acc, item) => acc + item.quantity * item.unitPrice,
+                    0
+                  )
+                  .toFixed(2)}
+              </div>
             </div>
           </Section>
         </div>

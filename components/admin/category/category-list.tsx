@@ -253,6 +253,11 @@ export function CategoryList({
             <TableHead>Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead className="hidden md:table-cell">Description</TableHead>
+
+            <TableHead className="hidden md:table-cell">
+              Category Type
+            </TableHead>
+            <TableHead className="hidden md:table-cell">Parent</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="hidden md:table-cell text-center">
               Products
@@ -278,6 +283,17 @@ export function CategoryList({
               <TableCell className="hidden md:table-cell text-wrap">
                 {category.description || "No description"}
               </TableCell>
+              <TableCell className="hidden md:table-cell ">
+                {category.isMainCategory ? (
+                  <Badge variant="default">Main Category </Badge>
+                ) : (
+                  <Badge variant="outline">Sub Category</Badge>
+                )}
+              </TableCell>
+              <TableCell className="hidden md:table-cell text-wrap">
+                {category?.parent === null ? "None" : category?.parent?.name}
+              </TableCell>
+
               <TableCell className="hidden md:table-cell">
                 <Badge variant={category.isActive ? "default" : "destructive"}>
                   {category.isActive ? "Active" : "Inactive"}

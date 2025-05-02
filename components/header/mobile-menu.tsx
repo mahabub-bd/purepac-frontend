@@ -41,8 +41,8 @@ export default function MobileMenu({ isAdmin }: { isAdmin?: boolean }) {
               <Image
                 src={GermanbutcherLogo || "/placeholder.svg"}
                 alt="PurePac Logo"
-                width={80}
-                height={60}
+                width={40}
+                height={40}
                 className=" p-1"
               />
             </Link>

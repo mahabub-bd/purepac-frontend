@@ -19,8 +19,8 @@ export function MobileHeader({ isAdminUser }: MobileHeaderProps) {
           <Image
             src={GermanbutcherLogo || "/placeholder.svg"}
             alt="PurePac logo"
-            width={100}
-            height={60}
+            width={50}
+            height={50}
             className="h-auto w-auto"
             priority
           />

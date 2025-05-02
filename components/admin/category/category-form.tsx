@@ -1,13 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Upload } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,20 +10,45 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-
-import { formPostData, patchData, postData } from "@/utils/api-utils";
+import {
+  fetchDataPagination,
+  formPostData,
+  patchData,
+  postData,
+} from "@/utils/api-utils";
 import type { Category } from "@/utils/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Upload } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 import { Section } from "../helper";
 
-const categorySchema = z.object({
-  name: z.string().min(1, "Category name is required"),
-  description: z.string().min(1, "Description is required"),
-  isActive: z.boolean().default(true),
-  imageUrl: z.string().optional(),
-});
+const categorySchema = z
+  .object({
+    name: z.string().min(1, "Category name is required"),
+    description: z.string().min(1, "Description is required"),
+    isActive: z.boolean().default(true),
+    isMainCategory: z.boolean().default(false),
+    parentId: z.number().nullable().optional(),
+    imageUrl: z.string().optional(),
+  })
+  .refine((data) => !(data.isMainCategory && data.parentId), {
+    message: "Main category cannot have a parent",
+    path: ["parentId"],
+  });
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
@@ -47,6 +64,7 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
   const [imagePreview, setImagePreview] = useState(
     category?.attachment?.url || ""
   );
+  const [parentCategories, setParentCategories] = useState<Category[]>([]);
   const router = useRouter();
 
   const form = useForm<CategoryFormValues>({
@@ -55,9 +73,33 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
       name: category?.name || "",
       description: category?.description || "",
       isActive: category?.isActive ?? true,
+      isMainCategory: category?.isMainCategory ?? false,
+      parentId: category?.parentId || null,
       imageUrl: category?.attachment?.url || "",
     },
   });
+
+  useEffect(() => {
+    const fetchParentCategories = async () => {
+      try {
+        let url = "categories?sMainCategory=true";
+        if (mode === "edit" && category) {
+          url += `&excludeId=${category.id}`;
+        }
+        const response = await fetchDataPagination<{
+          data: Category[];
+          total: number;
+          totalPages: number;
+        }>(url);
+        setParentCategories(response.data);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load parent categories");
+      }
+    };
+
+    fetchParentCategories();
+  }, [mode, category]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -87,6 +129,7 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
 
       const categoryData = {
         ...data,
+        parentId: data.isMainCategory ? null : data.parentId,
         attachment: attachmentId,
       };
 
@@ -102,7 +145,6 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
             ? "Category created successfully"
             : "Category updated successfully";
         toast.success(successMessage);
-       
         router.back();
       } else {
         toast.error(response?.message || "An error occurred");
@@ -127,7 +169,6 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="p-6 space-y-6">
-          {/* Basic Information Section */}
           <Section title="Basic Information">
             <FormField
               control={form.control}
@@ -162,7 +203,6 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
             />
           </Section>
 
-          {/* Media & Status Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Section title="Media">
               <FormField
@@ -219,8 +259,8 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
               />
             </Section>
 
-            <Section title="Status">
-              <div className="grid grid-cols-1 gap-4">
+            <Section title="Status & Hierarchy">
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="isActive"
@@ -233,12 +273,71 @@ export function CategoryForm({ mode, category }: CategoryFormProps) {
                     />
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="isMainCategory"
+                  render={({ field }) => (
+                    <SwitchCard
+                      label="Main Category"
+                      description="Mark as top-level main category"
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        if (checked) {
+                          form.setValue("parentId", null);
+                        }
+                      }}
+                    />
+                  )}
+                />
+
+                {!form.watch("isMainCategory") && (
+                  <FormField
+                    control={form.control}
+                    name="parentId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Parent Category</FormLabel>
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(
+                              value === "null" ? null : Number(value)
+                            )
+                          }
+                          value={field.value?.toString() ?? "null"}
+                          disabled={form.watch("isMainCategory")}
+                        >
+                          <FormControl className="w-full">
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select parent category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="w-full">
+                            <SelectItem value="null">
+                              Top Level Category
+                            </SelectItem>
+                            {parentCategories.map((cat) => (
+                              <SelectItem
+                                key={cat.id}
+                                value={cat.id.toString()}
+                              >
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
             </Section>
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end p-6 border-t">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>

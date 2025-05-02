@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { fetchData } from "@/utils/api-utils";
 
+import { LoadingIndicator } from "@/components/admin/loading-indicator";
 import { PageHeader } from "@/components/admin/page-header";
 import { Payment, Purchase } from "@/utils/types";
 import { Plus } from "lucide-react";
@@ -40,11 +41,7 @@ export default function PaymentsListPage() {
   }, [purchaseId]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <p>Loading payments...</p>
-      </div>
-    );
+    return <LoadingIndicator message="Loading Paymet" />;
   }
 
   if (!purchase) {

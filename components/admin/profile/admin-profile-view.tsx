@@ -108,7 +108,7 @@ export default function AdminProfileView({ user }: AdminProfileViewProps) {
               <div className="flex items-center gap-2 text-sm">
                 <Shield className="h-4 w-4 text-primary" />
                 <span className="font-medium capitalize">
-                  {user?.role?.rolename}
+                  {user?.role.rolename}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
@@ -206,7 +206,7 @@ export default function AdminProfileView({ user }: AdminProfileViewProps) {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>
-                        <Input id="role" value={user?.role?.id} disabled />
+                        <Input id="role" value={user?.role.rolename} disabled />
                       </div>
                     </div>
                   </form>

@@ -40,9 +40,13 @@ export interface Brand {
 }
 export interface Category {
   id: number;
+  parentId: number | null;
   name: string;
   slug?: string;
   description: string;
+  isMainCategory: boolean;
+  parent: Category;
+  children: [Category];
   attachment: Attachment;
   isActive: boolean;
   createdAt: string;

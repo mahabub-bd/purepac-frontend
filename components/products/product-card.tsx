@@ -4,12 +4,32 @@ import { formatCurrencyEnglish } from "@/lib/utils";
 
 import { getBlurData } from "@/utils/blur-generator";
 import type { Product } from "@/utils/types";
+import { DiscountType } from "@/utils/types";
 import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default async function ProductCard({ product }: { product: Product }) {
   const { base64 } = await getBlurData(product?.attachment?.url);
+
+  // Calculate discounted price if discount is active
+  const isDiscountActive =
+    product.discountType &&
+    product.discountValue &&
+    product.discountStartDate &&
+    product.discountEndDate &&
+    new Date() >= new Date(product.discountStartDate) &&
+    new Date() <= new Date(product.discountEndDate);
+
+  // Calculate the discounted price
+  const discountedPrice =
+    isDiscountActive && product.discountType && product.discountValue
+      ? product.discountType === DiscountType.PERCENTAGE
+        ? product.sellingPrice -
+          product.sellingPrice * (product.discountValue / 100)
+        : product.sellingPrice - (product.discountValue || 0)
+      : null;
+
   return (
     <div className="relative group text-center transition-all duration-300 bg-white bg-opacity-25 p-4 sm:p-3 flex flex-col justify-between items-center rounded-xl min-h-[280px] xs:min-h-[300px] sm:min-h-[320px] md:min-h-[340px] shadow-lg hover:shadow-md">
       <Link
@@ -48,6 +68,15 @@ export default async function ProductCard({ product }: { product: Product }) {
           )
         )}
 
+        {/* Discount Badge */}
+        {isDiscountActive && product.discountType && product.discountValue && (
+          <Badge className="absolute top-2 left-2 bg-orange-500 hover:bg-orange-600 text-[10px] sm:text-xs">
+            {product.discountType === DiscountType.PERCENTAGE
+              ? `${product.discountValue}% Off`
+              : `${formatCurrencyEnglish(product.discountValue)} Off`}
+          </Badge>
+        )}
+
         {/* Product Name */}
         <p className="font-semibold text-xs sm:text-sm mt-4 sm:mt-5 px-2 line-clamp-2 flex items-center">
           {product.name}
@@ -55,13 +84,19 @@ export default async function ProductCard({ product }: { product: Product }) {
 
         {/* Price */}
         <div className="flex items-center justify-center my-2 sm:my-2 md:flex-row flex-col">
-          <p className="font-semibold text-sm sm:text-md group-hover:text-primary transition-colors">
-            {formatCurrencyEnglish(product?.sellingPrice)}
-          </p>
-          {product?.sellingPrice && (
-            <div className="font-medium ml-2 text-[10px] sm:text-xs text-gray-500 text-lines-2  line-through">
-              {formatCurrencyEnglish(product?.sellingPrice)}
-            </div>
+          {discountedPrice ? (
+            <>
+              <p className="font-semibold text-sm sm:text-md text-primary transition-colors">
+                {formatCurrencyEnglish(discountedPrice)}
+              </p>
+              <p className="font-medium ml-2 text-[10px] sm:text-xs text-gray-500 line-through">
+                {formatCurrencyEnglish(product.sellingPrice)}
+              </p>
+            </>
+          ) : (
+            <p className="font-semibold text-sm sm:text-md group-hover:text-primary transition-colors">
+              {formatCurrencyEnglish(product.sellingPrice)}
+            </p>
           )}
         </div>
       </Link>

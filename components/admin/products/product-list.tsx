@@ -28,7 +28,12 @@ import {
 import { PaginationComponent } from "@/components/common/pagination";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData, fetchData, fetchDataPagination } from "@/utils/api-utils";
-import type { Brand, Category, Product } from "@/utils/types";
+import {
+  DiscountType,
+  type Brand,
+  type Category,
+  type Product,
+} from "@/utils/types";
 import {
   Filter,
   Loader2,
@@ -37,7 +42,6 @@ import {
   Pencil,
   Plus,
   Search,
-  Star,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -380,7 +384,8 @@ export function ProductList({
             <TableHead className="hidden md:table-cell">Category</TableHead>
             <TableHead className="hidden md:table-cell">Stock</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
-            <TableHead className="hidden md:table-cell">Featured</TableHead>
+
+            <TableHead>Discount</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -425,16 +430,59 @@ export function ProductList({
                   {product.isActive ? "Active" : "Inactive"}
                 </Badge>
               </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <Badge
-                  variant={product.isFeatured ? "default" : "secondary"}
-                  className="flex items-center gap-1"
-                >
-                  {product.isFeatured && (
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  )}
-                  {product.isFeatured ? "Featured" : "Regular"}
-                </Badge>
+
+              <TableCell>
+                {product.discountType ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="font-medium">
+                      {product.discountType === DiscountType.PERCENTAGE
+                        ? `${product.discountValue}% Off`
+                        : `${formatCurrencyEnglish(
+                            product.discountValue ?? 0
+                          )} Off`}
+                    </div>
+
+                    {(product.discountStartDate || product.discountEndDate) && (
+                      <div className="space-y-1">
+                        <Badge
+                          variant={
+                            product.discountStartDate &&
+                            product.discountEndDate &&
+                            new Date() >= new Date(product.discountStartDate) &&
+                            new Date() <= new Date(product.discountEndDate)
+                              ? "default"
+                              : "destructive"
+                          }
+                          className="text-xs"
+                        >
+                          {product.discountEndDate &&
+                          new Date() > new Date(product.discountEndDate)
+                            ? "Expired"
+                            : product.discountStartDate &&
+                              new Date() < new Date(product.discountStartDate)
+                            ? "Upcoming"
+                            : "Active"}
+                        </Badge>
+
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {product.discountStartDate
+                            ? new Date(
+                                product.discountStartDate
+                              ).toLocaleDateString()
+                            : "N/A"}{" "}
+                          -{" "}
+                          {product.discountEndDate
+                            ? new Date(
+                                product.discountEndDate
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  "No Discount"
+                )}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>

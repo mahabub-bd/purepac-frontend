@@ -54,6 +54,11 @@ export interface Category {
   products: Product[];
 }
 
+export enum DiscountType {
+  PERCENTAGE = "percentage",
+  FIXED = "fixed",
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -75,9 +80,13 @@ export interface Product {
   category: Category;
   createdBy: User;
   updatedBy: User;
+
+  discountType?: DiscountType;
+  discountValue?: number;
+  discountStartDate?: string;
+  discountEndDate?: string;
 }
 
-// For API responses
 export interface ProductResponse {
   message: string;
   statusCode: number;

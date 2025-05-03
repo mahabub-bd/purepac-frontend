@@ -35,6 +35,7 @@ import {
   postData,
 } from "@/utils/api-utils";
 import {
+  DiscountType,
   Supplier,
   Unit,
   type Brand,
@@ -92,11 +93,19 @@ export function ProductForm({
       brandId: product?.brand?.id || 0,
       categoryId: product?.category?.id || 0,
       supplierId: product?.supplier?.id || 0,
+      hasDiscount: Boolean(product?.discountType),
+      discountType: product?.discountType || undefined,
+      discountValue: product?.discountValue || 0,
+      discountStartDate: product?.discountStartDate
+        ? new Date(product.discountStartDate)
+        : undefined,
+      discountEndDate: product?.discountEndDate
+        ? new Date(product.discountEndDate)
+        : undefined,
     },
   });
 
   useEffect(() => {
-    // Initialize main category and subcategories for edit mode
     const initializeCategories = async () => {
       if (mode === "edit" && product?.category) {
         const mainCategory = categories.find(
@@ -158,18 +167,14 @@ export function ProductForm({
     const mainCategoryId = Number(value);
     setSelectedMainCategory(mainCategoryId);
 
-    // Find the selected main category
     const selectedCategory = categories.find((c) => c.id === mainCategoryId);
 
     if (selectedCategory) {
-      // Fetch subcategories for this main category
       await fetchSubCategories(mainCategoryId);
 
-      // If there are subcategories, reset the categoryId
       if (subCategories.length > 0) {
         form.setValue("categoryId", 0);
       } else {
-        // If no subcategories, use the main category directly
         form.setValue("categoryId", mainCategoryId);
       }
     }
@@ -223,6 +228,8 @@ export function ProductForm({
 
       const productData = {
         ...data,
+        unitId: data.unitId.toString(),
+        supplierId: data.supplierId.toString(),
         attachment: attachmentId,
       };
 
@@ -566,7 +573,116 @@ export function ProductForm({
               description="Stock levels will automatically update when orders are processed. You can manually adjust stock levels at any time."
             />
           </Section>
+          <Section title="Discount">
+            <FormField
+              control={form.control}
+              name="hasDiscount"
+              render={({ field }) => (
+                <SwitchCard
+                  label="Apply Discount"
+                  description="Enable to set up a temporary discount"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
 
+            {form.watch("hasDiscount") && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="discountType"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Discount Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select discount type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={DiscountType.PERCENTAGE}>
+                            Percentage (%)
+                          </SelectItem>
+                          <SelectItem value={DiscountType.FIXED}>
+                            Fixed Amount
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="discountValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Discount Value</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Enter discount amount"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="discountStartDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          onChange={(e) =>
+                            field.onChange(new Date(e.target.value))
+                          }
+                          value={field.value?.toISOString().split("T")[0] || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="discountEndDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          onChange={(e) =>
+                            field.onChange(new Date(e.target.value))
+                          }
+                          value={field.value?.toISOString().split("T")[0] || ""}
+                          min={
+                            form
+                              .watch("discountStartDate")
+                              ?.toISOString()
+                              .split("T")[0]
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+          </Section>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Section title="Media">
               <FormField

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export function EmptyCart({ onClose }: { onClose: () => void }) {
+export function EmptyCart({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6">
       <div className="space-y-2 text-center">

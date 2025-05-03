@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function CartItemProduct({ item }: { item: CartItem }) {
+export function CartItemProductPage({ item }: { item: CartItem }) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(item.quantity);
@@ -52,9 +52,8 @@ export function CartItemProduct({ item }: { item: CartItem }) {
     try {
       setLocalQuantity(newQuantity);
       await patchData(`cart/items/${item.id}`, { quantity: newQuantity });
-
-      serverRevalidate("/cart");
       serverRevalidate("/");
+      serverRevalidate("/cart");
     } catch (error) {
       setLocalQuantity(item.quantity);
       toast.error(
@@ -75,8 +74,8 @@ export function CartItemProduct({ item }: { item: CartItem }) {
       toast.success("Item removed", {
         description: `${item.product.name} has been removed from your cart`,
       });
-      serverRevalidate("/cart");
       serverRevalidate("/");
+      serverRevalidate("/cart");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
@@ -87,8 +86,8 @@ export function CartItemProduct({ item }: { item: CartItem }) {
   };
 
   return (
-    <div className="flex items-start gap-4 border-b pb-4">
-      <div className="aspect-square w-20 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
+    <div className="flex items-start gap-4 border-b pb-6">
+      <div className="aspect-square w-32 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
         <Image
           src={item.product.attachment?.url || "/placeholder.svg"}
           alt={item.product.name}

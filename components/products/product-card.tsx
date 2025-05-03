@@ -5,14 +5,13 @@ import { formatCurrencyEnglish } from "@/lib/utils";
 import { getBlurData } from "@/utils/blur-generator";
 import type { Product } from "@/utils/types";
 import { DiscountType } from "@/utils/types";
-import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { AddToCartButton } from "../cart/add-to-cart";
 
 export default async function ProductCard({ product }: { product: Product }) {
   const { base64 } = await getBlurData(product?.attachment?.url);
 
-  // Calculate discounted price if discount is active
   const isDiscountActive =
     product.discountType &&
     product.discountValue &&
@@ -109,16 +108,7 @@ export default async function ProductCard({ product }: { product: Product }) {
         >
           Buy Now
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="font-semibold text-[10px] xs:text-xs sm:text-sm border-primary text-primary hover:bg-primary/10 rounded h-8 xs:h-7 sm:h-8"
-          disabled={!product?.stock}
-        >
-          <ShoppingCart className="h-3 w-3 mr-1" />
-          Add
-          <span className="hidden xs:inline"> to Cart</span>
-        </Button>
+        <AddToCartButton productId={product.id} disabled={!product?.stock} />
       </div>
     </div>
   );

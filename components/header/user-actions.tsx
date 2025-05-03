@@ -4,8 +4,9 @@ import { fetchProtectedData } from "@/utils/api-utils";
 import { Cart } from "@/utils/types";
 import { HeartIcon } from "lucide-react";
 import AuthBtn from "../auth/auth-button";
+
+import { CartButtonHeader } from "../cart/cart-button-header";
 import { IconButton } from "../ui/icon-button";
-import { CartButton } from "./cart-button";
 
 interface UserActionsProps {
   compact?: boolean;
@@ -38,7 +39,7 @@ export default async function UserActions({
           count={wishlistItemCount}
         />
       )}
-      <CartButton cart={cart ?? undefined} compact={compact} />
+      <CartButtonHeader cart={cart ?? undefined} compact={compact} />
       {/* Auth Button */}
       <AuthBtn
         user={user}

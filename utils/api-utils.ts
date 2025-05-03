@@ -279,7 +279,7 @@ export async function patchData<T = any>(
 
 export async function deleteData(
   endpoint: string,
-  id: string | number
+  id?: string | number
 ): Promise<void> {
   const url = `${apiUrl}/${endpoint}/${id}`;
   const token = await getToken();

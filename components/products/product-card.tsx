@@ -73,7 +73,7 @@ export default async function ProductCard({ product }: { product: Product }) {
           <Badge className="absolute top-2 left-2 bg-orange-500 hover:bg-orange-600 text-[10px] sm:text-xs">
             {product.discountType === DiscountType.PERCENTAGE
               ? `${product.discountValue}% Off`
-              : `${formatCurrencyEnglish(product.discountValue)} Off`}
+              : ` Save ${formatCurrencyEnglish(product.discountValue)} `}
           </Badge>
         )}
 

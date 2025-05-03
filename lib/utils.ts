@@ -10,7 +10,12 @@ export function formatCurrencyEnglish(amount: number): string {
   return new Intl.NumberFormat("en-BD", {
     style: "currency",
     currency: "BDT",
-  }).format(amount);
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })
+    .format(amount)
+    .replace("BDT", "৳ ");
 }
 
 export const formatDateTime = (isoString: string) => {

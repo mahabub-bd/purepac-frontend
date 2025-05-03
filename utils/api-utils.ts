@@ -67,7 +67,10 @@ export async function fetchProtectedData<T>(endpoint: string): Promise<T> {
 
       if (response.status === 401) {
         console.error("Unauthorized access - possibly expired token");
+
         await deleteCookie(["auth_token", "user"]);
+
+        window.location.href = "/auth/sign-in";
       }
 
       throw new Error(errorMessage);

@@ -21,7 +21,6 @@ export default async function ProductCard({ product }: { product: Product }) {
     new Date() >= new Date(product.discountStartDate) &&
     new Date() <= new Date(product.discountEndDate);
 
-  // Calculate the discounted price
   const discountedPrice =
     isDiscountActive && product.discountType && product.discountValue
       ? product.discountType === DiscountType.PERCENTAGE

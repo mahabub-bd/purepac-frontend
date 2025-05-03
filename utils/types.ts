@@ -302,3 +302,16 @@ export interface Banner {
   createdBy: User;
   updatedBy: User;
 }
+
+export interface Cart {
+  id: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  items: CartItem[];
+}
+
+export interface CartItem {
+  id: number;
+  quantity: number;
+  product: Product;
+}

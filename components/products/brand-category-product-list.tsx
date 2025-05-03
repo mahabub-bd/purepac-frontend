@@ -42,9 +42,9 @@ export default async function CategoryBrandProductList({
     <div className="container mx-auto py-4 sm:px-1 md:py-8 lg:py-10 md:px-0">
       <HeadingPrimary title={title} />
 
-      {products.length > 0 ? (
+      {products?.length > 0 ? (
         <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-          {products.map((product: Product) => (
+          {products?.map((product: Product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

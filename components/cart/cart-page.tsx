@@ -33,11 +33,9 @@ export function CartPage({ cart }: { cart?: Cart }) {
       now >= startDate &&
       now <= endDate
     ) {
-      if (product.discountType === "fixed") {
-        return product.sellingPrice - product.discountValue;
-      } else {
-        return product.sellingPrice * (1 - product.discountValue / 100);
-      }
+      return product.discountType === "fixed"
+        ? product.sellingPrice - product.discountValue
+        : product.sellingPrice * (1 - product.discountValue / 100);
     }
     return product.sellingPrice;
   };
@@ -59,24 +57,18 @@ export function CartPage({ cart }: { cart?: Cart }) {
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
-
     setIsApplyingCoupon(true);
     try {
-      // Simulate API call - replace with actual coupon validation
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
       if (couponCode.toUpperCase() === "SAVE10") {
         const couponDiscount = discountedSubtotal * 0.1;
         setAppliedCoupon({ code: couponCode, discount: couponDiscount });
         toast.success("Coupon applied successfully");
-      } else {
-        throw new Error("Invalid coupon code");
-      }
+      } else throw new Error("Invalid coupon code");
     } catch (error) {
-      console.error(error);
       setAppliedCoupon(null);
       toast.error("Invalid coupon code", {
-        description: "The coupon code you entered is not valid",
+        description: "The coupon code is not valid",
       });
     } finally {
       setIsApplyingCoupon(false);
@@ -85,13 +77,12 @@ export function CartPage({ cart }: { cart?: Cart }) {
 
   const handleRemoveAll = async () => {
     if (!cart?.items?.length) return;
-
     setIsRemovingAll(true);
     try {
       await deleteData("cart", "");
       serverRevalidate("/");
       toast.success("Cart cleared", {
-        description: "All items have been removed from your cart",
+        description: "All items removed from your cart",
       });
     } catch (error) {
       toast.error("Error", {
@@ -104,33 +95,36 @@ export function CartPage({ cart }: { cart?: Cart }) {
   };
 
   return (
-    <div className="container mx-auto grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-12 md:py-10 py-5">
+    <div className="container mx-auto grid grid-cols-1 gap-6 px-4 py-4 sm:px-6 lg:grid-cols-3 lg:gap-8 lg:px-8 lg:py-8">
       {/* Main Cart Content */}
-      <div className="flex flex-col md:col-span-2 rounded-lg border p-6 shadow-sm">
+      <div className="flex flex-col rounded-lg border bg-background shadow-sm lg:col-span-2">
         {/* Cart Header */}
-        <div className="border-b p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="size-5" />
-              <h1 className="text-lg font-semibold">Shopping Cart</h1>
-              <span className="text-sm text-muted-foreground">
-                {itemCount} {itemCount === 1 ? "item" : "items"}
-              </span>
+        <div className="border-b p-4 sm:p-6">
+          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3">
+              <ShoppingCart className="h-5 w-5" />
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                <h1 className="text-lg font-semibold">Shopping Cart</h1>
+                <span className="text-sm text-muted-foreground">
+                  ({itemCount} {itemCount === 1 ? "item" : "items"})
+                </span>
+              </div>
             </div>
             {itemCount > 0 && (
-              <button
+              <Button
+                variant="outline"
                 onClick={handleRemoveAll}
                 disabled={isRemovingAll}
-                className="text-sm underline underline-offset-4 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-sm text-destructive underline-offset-4 hover:underline disabled:opacity-50 sm:self-end cursor-pointer"
               >
-                {isRemovingAll ? "Removing..." : "Remove All"}
-              </button>
+                {isRemovingAll ? "Clearing..." : "Clear Cart"}
+              </Button>
             )}
           </div>
         </div>
 
         {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 ">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {itemCount > 0 ? (
             <div className="space-y-6">
               {cart?.items.map((item: CartItem) => (
@@ -143,69 +137,71 @@ export function CartPage({ cart }: { cart?: Cart }) {
         </div>
       </div>
 
-      {/* Sidebar Summary */}
+      {/* Order Summary */}
       {itemCount > 0 && (
-        <div className="md:col-span-1">
-          <div className="rounded-lg border p-6 shadow-sm">
+        <div className="lg:col-span-1">
+          <div className="rounded-lg border bg-background p-6 shadow-sm">
             <h2 className="mb-6 text-lg font-semibold">Order Summary</h2>
 
             {/* Coupon Section */}
             <div className="mb-6 space-y-4">
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   placeholder="Coupon code"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
                   disabled={isApplyingCoupon || !!appliedCoupon}
+                  className="flex-1"
                 />
                 <Button
                   onClick={handleApplyCoupon}
                   disabled={isApplyingCoupon || !!appliedCoupon}
-                  className="whitespace-nowrap"
+                  className="w-full sm:w-auto"
                 >
                   {isApplyingCoupon ? "Applying..." : "Apply"}
                 </Button>
               </div>
               {appliedCoupon && (
                 <div className="text-sm text-green-600">
-                  Coupon {appliedCoupon.code} applied (-
+                  Applied {appliedCoupon.code} (-
                   {formatCurrencyEnglish(appliedCoupon.discount)})
                 </div>
               )}
             </div>
 
-            {/* Order Breakdown */}
+            {/* Price Breakdown */}
             <div className="space-y-4">
-              <div className="flex justify-between">
-                <span>Original Subtotal</span>
+              <div className="flex justify-between text-sm sm:text-base">
+                <span>Subtotal:</span>
                 <span>{formatCurrencyEnglish(originalSubtotal)}</span>
               </div>
 
               {productDiscounts > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Product Discounts</span>
+                  <span>Product Discounts:</span>
                   <span>-{formatCurrencyEnglish(productDiscounts)}</span>
                 </div>
               )}
 
               {appliedCoupon && (
                 <div className="flex justify-between text-green-600">
-                  <span>Coupon Discount</span>
+                  <span>Coupon Discount:</span>
                   <span>-{formatCurrencyEnglish(appliedCoupon.discount)}</span>
                 </div>
               )}
 
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span className="text-sm text-muted-foreground">
-                  <Link href="/shipping" className="hover:underline">
-                    Calculate shipping
-                  </Link>
-                </span>
+              <div className="flex flex-col justify-between gap-2 sm:flex-row">
+                <span className="text-sm text-muted-foreground">Shipping:</span>
+                <Link
+                  href="/shipping"
+                  className="text-sm text-muted-foreground hover:underline"
+                >
+                  Calculate shipping
+                </Link>
               </div>
 
-              <div className="flex justify-between border-t pt-4 font-medium">
-                <span>Total</span>
+              <div className="flex justify-between border-t pt-4 text-base font-medium sm:text-lg">
+                <span>Total:</span>
                 <span>{formatCurrencyEnglish(total)}</span>
               </div>
             </div>
@@ -213,10 +209,6 @@ export function CartPage({ cart }: { cart?: Cart }) {
             <Button asChild size="lg" className="mt-6 w-full">
               <Link href="/checkout">Proceed to Checkout</Link>
             </Button>
-
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              Taxes calculated at checkout
-            </p>
           </div>
         </div>
       )}

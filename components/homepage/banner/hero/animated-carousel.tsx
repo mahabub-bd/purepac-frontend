@@ -6,6 +6,7 @@ import { fetchDataPagination } from "@/utils/api-utils";
 import { Banner } from "@/utils/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 interface AnimatedCarouselProps {
@@ -40,7 +41,8 @@ export function AnimatedCarousel({
         setBanners(filteredBanners);
       } catch (err) {
         console.error("Failed to fetch banners:", err);
-      } finally {}
+      } finally {
+      }
     };
 
     fetchBanners();
@@ -114,7 +116,7 @@ export function AnimatedCarousel({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-0 left-0 p-6 text-white">
-                <h2 className="text-2xl font-bold mb-2 animate-fadeIn">
+                <h2 className="text-4xl font-bold mb-2 animate-fadeIn text-yellow-500">
                   {slide.title}
                 </h2>
                 <p className="animate-fadeIn animation-delay-200">
@@ -126,13 +128,13 @@ export function AnimatedCarousel({
                     variant="secondary"
                     className="mt-4 animate-fadeIn animation-delay-400"
                   >
-                    <a
+                    <Link
                       href={slide.targetUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       Learn More
-                    </a>
+                    </Link>
                   </Button>
                 )}
               </div>

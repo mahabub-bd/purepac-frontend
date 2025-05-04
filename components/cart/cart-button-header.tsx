@@ -78,10 +78,7 @@ export function CartButtonHeader({
 
     setIsApplyingCoupon(true);
     try {
-      // Simulate API call - replace with actual coupon validation
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Example coupon logic (10% discount)
       if (couponCode.toUpperCase() === "SAVE10") {
         const couponDiscount = discountedSubtotal * 0.1;
         setAppliedCoupon({ code: couponCode, discount: couponDiscount });
@@ -90,7 +87,6 @@ export function CartButtonHeader({
         throw new Error("Invalid coupon code");
       }
     } catch (error) {
-      console.error(error);
       setAppliedCoupon(null);
       toast.error("Invalid coupon code", {
         description: "The coupon code you entered is not valid",
@@ -108,14 +104,11 @@ export function CartButtonHeader({
       await deleteData("cart", "");
       serverRevalidate("/");
       serverRevalidate("/cart");
-      toast.success("Cart cleared", {
-        description: "All items have been removed from your cart",
-      });
+      toast.success("Cart cleared");
       setIsOpen(false);
     } catch (error) {
       toast.error("Error", {
-        description:
-          error instanceof Error ? error.message : "Something went wrong",
+        description: "Something went wrong",
       });
     } finally {
       setIsRemovingAll(false);
@@ -130,7 +123,7 @@ export function CartButtonHeader({
           icon={
             <ShoppingCart
               className={cn(
-                "text-foreground/80 transition-colors hover:text-primary",
+                "text-foreground/80 hover:text-primary",
                 compact ? "size-4" : "size-5"
               )}
             />
@@ -143,118 +136,130 @@ export function CartButtonHeader({
 
       <SheetContent
         side="right"
-        className={cn(
-          "flex h-full flex-col p-0 sm:p-4 md:p-6",
-          "w-full sm:max-w-md md:max-w-xl lg:max-w-2xl"
-        )}
+        className="flex h-full flex-col p-0 w-full sm:max-w-md lg:max-w-2xl"
       >
-        <SheetHeader className="border-b p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="size-5" />
-                <span>Shopping Cart</span>
-              </div>
-              <span className="text-sm font-normal text-muted-foreground">
-                {itemCount} {itemCount === 1 ? "item" : "items"}
-              </span>
-            </SheetTitle>
-            {itemCount > 0 && (
-              <button
-                onClick={handleRemoveAll}
-                disabled={isRemovingAll}
-                className="text-sm underline underline-offset-4 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isRemovingAll ? "Removing..." : "Remove All"}
-              </button>
-            )}
+        <SheetHeader className="border-b p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-baseline gap-4 max-w-[100%]">
+              <SheetTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold">
+                <ShoppingCart className="size-6 sm:size-7" />
+                <span className="truncate">Shopping Cart</span>
+                <span className="text-sm sm:text-base text-muted-foreground">
+                  ({itemCount} {itemCount === 1 ? "item" : "items"})
+                </span>
+              </SheetTitle>
+            </div>
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {itemCount > 0 ? (
-            <div className="space-y-6">
-              {cart &&
-                cart.items.map((item: CartItem) => (
-                  <CartItemProduct key={item.id} item={item} />
-                ))}
-            </div>
+            cart?.items.map((item: CartItem) => (
+              <CartItemProduct key={item.id} item={item} />
+            ))
           ) : (
             <EmptyCart onClose={() => setIsOpen(false)} />
           )}
         </div>
-
         {itemCount > 0 && (
-          <SheetFooter className="border-t p-4 md:p-6">
-            <div className="w-full space-y-4">
-              {/* Coupon Section */}
-              <div className="space-y-2">
-                <div className="flex gap-2">
+          <div className="sm:ml-4 lg:ml-8 mt-4 sm:mt-2">
+            <button
+              onClick={handleRemoveAll}
+              disabled={isRemovingAll}
+              className="text-sm sm:text-base text-destructive hover:text-destructive/80 underline underline-offset-4 disabled:opacity-50 whitespace-nowrap"
+            >
+              {isRemovingAll ? "Clearing..." : "Clear Cart"}
+            </button>
+          </div>
+        )}
+        {itemCount > 0 && (
+          <SheetFooter className="border-t p-4 sm:p-6">
+            <div className="w-full space-y-6">
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
-                    placeholder="Coupon code"
+                    placeholder="Enter coupon code"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                     disabled={isApplyingCoupon || !!appliedCoupon}
+                    className="flex-1 min-w-[200px]"
                   />
                   <Button
                     onClick={handleApplyCoupon}
                     disabled={isApplyingCoupon || !!appliedCoupon}
-                    className="whitespace-nowrap"
+                    size="sm"
+                    className="w-full sm:w-auto text-sm sm:text-base"
                   >
-                    {isApplyingCoupon ? "Applying..." : "Apply"}
+                    {isApplyingCoupon ? "Applying..." : "Apply Coupon"}
                   </Button>
                 </div>
                 {appliedCoupon && (
-                  <div className="text-sm text-green-600">
-                    Coupon {appliedCoupon.code} applied (-
+                  <div className="text-sm sm:text-base text-green-600">
+                    Applied {appliedCoupon.code} (-
                     {formatCurrencyEnglish(appliedCoupon.discount)})
                   </div>
                 )}
               </div>
 
-              {/* Price Breakdown */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-base font-medium">
-                  <span>Subtotal</span>
+              <div className="space-y-3">
+                <div className="flex justify-between text-base sm:text-lg">
+                  <span>Subtotal:</span>
                   <span>{formatCurrencyEnglish(originalSubtotal)}</span>
                 </div>
 
                 {productDiscounts > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Product Discounts</span>
+                    <span>Product Discounts:</span>
                     <span>-{formatCurrencyEnglish(productDiscounts)}</span>
                   </div>
                 )}
 
                 {appliedCoupon && (
                   <div className="flex justify-between text-green-600">
-                    <span>Coupon Discount</span>
+                    <span>Coupon Discount:</span>
                     <span>
                       -{formatCurrencyEnglish(appliedCoupon.discount)}
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Shipping</span>
+                <div className="flex justify-between text-sm sm:text-base text-muted-foreground pt-2">
+                  <span>Shipping:</span>
                   <span>Calculated at checkout</span>
                 </div>
 
-                <div className="flex justify-between border-t pt-2 font-medium">
-                  <span>Total</span>
+                <div className="flex justify-between border-t pt-3 text-lg sm:text-xl font-semibold">
+                  <span>Total:</span>
                   <span>{formatCurrencyEnglish(total)}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button asChild size="lg" className="w-full">
-                  <Link href="/checkout" onClick={() => setIsOpen(false)}>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  asChild
+                  size="sm"
+                  className="w-full text-base sm:text-base"
+                >
+                  <Link
+                    href="/checkout"
+                    onClick={() => setIsOpen(false)}
+                    className="whitespace-nowrap"
+                  >
                     Checkout
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="w-full">
-                  <Link href="/cart" onClick={() => setIsOpen(false)}>
-                    View Cart
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-base sm:text-base"
+                >
+                  <Link
+                    href="/cart"
+                    onClick={() => setIsOpen(false)}
+                    className="whitespace-nowrap"
+                  >
+                    Detailed Cart
                   </Link>
                 </Button>
               </div>

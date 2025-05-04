@@ -87,7 +87,7 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
 
   return (
     <div className="flex items-start gap-4 border-b pb-6">
-      <div className="aspect-square w-32 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
+      <div className="aspect-square w-24 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
         <Image
           src={item.product.attachment?.url || "/placeholder.svg"}
           alt={item.product.name}

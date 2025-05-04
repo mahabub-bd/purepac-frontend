@@ -3,10 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Upload } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,11 +37,11 @@ import {
 } from "@/utils/api-utils";
 import {
   DiscountType,
-  Supplier,
-  Unit,
   type Brand,
   type Category,
   type Product,
+  type Supplier,
+  type Unit,
 } from "@/utils/types";
 import { useRouter } from "next/navigation";
 
@@ -172,11 +173,9 @@ export function ProductForm({
     if (selectedCategory) {
       await fetchSubCategories(mainCategoryId);
 
-      if (subCategories.length > 0) {
-        form.setValue("categoryId", 0);
-      } else {
-        form.setValue("categoryId", mainCategoryId);
-      }
+      // Don't automatically set the categoryId to the main category
+      // Only set it to 0 to clear any previous selection
+      form.setValue("categoryId", 0);
     }
   };
 
@@ -214,6 +213,16 @@ export function ProductForm({
   };
 
   const handleSubmit = async (data: ProductFormValues) => {
+    // Add this validation before setting isSubmitting to true
+    if (
+      selectedMainCategory &&
+      subCategories.length > 0 &&
+      (!data.categoryId || data.categoryId === 0)
+    ) {
+      toast.error("Please select a subcategory");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -696,7 +705,7 @@ export function ProductForm({
                         {imagePreview ? (
                           <div className="relative w-32 h-32 border rounded-md overflow-hidden bg-gray-50">
                             <Image
-                              src={imagePreview}
+                              src={imagePreview || "/placeholder.svg"}
                               alt="Product preview"
                               fill
                               className="object-contain"

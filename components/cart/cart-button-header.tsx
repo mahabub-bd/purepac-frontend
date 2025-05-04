@@ -1,8 +1,15 @@
 "use client";
 
+import { ShoppingBag, ShoppingCart, Tag, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -14,11 +21,7 @@ import {
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData } from "@/utils/api-utils";
 import { serverRevalidate } from "@/utils/revalidatePath";
-import { Cart, CartItem, Product } from "@/utils/types";
-import { ShoppingCart } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
+import type { Cart, CartItem, Product } from "@/utils/types";
 import { CartItemProduct } from "./cart-item";
 import { EmptyCart } from "./empty-cart";
 
@@ -97,6 +100,12 @@ export function CartButtonHeader({
     }
   };
 
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    toast.success("Coupon removed");
+  };
+
   const handleRemoveAll = async () => {
     if (!cart?.items?.length) return;
 
@@ -123,9 +132,9 @@ export function CartButtonHeader({
         <IconButton
           aria-label="Open cart"
           icon={
-            <ShoppingCart
+            <ShoppingBag
               className={cn(
-                "text-foreground/80 hover:text-primary",
+                "text-foreground/80 hover:text-primary transition-colors",
                 compact ? "size-4" : "size-5"
               )}
             />
@@ -138,135 +147,172 @@ export function CartButtonHeader({
 
       <SheetContent
         side="right"
-        className="flex h-full flex-col p-0 w-full sm:max-w-md lg:max-w-2xl"
+        className="flex h-full flex-col p-0 w-full sm:max-w-md lg:max-w-lg"
       >
-        <SheetHeader className="border-b p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-baseline gap-4 max-w-[100%]">
-              <SheetTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold">
-                <ShoppingCart className="size-6 sm:size-7" />
-                <span className="truncate">Shopping Cart</span>
-                <span className="text-sm sm:text-base text-muted-foreground">
-                  ({itemCount} {itemCount === 1 ? "item" : "items"})
-                </span>
+        <SheetHeader className="border-b py-3 px-4 sm:py-4 sm:px-6">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center">
+              <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
+                <ShoppingCart className="size-5" />
+                <span>Your Cart</span>
+                {itemCount > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {itemCount} {itemCount === 1 ? "item" : "items"}
+                  </Badge>
+                )}
               </SheetTitle>
             </div>
+
+            {itemCount > 0 && (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                  onClick={handleRemoveAll}
+                  disabled={isRemovingAll}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  {isRemovingAll ? "Clearing..." : "Clear Cart"}
+                </Button>
+              </div>
+            )}
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto">
           {itemCount > 0 ? (
-            cart?.items.map((item: CartItem) => (
-              <CartItemProduct key={item.id} item={item} />
-            ))
+            <div className="divide-y">
+              {cart?.items.map((item: CartItem) => (
+                <div key={item.id} className="py-3 px-4 sm:py-4 sm:px-6">
+                  <CartItemProduct item={item} />
+                </div>
+              ))}
+            </div>
           ) : (
-            <EmptyCart onClose={() => setIsOpen(false)} />
+            <div className="p-4 sm:p-6">
+              <EmptyCart onClose={() => setIsOpen(false)} />
+            </div>
           )}
         </div>
+
         {itemCount > 0 && (
-          <div className="sm:ml-4 lg:ml-8 mt-4 sm:mt-2">
-            <button
-              onClick={handleRemoveAll}
-              disabled={isRemovingAll}
-              className="text-sm sm:text-base text-destructive hover:text-destructive/80 underline underline-offset-4 disabled:opacity-50 whitespace-nowrap"
-            >
-              {isRemovingAll ? "Clearing..." : "Clear Cart"}
-            </button>
-          </div>
-        )}
-        {itemCount > 0 && (
-          <SheetFooter className="border-t p-4 sm:p-6">
-            <div className="w-full space-y-6">
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    placeholder="Enter coupon code"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    disabled={isApplyingCoupon || !!appliedCoupon}
-                    className="flex-1 min-w-[200px]"
-                  />
+          <div className="border-t">
+            <div className="p-4 sm:p-6 space-y-4">
+              {/* Coupon Section */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium flex items-center">
+                  <Tag className="h-4 w-4 mr-2" />
+                  Apply Discount Code
+                </h3>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      placeholder="Enter coupon code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      disabled={isApplyingCoupon || !!appliedCoupon}
+                      className={cn(
+                        "pr-8 h-9",
+                        appliedCoupon && "border-green-500 bg-green-50/50"
+                      )}
+                    />
+                    {appliedCoupon && (
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Remove coupon</span>
+                      </button>
+                    )}
+                  </div>
                   <Button
                     onClick={handleApplyCoupon}
-                    disabled={isApplyingCoupon || !!appliedCoupon}
+                    disabled={
+                      isApplyingCoupon || !!appliedCoupon || !couponCode.trim()
+                    }
                     size="sm"
-                    className="w-full sm:w-auto text-sm sm:text-base"
+                    className="whitespace-nowrap h-9"
                   >
-                    {isApplyingCoupon ? "Applying..." : "Apply Coupon"}
+                    {isApplyingCoupon ? "Applying..." : "Apply"}
                   </Button>
                 </div>
                 {appliedCoupon && (
-                  <div className="text-sm sm:text-base text-green-600">
-                    Applied {appliedCoupon.code} (-
-                    {formatCurrencyEnglish(appliedCoupon.discount)})
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between text-base sm:text-lg">
-                  <span>Subtotal:</span>
-                  <span>{formatCurrencyEnglish(originalSubtotal)}</span>
-                </div>
-
-                {productDiscounts > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Product Discounts:</span>
-                    <span>-{formatCurrencyEnglish(productDiscounts)}</span>
-                  </div>
-                )}
-
-                {appliedCoupon && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Coupon Discount:</span>
-                    <span>
-                      -{formatCurrencyEnglish(appliedCoupon.discount)}
+                  <div className="text-xs text-green-600 flex items-center">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-50 text-green-600 border-green-200 text-xs"
+                    >
+                      {appliedCoupon.code.toUpperCase()}
+                    </Badge>
+                    <span className="ml-2">
+                      {formatCurrencyEnglish(appliedCoupon.discount)} discount
+                      applied
                     </span>
                   </div>
                 )}
+              </div>
 
-                <div className="flex justify-between text-sm sm:text-base text-muted-foreground pt-2">
-                  <span>Shipping:</span>
-                  <span>Calculated at checkout</span>
-                </div>
+              <Separator className="my-2" />
 
-                <div className="flex justify-between border-t pt-3 text-lg sm:text-xl font-semibold">
-                  <span>Total:</span>
-                  <span>{formatCurrencyEnglish(total)}</span>
+              {/* Order Summary */}
+              <div className="space-y-2">
+                <h3 className="font-medium text-sm">Order Summary</h3>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatCurrencyEnglish(originalSubtotal)}</span>
+                  </div>
+
+                  {productDiscounts > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Product Discounts</span>
+                      <span>-{formatCurrencyEnglish(productDiscounts)}</span>
+                    </div>
+                  )}
+
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Coupon Discount</span>
+                      <span>
+                        -{formatCurrencyEnglish(appliedCoupon.discount)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Shipping</span>
+                    <span>Calculated at checkout</span>
+                  </div>
+
+                  <Separator className="my-2" />
+
+                  <div className="flex justify-between font-medium text-base pt-1">
+                    <span>Total</span>
+                    <span>{formatCurrencyEnglish(total)}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  asChild
-                  size="sm"
-                  className="w-full text-base sm:text-base"
-                >
-                  <Link
-                    href="/checkout"
-                    onClick={() => setIsOpen(false)}
-                    className="whitespace-nowrap"
-                  >
-                    Checkout
+              <SheetFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+                <Button asChild className="w-full sm:flex-1 h-9">
+                  <Link href="/checkout" onClick={() => setIsOpen(false)}>
+                    Proceed to Checkout
                   </Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
-                  size="sm"
-                  className="w-full text-base sm:text-base"
+                  className="w-full sm:flex-1 h-9"
                 >
-                  <Link
-                    href="/cart"
-                    onClick={() => setIsOpen(false)}
-                    className="whitespace-nowrap"
-                  >
-                    Detailed Cart
+                  <Link href="/cart" onClick={() => setIsOpen(false)}>
+                    View Cart Details
                   </Link>
                 </Button>
-              </div>
+              </SheetFooter>
             </div>
-          </SheetFooter>
+          </div>
         )}
       </SheetContent>
     </Sheet>

@@ -1,15 +1,18 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { formatCurrencyEnglish } from "@/lib/utils";
-import { deleteData } from "@/utils/api-utils";
-import { serverRevalidate } from "@/utils/revalidatePath";
-import { Cart, CartItem, Product } from "@/utils/types";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { formatCurrencyEnglish } from "@/lib/utils";
+import { deleteData } from "@/utils/api-utils";
+import { serverRevalidate } from "@/utils/revalidatePath";
+import type { Cart, CartItem, Product } from "@/utils/types";
 import { CartItemProductPage } from "./cart-item-product-page";
 import { EmptyCart } from "./empty-cart";
 
@@ -76,6 +79,12 @@ export function CartPage({ cart }: { cart?: Cart }) {
     }
   };
 
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    toast.success("Coupon removed");
+  };
+
   const handleRemoveAll = async () => {
     if (!cart?.items?.length) return;
     setIsRemovingAll(true);
@@ -101,7 +110,7 @@ export function CartPage({ cart }: { cart?: Cart }) {
       <div className="flex flex-col rounded-lg border bg-background shadow-sm lg:col-span-2">
         {/* Cart Header */}
         <div className="border-b p-4 sm:p-6">
-          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
               <ShoppingCart className="h-5 w-5" />
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
@@ -113,10 +122,11 @@ export function CartPage({ cart }: { cart?: Cart }) {
             </div>
             {itemCount > 0 && (
               <Button
-                variant="outline"
+                variant="ghost"
+                size="sm"
                 onClick={handleRemoveAll}
                 disabled={isRemovingAll}
-                className="text-sm text-destructive underline-offset-4 hover:underline disabled:opacity-50 sm:self-end cursor-pointer"
+                className="text-muted-foreground hover:text-destructive disabled:opacity-50"
               >
                 {isRemovingAll ? "Clearing..." : "Clear Cart"}
               </Button>
@@ -147,25 +157,50 @@ export function CartPage({ cart }: { cart?: Cart }) {
             {/* Coupon Section */}
             <div className="mb-6 space-y-4">
               <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  placeholder="Coupon code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  disabled={isApplyingCoupon || !!appliedCoupon}
-                  className="flex-1"
-                />
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Coupon code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    disabled={isApplyingCoupon || !!appliedCoupon}
+                    className={
+                      appliedCoupon
+                        ? "border-green-500 bg-green-50/50 pr-8"
+                        : ""
+                    }
+                  />
+                  {appliedCoupon && (
+                    <button
+                      onClick={handleRemoveCoupon}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Remove coupon</span>
+                    </button>
+                  )}
+                </div>
                 <Button
                   onClick={handleApplyCoupon}
-                  disabled={isApplyingCoupon || !!appliedCoupon}
+                  disabled={
+                    isApplyingCoupon || !!appliedCoupon || !couponCode.trim()
+                  }
                   className="w-full sm:w-auto"
                 >
                   {isApplyingCoupon ? "Applying..." : "Apply"}
                 </Button>
               </div>
               {appliedCoupon && (
-                <div className="text-sm text-green-600">
-                  Applied {appliedCoupon.code} (-
-                  {formatCurrencyEnglish(appliedCoupon.discount)})
+                <div className="flex items-center text-sm text-green-600">
+                  <Badge
+                    variant="outline"
+                    className="bg-green-50 text-green-600 border-green-200 mr-2"
+                  >
+                    {appliedCoupon.code.toUpperCase()}
+                  </Badge>
+                  <span>
+                    {formatCurrencyEnglish(appliedCoupon.discount)} discount
+                    applied
+                  </span>
                 </div>
               )}
             </div>
@@ -201,7 +236,9 @@ export function CartPage({ cart }: { cart?: Cart }) {
                 </Link>
               </div>
 
-              <div className="flex justify-between border-t pt-4 text-base font-medium sm:text-lg">
+              <Separator className="my-2" />
+
+              <div className="flex justify-between pt-2 text-base font-medium sm:text-lg">
                 <span>Total:</span>
                 <span>{formatCurrencyEnglish(total)}</span>
               </div>

@@ -82,6 +82,74 @@ const paymentSchema = z.object({
   notes: z.string().optional(),
 });
 
+// const productSchema = z
+//   .object({
+//     name: z.string().min(1, "Product name is required"),
+//     description: z.string().min(1, "Description is required"),
+//     sellingPrice: z.coerce
+//       .number()
+//       .min(0.01, "Unit price must be greater than 0"),
+//     purchasePrice: z.coerce
+//       .number()
+//       .min(0.01, "Unit price must be greater than 0"),
+//     stock: z.coerce.number().int().nonnegative("Stock cannot be negative"),
+//     unitId: z.number().min(1, "Brand is required"),
+//     productSku: z.string().min(1, "SKU is required"),
+//     imageUrl: z.string().optional(),
+//     isActive: z.boolean().default(true),
+//     isFeatured: z.boolean().default(false),
+//     brandId: z.number().min(1, "Brand is required"),
+//     categoryId: z.number().min(1, "Category is required"),
+//     supplierId: z.number().min(1, "Supplier is required"),
+//     hasDiscount: z.boolean().default(false),
+//     discountType: z.nativeEnum(DiscountType).optional(),
+//     discountValue: z.coerce.number().optional(),
+//     discountStartDate: z.date().optional(),
+//     discountEndDate: z.date().optional(),
+//   })
+//   .superRefine((data, ctx) => {
+//     if (data.hasDiscount) {
+//       if (!data.discountType) {
+//         ctx.addIssue({
+//           code: z.ZodIssueCode.custom,
+//           message: "Discount type is required",
+//           path: ["discountType"],
+//         });
+//       }
+//       if (data.discountValue === undefined || data.discountValue <= 0) {
+//         ctx.addIssue({
+//           code: z.ZodIssueCode.custom,
+//           message: "Discount value must be greater than 0",
+//           path: ["discountValue"],
+//         });
+//       }
+//       if (!data.discountStartDate) {
+//         ctx.addIssue({
+//           code: z.ZodIssueCode.custom,
+//           message: "Discount start date is required",
+//           path: ["discountStartDate"],
+//         });
+//       }
+//       if (!data.discountEndDate) {
+//         ctx.addIssue({
+//           code: z.ZodIssueCode.custom,
+//           message: "Discount end date is required",
+//           path: ["discountEndDate"],
+//         });
+//       }
+//       if (
+//         data.discountStartDate &&
+//         data.discountEndDate &&
+//         data.discountEndDate <= data.discountStartDate
+//       ) {
+//         ctx.addIssue({
+//           code: z.ZodIssueCode.custom,
+//           message: "End date must be after start date",
+//           path: ["discountEndDate"],
+//         });
+//       }
+//     }
+//   });
 const productSchema = z
   .object({
     name: z.string().min(1, "Product name is required"),
@@ -93,7 +161,7 @@ const productSchema = z
       .number()
       .min(0.01, "Unit price must be greater than 0"),
     stock: z.coerce.number().int().nonnegative("Stock cannot be negative"),
-    unitId: z.number().min(1, "Brand is required"),
+    unitId: z.number().min(1, "Unit is required"),
     productSku: z.string().min(1, "SKU is required"),
     imageUrl: z.string().optional(),
     isActive: z.boolean().default(true),
@@ -150,7 +218,6 @@ const productSchema = z
       }
     }
   });
-
 const purchaseSchema = z.object({
   supplierId: z.number().min(1, "Supplier is required"),
   items: z

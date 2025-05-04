@@ -1,13 +1,15 @@
 "use client";
 
+import { Minus, Plus, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData, patchData } from "@/utils/api-utils";
 import { serverRevalidate } from "@/utils/revalidatePath";
-import { CartItem } from "@/utils/types";
-import Image from "next/image";
-import { useState } from "react";
-import { toast } from "sonner";
+import type { CartItem } from "@/utils/types";
 
 export function CartItemProductPage({ item }: { item: CartItem }) {
   const [isRemoving, setIsRemoving] = useState(false);
@@ -123,32 +125,37 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
-                className="h-8 w-8 px-0"
+                size="icon"
+                className="h-8 w-8"
                 onClick={handleDecrement}
                 disabled={isUpdating || localQuantity === 1}
               >
-                -
+                <Minus className="h-3 w-3" />
+                <span className="sr-only">Decrease quantity</span>
               </Button>
               <span className="w-6 text-center">{localQuantity}</span>
               <Button
                 variant="outline"
-                size="sm"
-                className="h-8 w-8 px-0"
+                size="icon"
+                className="h-8 w-8"
                 onClick={handleIncrement}
                 disabled={isUpdating}
               >
-                +
+                <Plus className="h-3 w-3" />
+                <span className="sr-only">Increase quantity</span>
               </Button>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleRemove}
             disabled={isRemoving}
-            className="text-sm underline underline-offset-4 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-8 text-sm text-muted-foreground hover:text-destructive disabled:opacity-50"
           >
+            <Trash2 className="mr-1 h-4 w-4" />
             {isRemoving ? "Removing..." : "Remove"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

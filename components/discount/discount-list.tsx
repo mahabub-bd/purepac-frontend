@@ -3,7 +3,6 @@
 import { format } from "date-fns";
 import {
   Calendar,
-  Clock,
   Edit,
   Loader2,
   PercentIcon,
@@ -13,14 +12,12 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -61,8 +58,8 @@ export function DiscountList() {
   const fetchDiscountedProducts = async () => {
     setIsLoading(true);
     try {
-      const allProducts = await fetchData<Product[]>("products");
-      // Filter products that have a discount
+      const allProducts = await fetchData<Product[]>("products?limit=100");
+
       const discountedProducts = allProducts.filter(
         (product) => product.discountType
       );
@@ -216,7 +213,7 @@ export function DiscountList() {
   };
 
   const renderListView = () => (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {filteredProducts.map((product) => {
         const discountStatus = getDiscountStatus(product);
         const discountedPrice = calculateDiscountedPrice(product);
@@ -224,118 +221,77 @@ export function DiscountList() {
         const savingsPercentage = (savings / product.sellingPrice) * 100;
 
         return (
-          <Card key={product.id}>
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="h-24 w-24 rounded-md overflow-hidden border bg-muted">
-                  <Image
-                    src={product?.attachment?.url || "/placeholder.svg"}
-                    alt={product.name}
-                    width={96}
-                    height={96}
-                    className="h-full w-full object-cover"
-                  />
+          <div
+            key={product.id}
+            className="p-4 border rounded-lg hover:bg-muted/50"
+          >
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium">{product.name}</h3>
+                  <Badge
+                    variant={
+                      discountStatus === "active"
+                        ? "default"
+                        : discountStatus === "upcoming"
+                        ? "outline"
+                        : "secondary"
+                    }
+                  >
+                    {discountStatus === "active"
+                      ? "Active"
+                      : discountStatus === "upcoming"
+                      ? "Upcoming"
+                      : "Expired"}
+                  </Badge>
                 </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {product.productSku}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        discountStatus === "active"
-                          ? "default"
-                          : discountStatus === "upcoming"
-                          ? "outline"
-                          : "secondary"
-                      }
-                    >
-                      {discountStatus === "active"
-                        ? "Active"
-                        : discountStatus === "upcoming"
-                        ? "Upcoming"
-                        : "Expired"}
-                    </Badge>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1"
-                    >
-                      <PercentIcon className="h-3 w-3 mr-1" />
-                      {formatDiscountValue(product)}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1"
-                    >
-                      <Calendar className="h-3 w-3 mr-1" />
-                      {format(
-                        new Date(product.discountStartDate ?? 0),
-                        "MMM d"
-                      )}{" "}
-                      -{format(new Date(product.discountEndDate ?? 0), "MMM d")}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1"
-                    >
-                      <Clock className="h-3 w-3 mr-1" />
-                      {discountStatus === "active"
-                        ? `Ends in ${Math.ceil(
-                            (new Date(product.discountEndDate ?? 0).getTime() -
-                              new Date().getTime()) /
-                              (1000 * 60 * 60 * 24)
-                          )} days`
-                        : discountStatus === "upcoming"
-                        ? `Starts in ${Math.ceil(
-                            (new Date(
-                              product.discountStartDate ?? 0
-                            ).getTime() -
-                              new Date().getTime()) /
-                              (1000 * 60 * 60 * 24)
-                          )} days`
-                        : "Expired"}
-                    </Badge>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-semibold">
-                        {formatCurrencyEnglish(discountedPrice)}
-                      </span>
-                      <span className="text-sm line-through text-muted-foreground">
-                        {formatCurrencyEnglish(product.sellingPrice)}
-                      </span>
-                      <span className="text-xs text-green-600">
-                        Save {formatCurrencyEnglish(savings)} (
-                        {savingsPercentage.toFixed(0)}%)
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/products/${product.id}/edit`}>
-                          <Edit className="h-3.5 w-3.5 mr-1" /> Edit
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteClick(product)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
-                      </Button>
-                    </div>
-                  </div>
+                <div className="text-sm text-muted-foreground">
+                  {product.productSku}
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-semibold">
+                    {formatCurrencyEnglish(discountedPrice)}
+                  </span>
+                  <span className="text-sm line-through text-muted-foreground">
+                    {formatCurrencyEnglish(product.sellingPrice)}
+                  </span>
+                  <span className="text-xs text-green-600">
+                    Save {formatCurrencyEnglish(savings)} (
+                    {savingsPercentage.toFixed(0)}%)
+                  </span>
+                </div>
+                <div className="flex gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center">
+                    <PercentIcon className="h-3 w-3 mr-1" />
+                    {formatDiscountValue(product)}
+                  </span>
+                  <span className="flex items-center">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {format(
+                      new Date(product.discountStartDate ?? 0),
+                      "MMM d"
+                    )}{" "}
+                    - {format(new Date(product.discountEndDate ?? 0), "MMM d")}
+                  </span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/admin/products/${product.id}/edit`}>
+                    <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive/10"
+                  onClick={() => handleDeleteClick(product)}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                </Button>
+              </div>
+            </div>
+          </div>
         );
       })}
     </div>
@@ -366,7 +322,11 @@ export function DiscountList() {
           <div className="flex flex-wrap gap-2">
             <Select
               value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as "all" | "active" | "upcoming" | "expired")}
+              onValueChange={(value) =>
+                setStatusFilter(
+                  value as "all" | "active" | "upcoming" | "expired"
+                )
+              }
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Filter by status" />
@@ -381,7 +341,9 @@ export function DiscountList() {
 
             <Select
               value={discountTypeFilter}
-              onValueChange={(value) => setDiscountTypeFilter(value as "all" | "percentage" | "fixed")}
+              onValueChange={(value) =>
+                setDiscountTypeFilter(value as "all" | "percentage" | "fixed")
+              }
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Filter by type" />

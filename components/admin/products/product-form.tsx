@@ -173,8 +173,6 @@ export function ProductForm({
     if (selectedCategory) {
       await fetchSubCategories(mainCategoryId);
 
-      // Don't automatically set the categoryId to the main category
-      // Only set it to 0 to clear any previous selection
       form.setValue("categoryId", 0);
     }
   };

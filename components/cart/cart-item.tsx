@@ -4,7 +4,7 @@ import { formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData, patchData } from "@/utils/api-utils";
 import { serverRevalidate } from "@/utils/revalidatePath";
 import type { CartItem } from "@/utils/types";
-import { Minus, Plus, Trash } from "lucide-react";
+import { Loader2, Minus, Plus, Trash } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 export function CartItemProduct({ item }: { item: CartItem }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [localQuantity, setLocalQuantity] = useState(item.quantity);
 
   const getDiscountedPrice = () => {
     const product = item.product;
@@ -36,18 +37,24 @@ export function CartItemProduct({ item }: { item: CartItem }) {
 
   const hasDiscount = getDiscountedPrice() < item.product.sellingPrice;
   const discountedPrice = getDiscountedPrice();
-  const totalPrice = discountedPrice * item.quantity;
+  const totalPrice = discountedPrice * localQuantity;
 
   const updateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1 || newQuantity > 99) return;
     if (isUpdating) return;
 
+    // Optimistic update
+    setLocalQuantity(newQuantity);
     setIsUpdating(true);
+
     try {
       await patchData(`cart/items/${item.id}`, { quantity: newQuantity });
+      // After successful update, trigger revalidation
       serverRevalidate("/");
       serverRevalidate("/cart");
     } catch (error) {
+      // Revert to original quantity on error
+      setLocalQuantity(item.quantity);
       console.error(error);
       toast.error("Error updating quantity");
     } finally {
@@ -61,15 +68,15 @@ export function CartItemProduct({ item }: { item: CartItem }) {
     setIsRemoving(true);
     try {
       await deleteData(`cart/items/${item.id}`, "");
+      toast.success("Item removed from cart");
+      // After successful removal, trigger revalidation
       serverRevalidate("/");
       serverRevalidate("/cart");
-      toast.success("Item removed from cart");
     } catch (error) {
       console.error(error);
       toast.error("Error removing item");
-    } finally {
-      setIsRemoving(false);
     }
+    // Note: We don't set isRemoving to false because the component will unmount
   };
 
   return (
@@ -94,23 +101,33 @@ export function CartItemProduct({ item }: { item: CartItem }) {
             className="text-muted-foreground hover:text-destructive"
             aria-label="Remove item"
           >
-            <Trash className="h-3.5 w-3.5" />
+            {isRemoving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash className="h-3.5 w-3.5" />
+            )}
           </button>
         </div>
 
         <div className="mt-1 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => updateQuantity(item.quantity - 1)}
-              disabled={isUpdating || item.quantity <= 1}
+              onClick={() => updateQuantity(localQuantity - 1)}
+              disabled={isUpdating || localQuantity <= 1}
               className="h-5 w-5 rounded-full border flex items-center justify-center text-xs disabled:opacity-50"
             >
               <Minus className="h-3 w-3" />
             </button>
-            <span className="text-xs w-5 text-center">{item.quantity}</span>
+            <span className="text-xs w-5 text-center">
+              {isUpdating ? (
+                <Loader2 className="h-3 w-3 mx-auto animate-spin" />
+              ) : (
+                localQuantity
+              )}
+            </span>
             <button
-              onClick={() => updateQuantity(item.quantity + 1)}
-              disabled={isUpdating || item.quantity >= 99}
+              onClick={() => updateQuantity(localQuantity + 1)}
+              disabled={isUpdating || localQuantity >= 99}
               className="h-5 w-5 rounded-full border flex items-center justify-center text-xs disabled:opacity-50"
             >
               <Plus className="h-3 w-3" />
@@ -124,7 +141,7 @@ export function CartItemProduct({ item }: { item: CartItem }) {
             {hasDiscount && (
               <div className="text-xs text-muted-foreground line-through">
                 {formatCurrencyEnglish(
-                  item.product.sellingPrice * item.quantity
+                  item.product.sellingPrice * localQuantity
                 )}
               </div>
             )}

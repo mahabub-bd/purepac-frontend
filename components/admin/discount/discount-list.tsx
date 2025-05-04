@@ -28,16 +28,24 @@ import {
 } from "@/components/ui/table";
 
 import { PaginationComponent } from "@/components/common/pagination";
-import { formatCurrencyEnglish } from "@/lib/utils";
-import { deleteData, fetchData, fetchDataPagination } from "@/utils/api-utils";
-import type { Brand, Category, Product } from "@/utils/types";
+import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
+import { fetchDataPagination, patchData } from "@/utils/api-utils";
 import {
+  DiscountType,
+  type Brand,
+  type Category,
+  type Product,
+} from "@/utils/types";
+import {
+  BadgePercent,
+  CalendarRange,
   Filter,
+  Loader2,
   MoreHorizontal,
-  Package,
   Pencil,
   Plus,
   Search,
+  Tag,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -47,20 +55,19 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
-import { LoadingIndicator } from "../loading-indicator";
 import { PageHeader } from "../page-header";
 
-interface ProductListProps {
+interface DiscountListProps {
   initialPage: number;
   initialLimit: number;
   initialSearchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export function ProductList({
+export function DiscountList({
   initialPage,
   initialLimit,
   initialSearchParams = {},
-}: ProductListProps) {
+}: DiscountListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -85,8 +92,8 @@ export function ProductList({
   const [statusFilter, setStatusFilter] = useState(
     getInitialParam("status") as string
   );
-  const [featuredFilter, setFeaturedFilter] = useState(
-    getInitialParam("featured") as string
+  const [discountTypeFilter, setDiscountTypeFilter] = useState(
+    getInitialParam("discountType") as string
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -108,8 +115,8 @@ export function ProductList({
     if (brandFilter && brandFilter !== "all") params.set("brand", brandFilter);
     if (statusFilter && statusFilter !== "all")
       params.set("status", statusFilter);
-    if (featuredFilter && featuredFilter !== "all")
-      params.set("featured", featuredFilter);
+    if (discountTypeFilter && discountTypeFilter !== "all")
+      params.set("discountType", discountTypeFilter);
 
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [
@@ -121,15 +128,16 @@ export function ProductList({
     categoryFilter,
     brandFilter,
     statusFilter,
-    featuredFilter,
+    discountTypeFilter,
   ]);
 
-  const fetchProducts = async () => {
+  const fetchDiscountedProducts = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
       params.append("limit", limit.toString());
+      params.append("hasDiscount", "true");
 
       if (searchQuery) params.append("search", searchQuery);
       if (categoryFilter && categoryFilter !== "all")
@@ -138,8 +146,8 @@ export function ProductList({
         params.append("brand", brandFilter);
       if (statusFilter && statusFilter !== "all")
         params.append("status", statusFilter);
-      if (featuredFilter && featuredFilter !== "all")
-        params.append("featured", featuredFilter);
+      if (discountTypeFilter && discountTypeFilter !== "all")
+        params.append("discountType", discountTypeFilter);
 
       const response = await fetchDataPagination<{
         data: Product[];
@@ -150,8 +158,8 @@ export function ProductList({
       setTotalItems(response.total);
       setTotalPages(response.totalPages);
     } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error("Failed to load products. Please try again.");
+      console.error("Error fetching discounted products:", error);
+      toast.error("Failed to load discounted products. Please try again.");
       setProducts([]);
     } finally {
       setIsLoading(false);
@@ -160,9 +168,11 @@ export function ProductList({
 
   const fetchBrands = async () => {
     try {
-      const response = await fetchData<Brand[]>("brands");
-      if (Array.isArray(response)) {
-        setBrands(response);
+      const response = await fetchDataPagination<{
+        data: Brand[];
+      }>("brands");
+      if (Array.isArray(response.data)) {
+        setBrands(response.data);
       }
     } catch (error) {
       console.error("Error fetching brands:", error);
@@ -172,9 +182,11 @@ export function ProductList({
 
   const fetchCategories = async () => {
     try {
-      const response = await fetchData<Category[]>("categories");
-      if (Array.isArray(response)) {
-        setCategories(response);
+      const response = await fetchDataPagination<{
+        data: Category[];
+      }>("categories");
+      if (Array.isArray(response.data)) {
+        setCategories(response.data);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -183,13 +195,13 @@ export function ProductList({
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchDiscountedProducts();
     fetchBrands();
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    fetchProducts();
+    fetchDiscountedProducts();
     updateUrl();
   }, [
     currentPage,
@@ -198,7 +210,7 @@ export function ProductList({
     categoryFilter,
     brandFilter,
     statusFilter,
-    featuredFilter,
+    discountTypeFilter,
   ]);
 
   const handlePageChange = (page: number) => {
@@ -210,16 +222,21 @@ export function ProductList({
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDelete = async () => {
+  const handleRemoveDiscount = async () => {
     if (!selectedProduct) return;
 
     try {
-      await deleteData("products", selectedProduct.id);
-      fetchProducts();
-      toast.success("Product deleted successfully");
+      await patchData(`products/${selectedProduct.id}`, {
+        discountType: null,
+        discountValue: null,
+        discountStartDate: null,
+        discountEndDate: null,
+      });
+      fetchDiscountedProducts();
+      toast.success("Discount removed successfully");
     } catch (error) {
-      console.error("Error deleting product:", error);
-      toast.error("Failed to delete product. Please try again.");
+      console.error("Error removing discount:", error);
+      toast.error("Failed to remove discount. Please try again.");
     } finally {
       setIsDeleteDialogOpen(false);
     }
@@ -230,7 +247,7 @@ export function ProductList({
     setCategoryFilter("");
     setBrandFilter("");
     setStatusFilter("");
-    setFeaturedFilter("");
+    setDiscountTypeFilter("");
     setCurrentPage(1);
   };
 
@@ -239,29 +256,78 @@ export function ProductList({
     setCurrentPage(1);
   };
 
+  const getDiscountStatus = (product: Product) => {
+    if (!product.discountStartDate || !product.discountEndDate) return "active";
+
+    const now = new Date();
+    const startDate = new Date(product.discountStartDate);
+    const endDate = new Date(product.discountEndDate);
+
+    if (now > endDate) return "expired";
+    if (now < startDate) return "upcoming";
+    return "active";
+  };
+
+  const calculateDiscountedPrice = (product: Product) => {
+    if (!product.discountType || !product.discountValue)
+      return product.sellingPrice;
+
+    if (product.discountType === DiscountType.PERCENTAGE) {
+      return product.sellingPrice * (1 - product.discountValue / 100);
+    } else {
+      return Math.max(0, product.sellingPrice - product.discountValue);
+    }
+  };
+
+  const getDiscountBadge = (product: Product) => {
+    if (!product.discountType || !product.discountValue) return null;
+
+    const badgeClass =
+      product.discountType === DiscountType.PERCENTAGE
+        ? "bg-green-100 text-green-800"
+        : "bg-blue-100 text-blue-800";
+    const icon =
+      product.discountType === DiscountType.PERCENTAGE ? (
+        <BadgePercent className="h-3 w-3 mr-1" />
+      ) : null;
+    const value =
+      product.discountType === DiscountType.PERCENTAGE
+        ? `${product.discountValue}%`
+        : formatCurrencyEnglish(product.discountValue);
+
+    return (
+      <div
+        className={`inline-flex items-center px-4 py-1 rounded-full text-xs font-medium text-center mx-auto ${badgeClass}`}
+      >
+        {icon}
+        {value}
+      </div>
+    );
+  };
+
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center p-8 text-center">
-      <Package className="h-10 w-10 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-semibold">No products found</h3>
+      <Tag className="h-10 w-10 text-muted-foreground mb-4" />
+      <h3 className="text-lg font-semibold">No discounted products found</h3>
       <p className="text-sm text-muted-foreground mt-2">
         {searchQuery ||
         categoryFilter ||
         brandFilter ||
         statusFilter ||
-        featuredFilter
-          ? "No products match your search criteria. Try different filters."
-          : "Get started by adding your first product."}
+        discountTypeFilter
+          ? "No discounted products match your search criteria. Try different filters."
+          : "Get started by adding discounts to your products."}
       </p>
       {!(
         searchQuery ||
         categoryFilter ||
         brandFilter ||
         statusFilter ||
-        featuredFilter
+        discountTypeFilter
       ) && (
         <Button asChild className="mt-4">
-          <Link href="/products/add">
-            <Plus className="mr-2 h-4 w-4" /> Add Product
+          <Link href="/admin/marketing/discounts/add">
+            <Plus className="mr-2 h-4 w-4" /> Create Discount
           </Link>
         </Button>
       )}
@@ -269,7 +335,7 @@ export function ProductList({
         categoryFilter ||
         brandFilter ||
         statusFilter ||
-        featuredFilter) && (
+        discountTypeFilter) && (
         <Button variant="outline" className="mt-4" onClick={clearFilters}>
           Clear Filters
         </Button>
@@ -283,7 +349,7 @@ export function ProductList({
       categoryFilter ||
       brandFilter ||
       statusFilter ||
-      featuredFilter;
+      discountTypeFilter;
 
     if (!hasFilters) return null;
 
@@ -341,13 +407,16 @@ export function ProductList({
           </Badge>
         )}
 
-        {featuredFilter && featuredFilter !== "all" && (
+        {discountTypeFilter && discountTypeFilter !== "all" && (
           <Badge
             variant="outline"
             className="flex items-center gap-1 px-3 py-1"
           >
-            {featuredFilter === "featured" ? "Featured" : "Not Featured"}
-            <button onClick={() => setFeaturedFilter("")} className="ml-1">
+            Discount Type:{" "}
+            {discountTypeFilter === "percentage"
+              ? "Percentage"
+              : "Fixed Amount"}
+            <button onClick={() => setDiscountTypeFilter("")} className="ml-1">
               <XCircle className="h-3 w-3" />
             </button>
           </Badge>
@@ -366,92 +435,120 @@ export function ProductList({
   };
 
   const renderTableView = () => (
-    <div className="md:p-6 p-2">
+    <div className="overflow-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Image</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>SKU</TableHead>
-
-            <TableHead>Purchase Price</TableHead>
-            <TableHead>Sale Price</TableHead>
-            <TableHead>Unit</TableHead>
-            <TableHead className="hidden md:table-cell">Brand</TableHead>
-            <TableHead className="hidden md:table-cell">Category</TableHead>
-            <TableHead className="hidden md:table-cell">Stock</TableHead>
-            <TableHead className="hidden md:table-cell">Status</TableHead>
-
+            <TableHead>Product</TableHead>
+            <TableHead className="hidden md:table-cell">SKU</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Discount</TableHead>
+            <TableHead className="hidden md:table-cell">Period</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id}>
-              <TableCell>
-                <div className="rounded-md overflow-hidden">
-                  <Image
-                    src={product?.attachment?.url || "/placeholder.svg"}
-                    alt={product.name}
-                    width={64}
-                    height={64}
-                    className="object-contain"
-                  />
-                </div>
-              </TableCell>
-              <TableCell className="font-medium text-wrap">
-                {product.name}
-              </TableCell>
-              <TableCell>{product?.productSku}</TableCell>
-              <TableCell>
-                {formatCurrencyEnglish(product?.purchasePrice)}
-              </TableCell>
-              <TableCell>
-                {formatCurrencyEnglish(product?.sellingPrice)}
-              </TableCell>
-              <TableCell className="capitalize">
-                {product?.unit?.name}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {product.brand.name}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {product.category.name}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {product.stock}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <Badge variant={product.isActive ? "default" : "destructive"}>
-                  {product.isActive ? "Active" : "Inactive"}
-                </Badge>
-              </TableCell>
+          {products.map((product) => {
+            const discountStatus = getDiscountStatus(product);
+            const discountedPrice = calculateDiscountedPrice(product);
+            const discountBadge = getDiscountBadge(product);
 
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Open menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/admin/products/${product.id}/edit`}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-600"
-                      onClick={() => handleDeleteClick(product)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
+            return (
+              <TableRow key={product.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
+                      <Image
+                        src={product?.attachment?.url || "/placeholder.svg"}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-medium line-clamp-1">
+                        {product.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground md:hidden">
+                        {product?.productSku}
+                      </span>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {product?.productSku}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-medium">
+                      {formatCurrencyEnglish(discountedPrice)}
+                    </span>
+                    <span className="text-xs text-muted-foreground line-through">
+                      {formatCurrencyEnglish(product?.sellingPrice)}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col gap-1">{discountBadge}</div>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {product.discountStartDate && product.discountEndDate ? (
+                    <div className="flex items-center text-xs">
+                      <CalendarRange className="h-3 w-3 mr-1 text-muted-foreground" />
+                      <span>
+                        {formatDateTime(product.discountStartDate)}
+                        {"-  "}
+                        {formatDateTime(product.discountEndDate)}
+                      </span>
+                    </div>
+                  ) : (
+                    "No period set"
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      discountStatus === "active"
+                        ? "default"
+                        : discountStatus === "upcoming"
+                        ? "outline"
+                        : "secondary"
+                    }
+                  >
+                    {discountStatus === "active"
+                      ? "Active"
+                      : discountStatus === "upcoming"
+                      ? "Upcoming"
+                      : "Expired"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/admin/products/${product.id}/edit`}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => handleDeleteClick(product)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Remove Discount
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
@@ -459,12 +556,12 @@ export function ProductList({
 
   return (
     <>
-      <div className="w-full md:p-6 p-2">
+      <div className="w-full p-2 md:p-6">
         <PageHeader
-          title="Products"
-          description="Manage your product inventory"
-          actionLabel="Add Product"
-          actionHref="/admin/products/add"
+          title="Product Discounts"
+          description="Manage your product discounts and promotions"
+          actionLabel="Create Discount"
+          actionHref="/admin/marketing/discounts/add"
         />
 
         <div className="space-y-4">
@@ -473,7 +570,7 @@ export function ProductList({
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search products..."
+                placeholder="Search discounted products..."
                 className="pl-8"
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -556,27 +653,28 @@ export function ProductList({
                         <SelectContent>
                           <SelectItem value="all">All Status</SelectItem>
                           <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="upcoming">Upcoming</SelectItem>
+                          <SelectItem value="expired">Expired</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-1">
-                      <h4 className="text-xs font-semibold">Featured</h4>
+                      <h4 className="text-xs font-semibold">Discount Type</h4>
                       <Select
-                        value={featuredFilter}
+                        value={discountTypeFilter}
                         onValueChange={(value) => {
-                          setFeaturedFilter(value);
+                          setDiscountTypeFilter(value);
                           setCurrentPage(1);
                         }}
                       >
                         <SelectTrigger className="h-8">
-                          <SelectValue placeholder="All" />
+                          <SelectValue placeholder="All Types" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="true">Featured</SelectItem>
-                          <SelectItem value="false">Not Featured</SelectItem>
+                          <SelectItem value="all">All Types</SelectItem>
+                          <SelectItem value="percentage">Percentage</SelectItem>
+                          <SelectItem value="fixed">Fixed Amount</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -584,7 +682,7 @@ export function ProductList({
                     {(categoryFilter ||
                       brandFilter ||
                       statusFilter ||
-                      featuredFilter) && (
+                      discountTypeFilter) && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -603,7 +701,14 @@ export function ProductList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <LoadingIndicator message="Loading Products..." />
+            <div className="flex justify-center items-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Loading Discounted Products...
+                </p>
+              </div>
+            </div>
           ) : products.length === 0 ? (
             renderEmptyState()
           ) : (
@@ -614,7 +719,7 @@ export function ProductList({
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground text-center md:text-left truncate">
-              {`Showing ${products.length} of ${totalItems} products`}
+              {`Showing ${products.length} of ${totalItems} discounted products`}
             </p>
           </div>
 
@@ -633,7 +738,7 @@ export function ProductList({
       <DeleteConfirmationDialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDelete}
+        onConfirm={handleRemoveDiscount}
       />
     </>
   );

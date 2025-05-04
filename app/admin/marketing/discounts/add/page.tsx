@@ -1,20 +1,31 @@
-import { DiscountForm } from "@/components/discount/discount-from"
-import { fetchData } from "@/utils/api-utils"
+"use client";
 
-import type { Product } from "@/utils/types"
+import { DiscountForm } from "@/components/admin/discount/discount-from";
+import { fetchData } from "@/utils/api-utils";
+import type { Product } from "@/utils/types";
+import { useEffect, useState } from "react";
 
-export const metadata = {
-  title: "Create Discount",
-  description: "Create a new discount for your products",
-}
+export default function AddDiscountPage() {
+  const [products, setProducts] = useState<Product[]>([]);
 
-export default async function NewDiscountPage() {
-  // Fetch all products to allow selection in the discount form
-  const products = await fetchData<Product[]>("products")
+  const fetchProducts = async () => {
+    try {
+      const response = await fetchData<Product[]>("products?limit=100");
+      if (Array.isArray(response)) {
+        setProducts(response);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   return (
-    <div className="container mx-auto py-6 px-4 md:px-6">
-      <DiscountForm products={products} />
+    <div className="md:p-6 p:2 space-y-6">
+      <DiscountForm mode="create" initialProducts={products} />
     </div>
-  )
+  );
 }

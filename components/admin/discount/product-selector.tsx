@@ -28,17 +28,26 @@ interface ProductSelectorProps {
   products: Product[];
   selectedProductIds: number[];
   onChange: (value: number[]) => void;
+  isLoading?: boolean;
+  showOnlyNonDiscounted?: boolean;
 }
 
 export function ProductSelector({
   products,
   selectedProductIds,
   onChange,
+  isLoading = false,
+  showOnlyNonDiscounted = true,
 }: ProductSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredProducts = products.filter((product) => {
+  // Filter out products that already have discounts if showOnlyNonDiscounted is true
+  const availableProducts = showOnlyNonDiscounted
+    ? products.filter((product) => !product.discountType)
+    : products;
+
+  const filteredProducts = availableProducts.filter((product) => {
     return product.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
@@ -68,9 +77,12 @@ export function ProductSelector({
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between"
+            disabled={isLoading}
           >
             <span className="truncate">
-              {selectedProductIds.length > 0
+              {isLoading
+                ? "Loading products..."
+                : selectedProductIds.length > 0
                 ? `${selectedProductIds.length} product${
                     selectedProductIds.length > 1 ? "s" : ""
                   } selected`
@@ -91,7 +103,11 @@ export function ProductSelector({
               />
             </div>
             <CommandList>
-              <CommandEmpty>No products found.</CommandEmpty>
+              <CommandEmpty>
+                {showOnlyNonDiscounted
+                  ? "No products without discounts found."
+                  : "No products found."}
+              </CommandEmpty>
               <CommandGroup>
                 <ScrollArea className="h-[300px]">
                   {filteredProducts.map((product) => (
@@ -115,7 +131,7 @@ export function ProductSelector({
                         <span>{product.name}</span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        ${product.sellingPrice.toFixed(2)}
+                        {product.sellingPrice.toFixed(2)}
                       </span>
                     </CommandItem>
                   ))}

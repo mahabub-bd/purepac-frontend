@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -48,16 +48,22 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
   }
 
   const handleUpdateQuantity = async (newQuantity: number) => {
-    if (newQuantity < 1 || newQuantity === item.quantity) return;
+    if (newQuantity < 1 || newQuantity === localQuantity) return;
+    if (isUpdating) return;
 
+    // Optimistic update
+    const previousQuantity = localQuantity;
+    setLocalQuantity(newQuantity);
     setIsUpdating(true);
+
     try {
-      setLocalQuantity(newQuantity);
       await patchData(`cart/items/${item.id}`, { quantity: newQuantity });
+      // After successful update, trigger revalidation
       serverRevalidate("/");
       serverRevalidate("/cart");
     } catch (error) {
-      setLocalQuantity(item.quantity);
+      // Revert to previous quantity on error
+      setLocalQuantity(previousQuantity);
       toast.error(
         error instanceof Error ? error.message : "Failed to update quantity"
       );
@@ -70,21 +76,24 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
   const handleDecrement = () => handleUpdateQuantity(localQuantity - 1);
 
   const handleRemove = async () => {
+    if (isRemoving) return;
+
     setIsRemoving(true);
     try {
       await deleteData(`cart/items`, item.id);
       toast.success("Item removed", {
         description: `${item.product.name} has been removed from your cart`,
       });
+      // After successful removal, trigger revalidation
       serverRevalidate("/");
       serverRevalidate("/cart");
     } catch (error) {
+      setIsRemoving(false); // Only reset if there's an error
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
       );
-    } finally {
-      setIsRemoving(false);
     }
+    // Note: We don't set isRemoving to false on success because the component will unmount
   };
 
   return (
@@ -133,7 +142,13 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
                 <Minus className="h-3 w-3" />
                 <span className="sr-only">Decrease quantity</span>
               </Button>
-              <span className="w-6 text-center">{localQuantity}</span>
+              <span className="w-6 text-center">
+                {isUpdating ? (
+                  <Loader2 className="h-4 w-4 mx-auto animate-spin" />
+                ) : (
+                  localQuantity
+                )}
+              </span>
               <Button
                 variant="outline"
                 size="icon"
@@ -153,7 +168,11 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
             disabled={isRemoving}
             className="h-8 text-sm text-muted-foreground hover:text-destructive disabled:opacity-50"
           >
-            <Trash2 className="mr-1 h-4 w-4" />
+            {isRemoving ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-1 h-4 w-4" />
+            )}
             {isRemoving ? "Removing..." : "Remove"}
           </Button>
         </div>

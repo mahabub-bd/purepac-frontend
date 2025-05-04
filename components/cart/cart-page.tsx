@@ -66,6 +66,7 @@ export function CartPage({ cart }: { cart?: Cart }) {
         toast.success("Coupon applied successfully");
       } else throw new Error("Invalid coupon code");
     } catch (error) {
+      console.error(error);
       setAppliedCoupon(null);
       toast.error("Invalid coupon code", {
         description: "The coupon code is not valid",

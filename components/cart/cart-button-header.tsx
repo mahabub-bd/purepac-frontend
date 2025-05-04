@@ -87,6 +87,7 @@ export function CartButtonHeader({
         throw new Error("Invalid coupon code");
       }
     } catch (error) {
+      console.error(error);
       setAppliedCoupon(null);
       toast.error("Invalid coupon code", {
         description: "The coupon code you entered is not valid",
@@ -107,6 +108,7 @@ export function CartButtonHeader({
       toast.success("Cart cleared");
       setIsOpen(false);
     } catch (error) {
+      console.error(error);
       toast.error("Error", {
         description: "Something went wrong",
       });

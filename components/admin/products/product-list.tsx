@@ -41,12 +41,12 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { ProductImage } from "../image-wrapper";
 import { LoadingIndicator } from "../loading-indicator";
 import { PageHeader } from "../page-header";
 
@@ -389,15 +389,7 @@ export function ProductList({
           {products.map((product) => (
             <TableRow key={product.id}>
               <TableCell>
-                <div className="rounded-md overflow-hidden">
-                  <Image
-                    src={product?.attachment?.url || "/placeholder.svg"}
-                    alt={product.name}
-                    width={64}
-                    height={64}
-                    className="object-contain"
-                  />
-                </div>
+                <ProductImage product={product} height={60} width={60} />
               </TableCell>
               <TableCell className="font-medium text-wrap">
                 {product.name}

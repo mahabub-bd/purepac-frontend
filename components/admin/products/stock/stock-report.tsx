@@ -29,10 +29,10 @@ import { formatCurrencyEnglish } from "@/lib/utils";
 import { fetchData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand, Category, Product, Supplier } from "@/utils/types";
 import { Filter, Loader2, Package, Search, XCircle } from "lucide-react";
-import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ProductImage } from "../../image-wrapper";
 import { PageHeader } from "../../page-header";
 
 interface StockReportProps {
@@ -302,7 +302,8 @@ export function StockReport({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Product</TableHead>
+            <TableHead>Image</TableHead>
+            <TableHead>Name</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Brand</TableHead>
             <TableHead>Supplier</TableHead>
@@ -316,17 +317,11 @@ export function StockReport({
         <TableBody>
           {products.map((product) => (
             <TableRow key={product.id}>
-              <TableCell className="flex items-center gap-2">
-                <div className="rounded-md overflow-hidden">
-                  <Image
-                    src={product?.attachment?.url || "/placeholder.svg"}
-                    alt={product.name}
-                    width={48}
-                    height={48}
-                    className="object-contain"
-                  />
-                </div>
-                <span>{product.name}</span>
+              <TableCell>
+                <ProductImage product={product} height={60} width={60} />
+              </TableCell>
+              <TableCell className="font-medium text-wrap">
+                {product.name}
               </TableCell>
               <TableCell>{product.category.name}</TableCell>
               <TableCell>{product.brand.name}</TableCell>

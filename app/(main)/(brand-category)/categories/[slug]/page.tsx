@@ -27,7 +27,7 @@ export default async function BrandPage({
   return (
     <div className="container mx-auto px-4 py-4">
       <SortBar currentSort={(await searchParams).sort} />
-      <CategoryBrandProductList endpoint={url} path="brands" />
+      <CategoryBrandProductList endpoint={url} path="categories" />
     </div>
   );
 }

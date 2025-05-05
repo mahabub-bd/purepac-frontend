@@ -1,42 +1,27 @@
-// components/add-to-cart-button.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { postData } from "@/utils/api-utils";
-import { serverRevalidate } from "@/utils/revalidatePath";
-
+import { useCartContext } from "@/contexts/cart-context";
+import type { Product } from "@/utils/types";
 import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 export function AddToCartButton({
-  productId,
+  product,
   disabled,
 }: {
-  productId: number;
+  product: Product;
   disabled?: boolean;
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const { addItem } = useCartContext();
 
   const handleAddToCart = async () => {
     setIsLoading(true);
     try {
-      const response = await postData("cart/items", { productId });
-
-      if (response?.statusCode === 200) {
-        toast.success("Item added to cart", {
-          description: "The product has been added to your shopping cart",
-        });
-
-        serverRevalidate("/");
-      }
+      await addItem(product);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Something went wrong",
-        {
-          description: "An error occurred while adding the item to the cart",
-        }
-      );
+      console.error("Error adding to cart:", error);
     } finally {
       setIsLoading(false);
     }

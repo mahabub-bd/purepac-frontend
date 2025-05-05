@@ -3,20 +3,19 @@
 import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useCartContext } from "@/contexts/cart-context";
 import { formatCurrencyEnglish } from "@/lib/utils";
-import { deleteData, patchData } from "@/utils/api-utils";
-import { serverRevalidate } from "@/utils/revalidatePath";
 import type { CartItem } from "@/utils/types";
 
 export function CartItemProductPage({ item }: { item: CartItem }) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(item.quantity);
+  const { updateItemQuantity, removeItem, getDiscountedPrice } =
+    useCartContext();
 
-  // Discount calculations
   const now = new Date();
   const discountStart = new Date(item.product?.discountStartDate || 0);
   const discountEnd = new Date(item.product?.discountEndDate || 0);
@@ -26,20 +25,11 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
     now >= discountStart &&
     now <= discountEnd;
 
-  let discountedPrice = item.product.sellingPrice;
-  let discountAmount = 0;
+  const discountedPrice = getDiscountedPrice(item.product);
+  const discountAmount = item.product.sellingPrice - discountedPrice;
   let originalPriceDisplay = null;
 
   if (hasActiveDiscount) {
-    if (item.product.discountType === "fixed") {
-      discountAmount = item.product.discountValue ?? 0;
-      discountedPrice = item.product.sellingPrice - discountAmount;
-    } else {
-      discountAmount =
-        (item.product.sellingPrice * (item.product.discountValue ?? 0)) / 100;
-      discountedPrice = item.product.sellingPrice - discountAmount;
-    }
-
     originalPriceDisplay = (
       <span className="line-through text-muted-foreground text-sm">
         {formatCurrencyEnglish(item.product.sellingPrice)}
@@ -51,22 +41,15 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
     if (newQuantity < 1 || newQuantity === localQuantity) return;
     if (isUpdating) return;
 
-    // Optimistic update
     const previousQuantity = localQuantity;
     setLocalQuantity(newQuantity);
     setIsUpdating(true);
 
     try {
-      await patchData(`cart/items/${item.id}`, { quantity: newQuantity });
-      // After successful update, trigger revalidation
-      serverRevalidate("/");
-      serverRevalidate("/cart");
+      await updateItemQuantity(item.id || item.product.id, newQuantity);
     } catch (error) {
-      // Revert to previous quantity on error
+      console.error(error);
       setLocalQuantity(previousQuantity);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update quantity"
-      );
     } finally {
       setIsUpdating(false);
     }
@@ -80,20 +63,11 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
 
     setIsRemoving(true);
     try {
-      await deleteData(`cart/items`, item.id);
-      toast.success("Item removed", {
-        description: `${item.product.name} has been removed from your cart`,
-      });
-      // After successful removal, trigger revalidation
-      serverRevalidate("/");
-      serverRevalidate("/cart");
+      await removeItem(item.id || item.product.id);
     } catch (error) {
-      setIsRemoving(false); // Only reset if there's an error
-      toast.error(
-        error instanceof Error ? error.message : "Something went wrong"
-      );
+      console.error(error);
+      setIsRemoving(false);
     }
-    // Note: We don't set isRemoving to false on success because the component will unmount
   };
 
   return (

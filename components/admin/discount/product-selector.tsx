@@ -42,7 +42,6 @@ export function ProductSelector({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter out products that already have discounts if showOnlyNonDiscounted is true
   const availableProducts = showOnlyNonDiscounted
     ? products.filter((product) => !product.discountType)
     : products;

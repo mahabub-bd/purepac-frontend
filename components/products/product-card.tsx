@@ -7,7 +7,7 @@ import type { Product } from "@/utils/types";
 import { DiscountType } from "@/utils/types";
 import Image from "next/image";
 import Link from "next/link";
-import { AddToCartButton } from "../cart/add-to-cart";
+import { AddToCartButton } from "../cart/add-to-cart-button";
 
 export default async function ProductCard({ product }: { product: Product }) {
   const { base64 } = await getBlurData(product?.attachment?.url);
@@ -108,7 +108,8 @@ export default async function ProductCard({ product }: { product: Product }) {
         >
           Buy Now
         </Button>
-        <AddToCartButton productId={product.id} disabled={!product?.stock} />
+        {/* <AddToCartButton productId={product.id} disabled={!product?.stock} /> */}
+        <AddToCartButton product={product} disabled={!product?.stock} />
       </div>
     </div>
   );

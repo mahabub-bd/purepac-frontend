@@ -1,11 +1,10 @@
 import { getUser } from "@/actions/auth";
 import { cn } from "@/lib/utils";
-import { fetchProtectedData } from "@/utils/api-utils";
-import { Cart } from "@/utils/types";
+
 import { HeartIcon } from "lucide-react";
 import AuthBtn from "../auth/auth-button";
 
-import { CartButtonHeader } from "../cart/cart-button-header";
+import { CartButtonHeaderWrapper } from "../cart/cart-button-header-wrapper";
 import { IconButton } from "../ui/icon-button";
 
 interface UserActionsProps {
@@ -18,7 +17,7 @@ export default async function UserActions({
   className,
 }: UserActionsProps) {
   const user = await getUser();
-  const cart = user ? await fetchProtectedData<Cart>("cart") : null;
+  // const cart = user ? await fetchProtectedData<Cart>("cart") : null;
 
   const wishlistItemCount = 5;
 
@@ -39,7 +38,7 @@ export default async function UserActions({
           count={wishlistItemCount}
         />
       )}
-      <CartButtonHeader cart={cart ?? undefined} compact={compact} />
+      <CartButtonHeaderWrapper compact={compact} />
       {/* Auth Button */}
       <AuthBtn
         user={user}

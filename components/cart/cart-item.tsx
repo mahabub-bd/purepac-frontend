@@ -1,82 +1,64 @@
 "use client";
 
+import { useCartContext } from "@/contexts/cart-context";
 import { formatCurrencyEnglish } from "@/lib/utils";
-import { deleteData, patchData } from "@/utils/api-utils";
-import { serverRevalidate } from "@/utils/revalidatePath";
 import type { CartItem } from "@/utils/types";
 import { Loader2, Minus, Plus, Trash } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { toast } from "sonner";
 
 export function CartItemProduct({ item }: { item: CartItem }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(item.quantity);
+  const { updateItemQuantity, removeItem, getDiscountedPrice } =
+    useCartContext();
 
-  const getDiscountedPrice = () => {
-    const product = item.product;
-    const now = new Date();
-    const startDate = new Date(product.discountStartDate ?? 0);
-    const endDate = new Date(product.discountEndDate ?? 0);
+  // Item ID could be either the server-side ID or the product ID for local storage items
+  const itemId = item.id || item.product.id;
 
-    if (
-      product.discountType &&
-      product.discountValue &&
-      now >= startDate &&
-      now <= endDate
-    ) {
-      if (product.discountType === "fixed") {
-        return product.sellingPrice - product.discountValue;
-      } else {
-        return product.sellingPrice * (1 - product.discountValue / 100);
-      }
-    }
-    return product.sellingPrice;
-  };
+  // // Discount calculations
+  // const now = new Date();
+  // const discountStart = new Date(item.product?.discountStartDate || 0);
+  // const discountEnd = new Date(item.product?.discountEndDate || 0);
+  // const hasActiveDiscount =
+  //   item.product.discountType &&
+  //   item.product.discountValue &&
+  //   now >= discountStart &&
+  //   now <= discountEnd;
 
-  const hasDiscount = getDiscountedPrice() < item.product.sellingPrice;
-  const discountedPrice = getDiscountedPrice();
+  const discountedPrice = getDiscountedPrice(item.product);
+  const hasDiscount = discountedPrice < item.product.sellingPrice;
   const totalPrice = discountedPrice * localQuantity;
 
-  const updateQuantity = async (newQuantity: number) => {
+  const handleUpdateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1 || newQuantity > 99) return;
     if (isUpdating) return;
 
-    // Optimistic update
+    const previousQuantity = localQuantity;
     setLocalQuantity(newQuantity);
     setIsUpdating(true);
 
     try {
-      await patchData(`cart/items/${item.id}`, { quantity: newQuantity });
-      // After successful update, trigger revalidation
-      serverRevalidate("/");
-      serverRevalidate("/cart");
+      await updateItemQuantity(itemId, newQuantity);
     } catch (error) {
-      // Revert to original quantity on error
-      setLocalQuantity(item.quantity);
       console.error(error);
-      toast.error("Error updating quantity");
+      setLocalQuantity(previousQuantity);
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const removeItem = async () => {
+  const handleRemoveItem = async () => {
     if (isRemoving) return;
 
     setIsRemoving(true);
     try {
-      await deleteData(`cart/items/${item.id}`, "");
-      toast.success("Item removed from cart");
-      // After successful removal, trigger revalidation
-      serverRevalidate("/");
-      serverRevalidate("/cart");
+      await removeItem(itemId);
     } catch (error) {
       console.error(error);
-      toast.error("Error removing item");
+      setIsRemoving(false);
     }
-    // Note: We don't set isRemoving to false because the component will unmount
   };
 
   return (
@@ -96,7 +78,7 @@ export function CartItemProduct({ item }: { item: CartItem }) {
             {item.product.name}
           </h3>
           <button
-            onClick={removeItem}
+            onClick={handleRemoveItem}
             disabled={isRemoving}
             className="text-muted-foreground hover:text-destructive"
             aria-label="Remove item"
@@ -112,7 +94,7 @@ export function CartItemProduct({ item }: { item: CartItem }) {
         <div className="mt-1 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => updateQuantity(localQuantity - 1)}
+              onClick={() => handleUpdateQuantity(localQuantity - 1)}
               disabled={isUpdating || localQuantity <= 1}
               className="h-5 w-5 rounded-full border flex items-center justify-center text-xs disabled:opacity-50"
             >
@@ -126,7 +108,7 @@ export function CartItemProduct({ item }: { item: CartItem }) {
               )}
             </span>
             <button
-              onClick={() => updateQuantity(localQuantity + 1)}
+              onClick={() => handleUpdateQuantity(localQuantity + 1)}
               disabled={isUpdating || localQuantity >= 99}
               className="h-5 w-5 rounded-full border flex items-center justify-center text-xs disabled:opacity-50"
             >

@@ -19,6 +19,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useCartContext } from "@/contexts/cart-context";
+import { applyCoupon, validateCoupon } from "@/lib/coupon-service";
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
 import type { Cart, CartItem } from "@/utils/types";
 import { CartItemProduct } from "./cart-item";
@@ -58,22 +59,32 @@ export function CartButtonHeader({
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
-
     setIsApplyingCoupon(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (couponCode.toUpperCase() === "SAVE10") {
-        const couponDiscount = discountedSubtotal * 0.1;
-        setAppliedCoupon({ code: couponCode, discount: couponDiscount });
+      // Step 1: Validate the coupon
+      const validationRes = await validateCoupon(couponCode);
+      if (validationRes.statusCode !== 200) {
+        throw new Error(validationRes.message || "Coupon validation failed");
+      }
+
+      const applyRes = await applyCoupon(couponCode, discountedSubtotal);
+
+      if (applyRes.statusCode === 200 && applyRes.data) {
+        setAppliedCoupon({
+          code: couponCode,
+          discount: applyRes.data.discountValue,
+        });
         toast.success("Coupon applied successfully");
       } else {
-        throw new Error("Invalid coupon code");
+        throw new Error(applyRes.message || "Failed to apply coupon");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       setAppliedCoupon(null);
+      const errorMessage =
+        error instanceof Error ? error.message : "The coupon code is not valid";
       toast.error("Invalid coupon code", {
-        description: "The coupon code you entered is not valid",
+        description: errorMessage,
       });
     } finally {
       setIsApplyingCoupon(false);

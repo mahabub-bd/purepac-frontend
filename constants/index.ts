@@ -27,12 +27,12 @@ const adminMenuItems = [
   },
   {
     name: "Products",
-    href: "/admin/products",
+    href: "/admin/products/product-list",
     icon: Package,
   },
   {
     name: "Brand",
-    href: "/admin/brand",
+    href: "/admin/brand/brand-list",
     icon: Tag,
   },
   {

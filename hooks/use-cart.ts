@@ -23,20 +23,16 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize cart from localStorage or server
   useEffect(() => {
     if (isInitialized) return;
 
     if (isLoggedIn && serverCart) {
-      // User is logged in and we have server cart data
-      setLocalCart(null); // Don't need local cart
+      setLocalCart(null);
     } else {
-      // User is not logged in, use localStorage
       const storedCart = getCartFromLocalStorage();
       if (storedCart) {
         setLocalCart(storedCart);
       } else {
-        // Initialize empty cart
         setLocalCart({ items: [], lastUpdated: Date.now() });
       }
     }
@@ -44,20 +40,17 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     setIsInitialized(true);
   }, [isLoggedIn, serverCart, isInitialized]);
 
-  // Save local cart to localStorage whenever it changes
   useEffect(() => {
     if (!isLoggedIn && localCart) {
       saveCartToLocalStorage(localCart);
     }
   }, [localCart, isLoggedIn]);
 
-  // Sync local cart with server when user logs in
   useEffect(() => {
     const syncCartWithServer = async () => {
       if (isLoggedIn && localCart && localCart.items.length > 0) {
         setIsLoading(true);
         try {
-          // For each item in local cart, add to server cart
           for (const item of localCart.items) {
             await postData("cart/items", {
               productId: item.productId,
@@ -65,11 +58,9 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
             });
           }
 
-          // Clear local cart after successful sync
           setLocalCart(null);
           saveCartToLocalStorage({ items: [], lastUpdated: Date.now() });
 
-          // Revalidate cart page
           serverRevalidate("/");
           serverRevalidate("/cart");
 
@@ -90,23 +81,19 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     syncCartWithServer();
   }, [isLoggedIn, localCart]);
 
-  // Add item to cart
   const addItem = async (product: Product, quantity = 1) => {
     setIsLoading(true);
 
     try {
       if (isLoggedIn) {
-        // Add to server cart
         await postData("cart/items", {
           productId: product.id,
           quantity,
         });
 
-        // Revalidate cart
         serverRevalidate("/");
         serverRevalidate("/cart");
       } else {
-        // Add to local cart
         setLocalCart((prev) => {
           if (!prev)
             return {
@@ -119,7 +106,6 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
           );
 
           if (existingItemIndex >= 0) {
-            // Update existing item
             const updatedItems = [...prev.items];
             updatedItems[existingItemIndex] = {
               ...updatedItems[existingItemIndex],
@@ -132,7 +118,6 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
               lastUpdated: Date.now(),
             };
           } else {
-            // Add new item
             return {
               ...prev,
               items: [
@@ -158,7 +143,6 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     }
   };
 
-  // Update item quantity
   const updateItemQuantity = async (
     itemId: number | string,
     quantity: number
@@ -168,14 +152,11 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
 
     try {
       if (isLoggedIn) {
-        // Update server cart
         await patchData(`cart/items/${itemId}`, { quantity });
 
-        // Revalidate cart
         serverRevalidate("/");
         serverRevalidate("/cart");
       } else {
-        // Update local cart
         setLocalCart((prev) => {
           if (!prev) return null;
 
@@ -203,20 +184,16 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     }
   };
 
-  // Remove item from cart
   const removeItem = async (itemId: number | string) => {
     setIsLoading(true);
 
     try {
       if (isLoggedIn) {
-        // Remove from server cart
         await deleteData("cart/items", itemId);
 
-        // Revalidate cart
         serverRevalidate("/");
         serverRevalidate("/cart");
       } else {
-        // Remove from local cart
         setLocalCart((prev) => {
           if (!prev) return null;
 

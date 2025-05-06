@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/contexts/cart-context";
+import { applyCoupon, validateCoupon } from "@/lib/coupon-service";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import type { Cart, CartItem } from "@/utils/types";
 import { CartItemProductPage } from "./cart-item-product-page";
@@ -33,17 +34,28 @@ export function CartPage({ cart }: { cart?: Cart }) {
     if (!couponCode.trim()) return;
     setIsApplyingCoupon(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (couponCode.toUpperCase() === "SAVE10") {
-        const couponDiscount = discountedSubtotal * 0.1;
-        setAppliedCoupon({ code: couponCode, discount: couponDiscount });
+     
+      const validationRes = await validateCoupon(couponCode);
+      if (validationRes.statusCode !== 200) {
+        throw new Error(validationRes.message || "Coupon validation failed");
+      }
+
+      const applyRes = await applyCoupon(couponCode, discountedSubtotal);
+
+      if (applyRes.statusCode === 200 && applyRes.data) {
+        setAppliedCoupon({
+          code: couponCode,
+          discount: applyRes.data.discountValue,
+        });
         toast.success("Coupon applied successfully");
-      } else throw new Error("Invalid coupon code");
-    } catch (error) {
+      } else {
+        throw new Error(applyRes.message || "Failed to apply coupon");
+      }
+    } catch (error:unknown) {
       console.error(error);
       setAppliedCoupon(null);
       toast.error("Invalid coupon code", {
-        description: "The coupon code is not valid",
+        description: error instanceof Error ? error.message : "The coupon code is not valid",
       });
     } finally {
       setIsApplyingCoupon(false);

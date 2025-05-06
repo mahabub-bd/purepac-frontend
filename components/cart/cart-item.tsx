@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { useCartContext } from "@/contexts/cart-context";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import type { CartItem } from "@/utils/types";
@@ -15,7 +14,6 @@ export function CartItemProduct({ item }: { item: CartItem }) {
   const { updateItemQuantity, removeItem, getDiscountedPrice } =
     useCartContext();
 
-  // Item ID could be either the server-side ID or the product ID for local storage items
   const itemId = item.id || item.product.id;
 
   // Discount calculations
@@ -31,15 +29,6 @@ export function CartItemProduct({ item }: { item: CartItem }) {
   const discountedPrice = getDiscountedPrice(item.product);
   const hasDiscount = discountedPrice < item.product.sellingPrice;
   const totalPrice = discountedPrice * localQuantity;
-
-  // Calculate discount percentage for display
-  const discountPercentage = hasDiscount
-    ? Math.round(
-        ((item.product.sellingPrice - discountedPrice) /
-          item.product.sellingPrice) *
-          100
-      )
-    : 0;
 
   const handleUpdateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1 || newQuantity > 99) return;
@@ -75,13 +64,6 @@ export function CartItemProduct({ item }: { item: CartItem }) {
   return (
     <div className="flex gap-3">
       <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
-        {hasActiveDiscount && (
-          <div className="absolute top-0 left-0 z-10">
-            <Badge className="bg-green-600 hover:bg-green-700 text-[10px] px-1.5 py-0.5 rounded-br-md rounded-tl-md">
-              -{discountPercentage}%
-            </Badge>
-          </div>
-        )}
         <Image
           src={item.product.attachment?.url || "/placeholder.svg"}
           alt={item.product.name}

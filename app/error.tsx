@@ -13,26 +13,22 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error("Route error:", error);
   }, [error]);
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center p-4 text-center">
       <div className="mx-auto max-w-md space-y-6">
-        {/* Error Icon */}
         <div className="flex justify-center">
           <div className="rounded-full bg-amber-100 p-4">
             <AlertTriangle className="h-10 w-10 text-amber-600" />
           </div>
         </div>
 
-        {/* Error Title */}
         <h2 className="text-2xl font-bold tracking-tight">
           Something went wrong
         </h2>
 
-        {/* Error Description */}
         <div className="text-muted-foreground">
           <p>
             We encountered an error while loading this page. Please try again
@@ -48,7 +44,6 @@ export default function Error({
           )}
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={reset} className="gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -68,7 +63,6 @@ export default function Error({
           </Button>
         </div>
 
-        {/* Support Link */}
         <div className="mt-4 text-sm text-muted-foreground">
           <p>
             If this problem persists,{" "}

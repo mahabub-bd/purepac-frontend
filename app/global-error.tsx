@@ -18,7 +18,6 @@ export default function GlobalError({
   );
 
   useEffect(() => {
-    // Check if the error is a network error
     if (
       error.message.includes("fetch failed") ||
       error.message.includes("network") ||
@@ -33,7 +32,6 @@ export default function GlobalError({
       setErrorType("server");
     }
 
-    // Add event listeners for online/offline status
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -46,7 +44,6 @@ export default function GlobalError({
     };
   }, [error]);
 
-  // Function to retry the operation
   const handleRetry = () => {
     reset();
   };
@@ -56,7 +53,6 @@ export default function GlobalError({
       <body>
         <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
           <div className="mx-auto max-w-md space-y-6">
-            {/* Error Icon */}
             <div className="flex justify-center">
               {errorType === "network" ? (
                 <div className="rounded-full bg-red-100 p-4">
@@ -69,7 +65,6 @@ export default function GlobalError({
               )}
             </div>
 
-            {/* Error Title */}
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {errorType === "network"
                 ? "Connection Error"
@@ -78,12 +73,11 @@ export default function GlobalError({
                 : "Something went wrong"}
             </h1>
 
-            {/* Error Description */}
             <div className="text-muted-foreground">
               {errorType === "network" ? (
                 <p>
-                  We can&apos;t connect to our servers. Please check your internet
-                  connection and try again.
+                  We can&apos;t connect to our servers. Please check your
+                  internet connection and try again.
                   {!isOnline && (
                     <span className="block mt-2 font-medium text-red-600">
                       You are currently offline.
@@ -97,8 +91,8 @@ export default function GlobalError({
                 </p>
               ) : (
                 <p>
-                  An unexpected error has occurred. We&apos;ve been notified and are
-                  looking into the issue. Please try again later.
+                  An unexpected error has occurred. We&apos;ve been notified and
+                  are looking into the issue. Please try again later.
                 </p>
               )}
               {error.digest && (
@@ -111,7 +105,6 @@ export default function GlobalError({
               )}
             </div>
 
-            {/* Action Buttons */}
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
               <Button onClick={handleRetry} className="gap-2">
                 <RefreshCw className="h-4 w-4" />
@@ -125,7 +118,6 @@ export default function GlobalError({
               </Button>
             </div>
 
-            {/* Network Status Indicator */}
             {errorType === "network" && (
               <div
                 className={`mt-4 flex items-center justify-center gap-2 text-sm ${
@@ -143,7 +135,6 @@ export default function GlobalError({
               </div>
             )}
 
-            {/* Support Link */}
             <div className="mt-6 text-sm text-muted-foreground">
               <p>
                 Need help?{" "}

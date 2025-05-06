@@ -9,14 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useCartContext } from "@/contexts/cart-context";
 import { formatCurrencyEnglish } from "@/lib/utils";
-import { deleteData } from "@/utils/api-utils";
-import { serverRevalidate } from "@/utils/revalidatePath";
-import type { Cart, CartItem, Product } from "@/utils/types";
+import type { Cart, CartItem } from "@/utils/types";
 import { CartItemProductPage } from "./cart-item-product-page";
 import { EmptyCart } from "./empty-cart";
 
 export function CartPage({ cart }: { cart?: Cart }) {
+  const { clearCart, getCartTotals } = useCartContext();
   const [isRemovingAll, setIsRemovingAll] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
@@ -25,37 +25,8 @@ export function CartPage({ cart }: { cart?: Cart }) {
     discount: number;
   } | null>(null);
 
-  const getDiscountedPrice = (product: Product) => {
-    const now = new Date();
-    const startDate = new Date(product.discountStartDate ?? 0);
-    const endDate = new Date(product.discountEndDate ?? 0);
-
-    if (
-      product.discountType &&
-      product.discountValue &&
-      now >= startDate &&
-      now <= endDate
-    ) {
-      return product.discountType === "fixed"
-        ? product.sellingPrice - product.discountValue
-        : product.sellingPrice * (1 - product.discountValue / 100);
-    }
-    return product.sellingPrice;
-  };
-
-  const itemCount =
-    cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
-  const originalSubtotal =
-    cart?.items?.reduce(
-      (sum, item) => sum + item.product.sellingPrice * item.quantity,
-      0
-    ) || 0;
-  const discountedSubtotal =
-    cart?.items?.reduce(
-      (sum, item) => sum + getDiscountedPrice(item.product) * item.quantity,
-      0
-    ) || 0;
-  const productDiscounts = originalSubtotal - discountedSubtotal;
+  const { itemCount, originalSubtotal, discountedSubtotal, productDiscounts } =
+    getCartTotals();
   const total = discountedSubtotal - (appliedCoupon?.discount || 0);
 
   const handleApplyCoupon = async () => {
@@ -89,21 +60,19 @@ export function CartPage({ cart }: { cart?: Cart }) {
     if (!cart?.items?.length) return;
     setIsRemovingAll(true);
     try {
-      await deleteData("cart", "");
-      serverRevalidate("/");
+      await clearCart();
       toast.success("Cart cleared", {
         description: "All items removed from your cart",
       });
     } catch (error) {
+      console.error(error);
       toast.error("Error", {
-        description:
-          error instanceof Error ? error.message : "Something went wrong",
+        description: "Something went wrong",
       });
     } finally {
       setIsRemovingAll(false);
     }
   };
-
   return (
     <div className="container mx-auto grid grid-cols-1 gap-6 px-4 py-4 sm:px-6 lg:grid-cols-3 lg:gap-8 lg:px-8 lg:py-8">
       {/* Main Cart Content */}

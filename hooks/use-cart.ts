@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { deleteData, patchData, postData } from "@/utils/api-utils";
+import {
+  getCartFromLocalStorage,
+  type LocalCart,
+  type LocalCartItem,
+  saveCartToLocalStorage,
+} from "@/utils/cart-storage";
 import { serverRevalidate } from "@/utils/revalidatePath";
 import type { Cart, Product } from "@/utils/types";
-import { LocalCart, getCartFromLocalStorage, saveCartToLocalStorage, LocalCartItem } from "@/utils/cart-storage";
 
 type UseCartProps = {
   serverCart?: Cart;
@@ -239,21 +244,18 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     }
   };
 
-  // Clear cart
   const clearCart = async () => {
     setIsLoading(true);
 
     try {
       if (isLoggedIn) {
-        // Clear server cart
         await deleteData("cart", "");
 
-        // Revalidate cart
         serverRevalidate("/");
         serverRevalidate("/cart");
       } else {
-        // Clear local cart
         setLocalCart({ items: [], lastUpdated: Date.now() });
+        saveCartToLocalStorage({ items: [], lastUpdated: Date.now() });
       }
 
       toast.success("Cart cleared");
@@ -298,7 +300,6 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     };
   };
 
-  // Helper function to calculate discounted price
   const getDiscountedPrice = (product: Product) => {
     const now = new Date();
     const startDate = new Date(product.discountStartDate ?? 0);

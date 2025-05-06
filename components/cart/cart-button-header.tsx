@@ -18,10 +18,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useCartContext } from "@/contexts/cart-context";
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
-import { deleteData } from "@/utils/api-utils";
-import { serverRevalidate } from "@/utils/revalidatePath";
-import type { Cart, CartItem, Product } from "@/utils/types";
+import type { Cart, CartItem } from "@/utils/types";
 import { CartItemProduct } from "./cart-item";
 import { EmptyCart } from "./empty-cart";
 
@@ -32,6 +31,7 @@ export function CartButtonHeader({
   cart?: Cart;
   compact?: boolean;
 }) {
+  const { clearCart, getDiscountedPrice } = useCartContext();
   const [isOpen, setIsOpen] = useState(false);
   const [isRemovingAll, setIsRemovingAll] = useState(false);
   const [couponCode, setCouponCode] = useState("");
@@ -40,26 +40,6 @@ export function CartButtonHeader({
     code: string;
     discount: number;
   } | null>(null);
-
-  const getDiscountedPrice = (product: Product) => {
-    const now = new Date();
-    const startDate = new Date(product.discountStartDate ?? 0);
-    const endDate = new Date(product.discountEndDate ?? 0);
-
-    if (
-      product.discountType &&
-      product.discountValue &&
-      now >= startDate &&
-      now <= endDate
-    ) {
-      if (product.discountType === "fixed") {
-        return product.sellingPrice - product.discountValue;
-      } else {
-        return product.sellingPrice * (1 - product.discountValue / 100);
-      }
-    }
-    return product.sellingPrice;
-  };
 
   const itemCount =
     cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
@@ -111,9 +91,7 @@ export function CartButtonHeader({
 
     setIsRemovingAll(true);
     try {
-      await deleteData("cart", "");
-      serverRevalidate("/");
-      serverRevalidate("/cart");
+      await clearCart();
       toast.success("Cart cleared");
       setIsOpen(false);
     } catch (error) {

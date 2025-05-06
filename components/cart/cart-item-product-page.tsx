@@ -3,7 +3,9 @@
 import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCartContext } from "@/contexts/cart-context";
 import { formatCurrencyEnglish } from "@/lib/utils";
@@ -16,6 +18,10 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
   const { updateItemQuantity, removeItem, getDiscountedPrice } =
     useCartContext();
 
+  // Item ID could be either the server-side ID or the product ID for local storage items
+  const itemId = item.id || item.product.id;
+
+  // Discount calculations
   const now = new Date();
   const discountStart = new Date(item.product?.discountStartDate || 0);
   const discountEnd = new Date(item.product?.discountEndDate || 0);
@@ -27,6 +33,10 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
 
   const discountedPrice = getDiscountedPrice(item.product);
   const discountAmount = item.product.sellingPrice - discountedPrice;
+  const discountPercentage = Math.round(
+    (discountAmount / item.product.sellingPrice) * 100
+  );
+
   let originalPriceDisplay = null;
 
   if (hasActiveDiscount) {
@@ -41,15 +51,17 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
     if (newQuantity < 1 || newQuantity === localQuantity) return;
     if (isUpdating) return;
 
+    // Optimistic update
     const previousQuantity = localQuantity;
     setLocalQuantity(newQuantity);
     setIsUpdating(true);
 
     try {
-      await updateItemQuantity(item.id || item.product.id, newQuantity);
+      await updateItemQuantity(itemId, newQuantity);
     } catch (error) {
       console.error(error);
       setLocalQuantity(previousQuantity);
+      toast.error("Failed to update quantity");
     } finally {
       setIsUpdating(false);
     }
@@ -63,16 +75,28 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
 
     setIsRemoving(true);
     try {
-      await removeItem(item.id || item.product.id);
+      await removeItem(itemId);
+      toast.success("Item removed", {
+        description: `${item.product.name} has been removed from your cart`,
+      });
     } catch (error) {
       console.error(error);
-      setIsRemoving(false);
+      setIsRemoving(false); // Only reset if there's an error
+      toast.error("Failed to remove item");
     }
+    // Note: We don't set isRemoving to false on success because the component will unmount
   };
 
   return (
     <div className="flex items-start gap-4 border-b pb-6">
-      <div className="aspect-square w-24 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
+      <div className="aspect-square w-24 flex-shrink-0 overflow-hidden rounded-md border bg-muted relative">
+        {hasActiveDiscount && (
+          <div className="absolute top-0 left-0 z-10">
+            <Badge className="bg-green-600 hover:bg-green-700 text-xs px-2 py-0.5 rounded-br-md rounded-tl-md">
+              -{discountPercentage}%
+            </Badge>
+          </div>
+        )}
         <Image
           src={item.product.attachment?.url || "/placeholder.svg"}
           alt={item.product.name}
@@ -85,7 +109,17 @@ export function CartItemProductPage({ item }: { item: CartItem }) {
       <div className="flex-1 space-y-2">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h3 className="font-medium">{item.product.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium">{item.product.name}</h3>
+              {hasActiveDiscount && (
+                <Badge
+                  variant="outline"
+                  className="text-green-600 border-green-200 bg-green-50 text-xs"
+                >
+                  On Sale
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               {originalPriceDisplay}
               <span className="text-sm font-medium">

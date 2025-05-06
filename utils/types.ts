@@ -315,3 +315,17 @@ export interface CartItem {
   quantity: number;
   product: Product;
 }
+
+export interface Coupon {
+  id: number;
+  code: string;
+  discountType: DiscountType;
+  value: string;
+  timesUsed: number;
+  maxUsage: number;
+  validFrom: string;
+  validUntil: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

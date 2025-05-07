@@ -216,7 +216,7 @@ export function MenuList({
       </p>
       {!(searchQuery || statusFilter || isMainMenuFilter) && (
         <Button asChild className="mt-4">
-          <Link href="/admin/settings/menu/add">
+          <Link href="/admin/menu/add">
             <Plus className="mr-2 h-4 w-4" /> Add Menu Item
           </Link>
         </Button>
@@ -329,7 +329,7 @@ export function MenuList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/settings/menu/${menuItem.id}/edit`}>
+                      <Link href={`/admin/menu/${menuItem.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </Link>
                     </DropdownMenuItem>
@@ -356,7 +356,7 @@ export function MenuList({
           title="Menus"
           description="Manage your website menu items"
           actionLabel="Add Menu"
-          actionHref="/admin/settings/menu/add"
+          actionHref="/admin/menu/add"
         />
 
         <div className="space-y-4">

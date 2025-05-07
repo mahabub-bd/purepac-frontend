@@ -11,7 +11,14 @@ export type LocalCart = {
   lastUpdated: number;
 };
 
+export type LocalCoupon = {
+  code: string;
+  discount: number;
+  appliedAt: number;
+};
+
 const CART_STORAGE_KEY = "user-cart";
+const COUPON_STORAGE_KEY = "user-coupon";
 
 export function saveCartToLocalStorage(cart: LocalCart): void {
   if (typeof window === "undefined") return;
@@ -54,4 +61,46 @@ export function localCartToBackendFormat(localCart: LocalCart) {
     productId: item.productId,
     quantity: item.quantity,
   }));
+}
+
+// Coupon storage functions
+export function saveCouponToLocalStorage(coupon: LocalCoupon | null): void {
+  if (typeof window === "undefined") return;
+
+  if (coupon === null) {
+    localStorage.removeItem(COUPON_STORAGE_KEY);
+  } else {
+    localStorage.setItem(COUPON_STORAGE_KEY, JSON.stringify(coupon));
+  }
+}
+
+export function getCouponFromLocalStorage(): LocalCoupon | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const couponData = localStorage.getItem(COUPON_STORAGE_KEY);
+    if (!couponData) return null;
+
+    return JSON.parse(couponData) as LocalCoupon;
+  } catch (error) {
+    console.error("Error parsing coupon from localStorage:", error);
+    return null;
+  }
+}
+
+export function clearLocalCoupon(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(COUPON_STORAGE_KEY);
+}
+
+// Convert backend coupon to local format
+export function backendCouponToLocalCoupon(
+  code: string,
+  discount: number
+): LocalCoupon {
+  return {
+    code,
+    discount,
+    appliedAt: Date.now(),
+  };
 }

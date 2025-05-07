@@ -1,11 +1,13 @@
 "use client";
 
+import type { LocalCoupon } from "@/utils/cart-storage";
 import type { Cart, Product } from "@/utils/types";
 import { createContext, useContext } from "react";
 
 type CartContextType = {
   cart: Cart | { items: any[] };
   isLoading: boolean;
+  appliedCoupon: LocalCoupon | null; // Added coupon property
   addItem: (product: Product, quantity?: number) => Promise<void>;
   updateItemQuantity: (
     itemId: number | string,
@@ -13,6 +15,8 @@ type CartContextType = {
   ) => Promise<void>;
   removeItem: (itemId: number | string) => Promise<void>;
   clearCart: () => Promise<void>;
+  applyCoupon: (code: string, subtotal: number) => Promise<void>; // Added apply coupon method
+  removeCoupon: () => void; // Added remove coupon method
   getCartTotals: () => {
     itemCount: number;
     originalSubtotal: number;

@@ -19,7 +19,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useCartContext } from "@/contexts/cart-context";
-import { applyCoupon, validateCoupon } from "@/lib/coupon-service";
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
 import type { Cart, CartItem } from "@/utils/types";
 import { CartItemProduct } from "./cart-item";
@@ -32,69 +31,40 @@ export function CartButtonHeader({
   cart?: Cart;
   compact?: boolean;
 }) {
-  const { clearCart, getDiscountedPrice } = useCartContext();
+  const {
+    clearCart,
+    getDiscountedPrice,
+    appliedCoupon,
+    applyCoupon: applyCartCoupon,
+    removeCoupon,
+    getCartTotals,
+  } = useCartContext();
   const [isOpen, setIsOpen] = useState(false);
   const [isRemovingAll, setIsRemovingAll] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    code: string;
-    discount: number;
-  } | null>(null);
 
-  const itemCount =
-    cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
-  const originalSubtotal =
-    cart?.items?.reduce(
-      (sum, item) => sum + item.product.sellingPrice * item.quantity,
-      0
-    ) || 0;
-  const discountedSubtotal =
-    cart?.items?.reduce(
-      (sum, item) => sum + getDiscountedPrice(item.product) * item.quantity,
-      0
-    ) || 0;
-  const productDiscounts = originalSubtotal - discountedSubtotal;
+  const { itemCount, originalSubtotal, discountedSubtotal, productDiscounts } =
+    getCartTotals();
   const total = discountedSubtotal - (appliedCoupon?.discount || 0);
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
     setIsApplyingCoupon(true);
     try {
-      // Step 1: Validate the coupon
-      const validationRes = await validateCoupon(couponCode);
-      if (validationRes.statusCode !== 200) {
-        throw new Error(validationRes.message || "Coupon validation failed");
-      }
-
-      const applyRes = await applyCoupon(couponCode, discountedSubtotal);
-
-      if (applyRes.statusCode === 200 && applyRes.data) {
-        setAppliedCoupon({
-          code: couponCode,
-          discount: applyRes.data.discountValue,
-        });
-        toast.success("Coupon applied successfully");
-      } else {
-        throw new Error(applyRes.message || "Failed to apply coupon");
-      }
-    } catch (error: unknown) {
+      await applyCartCoupon(couponCode, discountedSubtotal);
+      setCouponCode("");
+    } catch (error) {
       console.error(error);
-      setAppliedCoupon(null);
-      const errorMessage =
-        error instanceof Error ? error.message : "The coupon code is not valid";
-      toast.error("Invalid coupon code", {
-        description: errorMessage,
-      });
+      // Error is already handled in the context
     } finally {
       setIsApplyingCoupon(false);
     }
   };
 
   const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
+    removeCoupon();
     setCouponCode("");
-    toast.success("Coupon removed");
   };
 
   const handleRemoveAll = async () => {

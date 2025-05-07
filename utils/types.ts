@@ -329,3 +329,37 @@ export interface Coupon {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ShippingMethod {
+  id: number;
+  name: string;
+  cost: string;
+  deliveryTime: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: User;
+  updatedBy: User;
+}
+
+export interface PaymentMethod {
+  id: number;
+  name: string;
+  code: string;
+  isActive: boolean;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: User;
+  updatedBy: User;
+}
+
+export interface Address {
+  id: number;
+  street: string;
+  area: string;
+  division: string;
+  city: string;
+  type: string;
+  isDefault: boolean;
+}

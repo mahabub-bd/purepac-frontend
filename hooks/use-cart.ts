@@ -3,12 +3,21 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  applyCoupon as applyCouponApi,
+  validateCoupon,
+} from "@/lib/coupon-service";
 import { deleteData, patchData, postData } from "@/utils/api-utils";
 import {
+  backendCouponToLocalCoupon,
+  clearLocalCoupon,
   getCartFromLocalStorage,
+  getCouponFromLocalStorage,
   type LocalCart,
   type LocalCartItem,
+  type LocalCoupon,
   saveCartToLocalStorage,
+  saveCouponToLocalStorage,
 } from "@/utils/cart-storage";
 import { serverRevalidate } from "@/utils/revalidatePath";
 import type { Cart, Product } from "@/utils/types";
@@ -22,18 +31,27 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
   const [localCart, setLocalCart] = useState<LocalCart | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<LocalCoupon | null>(null);
 
   useEffect(() => {
     if (isInitialized) return;
 
     if (isLoggedIn && serverCart) {
       setLocalCart(null);
+      // For logged-in users, we would fetch the coupon from the server
+      // This would be implemented in your backend
     } else {
       const storedCart = getCartFromLocalStorage();
+      const storedCoupon = getCouponFromLocalStorage();
+
       if (storedCart) {
         setLocalCart(storedCart);
       } else {
         setLocalCart({ items: [], lastUpdated: Date.now() });
+      }
+
+      if (storedCoupon) {
+        setAppliedCoupon(storedCoupon);
       }
     }
 
@@ -47,6 +65,12 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
   }, [localCart, isLoggedIn]);
 
   useEffect(() => {
+    if (!isLoggedIn && appliedCoupon) {
+      saveCouponToLocalStorage(appliedCoupon);
+    }
+  }, [appliedCoupon, isLoggedIn]);
+
+  useEffect(() => {
     const syncCartWithServer = async () => {
       if (isLoggedIn && localCart && localCart.items.length > 0) {
         setIsLoading(true);
@@ -58,11 +82,26 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
             });
           }
 
+          // If there's a coupon applied locally, apply it to the server cart too
+          if (appliedCoupon) {
+            try {
+              await applyCouponApi(
+                appliedCoupon.code,
+                getCartTotals().discountedSubtotal
+              );
+            } catch (error) {
+              console.error("Error syncing coupon:", error);
+              // Don't fail the whole sync if just the coupon fails
+            }
+          }
+
           setLocalCart(null);
           saveCartToLocalStorage({ items: [], lastUpdated: Date.now() });
+          clearLocalCoupon();
 
           serverRevalidate("/");
           serverRevalidate("/cart");
+          serverRevalidate("/checkout");
 
           toast.success("Cart synced successfully", {
             description: "Your cart has been synced with your account",
@@ -79,7 +118,7 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     };
 
     syncCartWithServer();
-  }, [isLoggedIn, localCart]);
+  }, [isLoggedIn, localCart, appliedCoupon]);
 
   const addItem = async (product: Product, quantity = 1) => {
     setIsLoading(true);
@@ -233,6 +272,9 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
       } else {
         setLocalCart({ items: [], lastUpdated: Date.now() });
         saveCartToLocalStorage({ items: [], lastUpdated: Date.now() });
+        // Also clear any applied coupon
+        setAppliedCoupon(null);
+        clearLocalCoupon();
       }
 
       toast.success("Cart cleared");
@@ -244,6 +286,73 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // New method to apply a coupon
+  const applyCoupon = async (code: string, subtotal: number) => {
+    if (!code.trim()) return;
+    setIsLoading(true);
+
+    try {
+      // Validate the coupon first
+      const validationRes = await validateCoupon(code);
+      if (validationRes.statusCode !== 200) {
+        throw new Error(validationRes.message || "Coupon validation failed");
+      }
+
+      // Apply the coupon
+      const applyRes = await applyCouponApi(code, subtotal);
+
+      if (applyRes.statusCode === 200 && applyRes.data) {
+        const couponData = backendCouponToLocalCoupon(
+          code,
+          applyRes.data.discountValue
+        );
+
+        setAppliedCoupon(couponData);
+
+        if (!isLoggedIn) {
+          saveCouponToLocalStorage(couponData);
+        } else {
+          serverRevalidate("/cart");
+          serverRevalidate("/checkout");
+        }
+
+        toast.success("Coupon applied successfully");
+        return;
+      } else {
+        throw new Error(applyRes.message || "Failed to apply coupon");
+      }
+    } catch (error) {
+      console.error(error);
+      setAppliedCoupon(null);
+      if (!isLoggedIn) {
+        clearLocalCoupon();
+      }
+
+      toast.error("Invalid coupon code", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "The coupon code is not valid",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+
+    if (!isLoggedIn) {
+      clearLocalCoupon();
+    } else {
+      serverRevalidate("/cart");
+      serverRevalidate("/checkout");
+    }
+
+    toast.success("Coupon removed");
   };
 
   const getCartTotals = () => {
@@ -298,10 +407,13 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
   return {
     cart: isLoggedIn ? serverCart : { items: localCart?.items || [] },
     isLoading,
+    appliedCoupon,
     addItem,
     updateItemQuantity,
     removeItem,
     clearCart,
+    applyCoupon,
+    removeCoupon,
     getCartTotals,
     getDiscountedPrice,
   };

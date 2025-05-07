@@ -10,21 +10,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/contexts/cart-context";
-import { applyCoupon, validateCoupon } from "@/lib/coupon-service";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import type { Cart, CartItem } from "@/utils/types";
 import { CartItemProductPage } from "./cart-item-product-page";
 import { EmptyCart } from "./empty-cart";
 
 export function CartPage({ cart }: { cart?: Cart }) {
-  const { clearCart, getCartTotals } = useCartContext();
+  const {
+    clearCart,
+    getCartTotals,
+    appliedCoupon,
+    applyCoupon: applyCartCoupon,
+    removeCoupon,
+  } = useCartContext();
   const [isRemovingAll, setIsRemovingAll] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    code: string;
-    discount: number;
-  } | null>(null);
 
   const { itemCount, originalSubtotal, discountedSubtotal, productDiscounts } =
     getCartTotals();
@@ -34,38 +35,19 @@ export function CartPage({ cart }: { cart?: Cart }) {
     if (!couponCode.trim()) return;
     setIsApplyingCoupon(true);
     try {
-     
-      const validationRes = await validateCoupon(couponCode);
-      if (validationRes.statusCode !== 200) {
-        throw new Error(validationRes.message || "Coupon validation failed");
-      }
-
-      const applyRes = await applyCoupon(couponCode, discountedSubtotal);
-
-      if (applyRes.statusCode === 200 && applyRes.data) {
-        setAppliedCoupon({
-          code: couponCode,
-          discount: applyRes.data.discountValue,
-        });
-        toast.success("Coupon applied successfully");
-      } else {
-        throw new Error(applyRes.message || "Failed to apply coupon");
-      }
-    } catch (error:unknown) {
+      await applyCartCoupon(couponCode, discountedSubtotal);
+      setCouponCode("");
+    } catch (error) {
       console.error(error);
-      setAppliedCoupon(null);
-      toast.error("Invalid coupon code", {
-        description: error instanceof Error ? error.message : "The coupon code is not valid",
-      });
+      // Error is already handled in the context
     } finally {
       setIsApplyingCoupon(false);
     }
   };
 
   const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
+    removeCoupon();
     setCouponCode("");
-    toast.success("Coupon removed");
   };
 
   const handleRemoveAll = async () => {

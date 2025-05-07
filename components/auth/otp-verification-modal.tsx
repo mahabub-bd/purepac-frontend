@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -198,6 +200,7 @@ export const OtpVerificationModal = ({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
+
           <Button
             onClick={handleVerify}
             disabled={isVerifying || otp.length !== otpLength}

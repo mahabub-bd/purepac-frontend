@@ -35,7 +35,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/contexts/cart-context";
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
-import { fetchData } from "@/utils/api-utils";
+import { fetchData, patchData } from "@/utils/api-utils";
 import { clearLocalCoupon } from "@/utils/cart-storage";
 import type {
   Address,
@@ -78,6 +78,8 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
   const [showOtpModal, setShowOtpModal] = useState(false);
 
   const [showAddressForm, setShowAddressForm] = useState(true);
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [isUpdatingInfo, setIsUpdatingInfo] = useState(false);
 
   const shippingCost =
     shippingMethods.find(
@@ -162,6 +164,27 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     setUserId(userId);
     setShowOtpModal(false);
     toast.success("Phone number verified successfully");
+
+    // If the user doesn't have a name or email, we'll fetch their info
+    if (!form.watch("name") || !form.watch("email")) {
+      fetchUserInfo(userId);
+    }
+  };
+
+  const fetchUserInfo = async (userId: string) => {
+    try {
+      const userData = (await fetchData(`users/${userId}`)) as UserType;
+      if (userData) {
+        if (userData.name && !form.watch("name")) {
+          setValue("name", userData.name);
+        }
+        if (userData.email && !form.watch("email")) {
+          setValue("email", userData.email);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+    }
   };
 
   const handleAddressSelect = (address: Address) => {
@@ -176,6 +199,43 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     setValue("address", "");
     setValue("city", "");
     setValue("country", "Bangladesh");
+  };
+
+  const handleUpdateUserInfo = async () => {
+    const name = form.getValues("name");
+    const email = form.getValues("email");
+
+    if (!name.trim() || !email.trim()) {
+      toast.error("Name and email are required");
+      return;
+    }
+
+    if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsUpdatingInfo(true);
+    try {
+      const userIdToUpdate = user?.id || userId;
+      if (!userIdToUpdate) {
+        toast.error("User ID not available");
+        return;
+      }
+
+      await patchData(`users/${userIdToUpdate}`, {
+        name,
+        email,
+      });
+
+      toast.success("Profile information updated successfully");
+      setIsEditingInfo(false);
+    } catch (error) {
+      console.error("Error updating user info:", error);
+      toast.error("Failed to update profile information");
+    } finally {
+      setIsUpdatingInfo(false);
+    }
   };
 
   const onSubmit = async (data: CheckoutFormValues) => {
@@ -286,16 +346,60 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
               >
                 {/* Customer Information */}
                 <div className="space-y-4 md:space-y-5 bg-white rounded-lg border p-4 md:p-6">
-                  <div className="flex items-center gap-2 border-b pb-3 md:pb-4">
-                    <User className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-                    <div>
-                      <h2 className="text-base md:text-lg font-semibold">
-                        Customer Information
-                      </h2>
-                      <p className="text-xs md:text-sm text-muted-foreground">
-                        Enter your contact details
-                      </p>
+                  <div className="flex items-center justify-between gap-2 border-b pb-3 md:pb-4">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                      <div>
+                        <h2 className="text-base md:text-lg font-semibold">
+                          Customer Information
+                        </h2>
+                        <p className="text-xs md:text-sm text-muted-foreground">
+                          Enter your contact details
+                        </p>
+                      </div>
                     </div>
+                    {(isVerified || user) && !isEditingInfo && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditingInfo(true)}
+                        className="text-xs md:text-sm"
+                      >
+                        Edit Info
+                      </Button>
+                    )}
+                    {isEditingInfo && (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditingInfo(false)}
+                          className="text-xs md:text-sm"
+                          disabled={isUpdatingInfo}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={handleUpdateUserInfo}
+                          className="text-xs md:text-sm"
+                          disabled={isUpdatingInfo}
+                        >
+                          {isUpdatingInfo ? (
+                            <>
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            "Save"
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-4 md:space-y-5">
@@ -307,7 +411,15 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
                         <FormItem>
                           <FormLabel>Name *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Your full name" />
+                            <Input
+                              {...field}
+                              placeholder="Your full name"
+                              disabled={
+                                !isEditingInfo &&
+                                ((!!user && !isVerified) ||
+                                  (isVerified && !isEditingInfo))
+                              }
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -332,6 +444,11 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
                               {...field}
                               type="email"
                               placeholder="your@email.com"
+                              disabled={
+                                !isEditingInfo &&
+                                ((!!user && !isVerified) ||
+                                  (isVerified && !isEditingInfo))
+                              }
                             />
                           </FormControl>
                           <FormMessage />

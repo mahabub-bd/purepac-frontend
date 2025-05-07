@@ -33,7 +33,7 @@ export function CartButtonHeader({
 }) {
   const {
     clearCart,
-  
+
     appliedCoupon,
     applyCoupon: applyCartCoupon,
     removeCoupon,
@@ -143,7 +143,7 @@ export function CartButtonHeader({
           {itemCount > 0 ? (
             <div className="divide-y">
               {cart?.items.map((item: CartItem) => (
-                <div key={item.id} className="py-3 px-4 sm:py-4 sm:px-6">
+                <div key={item?.id} className="py-3 px-4 sm:py-4 sm:px-6">
                   <CartItemProduct item={item} />
                 </div>
               ))}

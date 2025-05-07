@@ -178,11 +178,11 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
       return;
     }
 
-    const formattedPhone = form.phone.startsWith("+")
-      ? form.phone
-      : form.phone.startsWith("0")
-      ? `+88${form.phone}`
-      : `+880${form.phone}`;
+    // const formattedPhone = form.phone.startsWith("+")
+    //   ? form.phone
+    //   : form.phone.startsWith("0")
+    //   ? `+88${form.phone}`
+    //   : `+880${form.phone}`;
 
     setIsOtpModalOpen(true);
   };
@@ -417,7 +417,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
                     <AddressSelector
                       userId={String(user.id)}
                       onAddressSelect={(address) =>
-                        handleAddressSelect(address as any)
+                        handleAddressSelect(address as Address)
                       }
                       onAddNewClick={handleAddNewAddress}
                     />

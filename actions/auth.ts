@@ -244,6 +244,8 @@ export async function getToken() {
 export async function mobileLogin(mobileNumber: string) {
   try {
     const response = await postData("auth/mobile-login", { mobileNumber });
+    console.log(response);
+
     return response;
   } catch (error) {
     console.error("Mobile login error:", error);

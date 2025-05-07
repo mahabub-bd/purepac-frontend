@@ -33,7 +33,7 @@ export function CartButtonHeader({
 }) {
   const {
     clearCart,
-    getDiscountedPrice,
+  
     appliedCoupon,
     applyCoupon: applyCartCoupon,
     removeCoupon,

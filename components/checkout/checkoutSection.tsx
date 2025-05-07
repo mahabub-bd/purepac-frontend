@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import {
   ArrowLeft,
   CreditCard,
@@ -12,15 +10,24 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { mobileLogin, verifyOtp } from "@/actions/auth";
+import { OtpVerificationModal } from "@/components/auth/otp-verification-modal";
 import { CartItemProductPage } from "@/components/cart/cart-item-product-page";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -29,225 +36,196 @@ import { useCartContext } from "@/contexts/cart-context";
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
 import { fetchData } from "@/utils/api-utils";
 import type {
+  Address,
   CartItem,
   PaymentMethod,
   ShippingMethod,
   User as UserType,
 } from "@/utils/types";
 import { Loader2 } from "lucide-react";
-import { OtpVerificationModal } from "../auth/otp-verification-modal";
 import { AddressSelector } from "./address-selector";
 
-// Define the Address interface based on the API response
-interface Address {
-  id: number; // Change from string to number to match the API response
-  street: string;
-  area?: string;
+type CheckoutFormValues = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
   city: string;
-  division: string;
-  type: string;
-  isDefault: boolean;
-}
+  country: string;
+  createAccount: boolean;
+};
 
 export default function CheckoutPage({ user }: { user?: UserType }) {
-  const router = useRouter();
   const { getCartTotals, clearCart, cart, appliedCoupon } = useCartContext();
 
   const { originalSubtotal, discountedSubtotal, itemCount, productDiscounts } =
     getCartTotals();
 
-  // Fetch states
-  const [isLoadingShippingMethods, setIsLoadingShippingMethods] =
-    useState(true);
-  const [isLoadingPaymentMethods, setIsLoadingPaymentMethods] = useState(true);
-
   // Data states
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Selected states
-  const [selectedShippingMethod, setSelectedShippingMethod] =
-    useState<string>("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<string>("");
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
-  // Account creation state
-  const [createAccount, setCreateAccount] = useState(false);
-  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  // Account verification states
   const [isVerified, setIsVerified] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showOtpModal, setShowOtpModal] = useState(false);
 
   // Address state
   const [showAddressForm, setShowAddressForm] = useState(true);
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
-  // Calculate shipping cost based on selected method
-  const shippingCost = shippingMethods.find(
-    (method) => method.id.toString() === selectedShippingMethod
-  )?.cost
-    ? Number.parseFloat(
-        shippingMethods.find(
-          (method) => method.id.toString() === selectedShippingMethod
-        )?.cost || "0"
-      )
-    : 0;
-
+  // Calculate order totals
+  const shippingCost =
+    shippingMethods.find(
+      (method) => method.id.toString() === selectedShippingMethod
+    )?.cost || 0;
   const couponDiscount = appliedCoupon?.discount || 0;
-  const total = discountedSubtotal + shippingCost - couponDiscount;
+  const total =
+    Number(discountedSubtotal) + Number(shippingCost) - Number(couponDiscount);
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: user?.mobileNumber || "",
-    address: "",
-    city: "",
-    country: "Bangladesh",
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  // Fetch shipping methods and payment methods
-  useEffect(() => {
-    const fetchShippingMethods = async () => {
-      setIsLoadingShippingMethods(true);
-      try {
-        const response = await fetchData("shipping-methods");
-        setShippingMethods(response as ShippingMethod[]);
-        if ((response as ShippingMethod[]).length > 0) {
-          setSelectedShippingMethod(
-            (response as ShippingMethod[])[0].id.toString()
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching shipping methods:", error);
-        toast.error("Failed to load shipping methods");
-      } finally {
-        setIsLoadingShippingMethods(false);
-      }
-    };
-
-    const fetchPaymentMethods = async () => {
-      setIsLoadingPaymentMethods(true);
-      try {
-        const response = await fetchData("order-payment-methods");
-        // Filter out bKash payment method
-        const filteredMethods = (response as PaymentMethod[]).filter(
-          (method) => method.code !== "bkash"
-        );
-        setPaymentMethods(filteredMethods);
-        if (filteredMethods.length > 0) {
-          setSelectedPaymentMethod(filteredMethods[0].code);
-        }
-      } catch (error) {
-        console.error("Error fetching payment methods:", error);
-        toast.error("Failed to load payment methods");
-      } finally {
-        setIsLoadingPaymentMethods(false);
-      }
-    };
-
-    fetchShippingMethods();
-    fetchPaymentMethods();
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-    setTouched({ ...touched, [name]: true });
-  };
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name } = e.target;
-    setTouched({ ...touched, [name]: true });
-  };
-
-  const isFieldInvalid = (name: keyof typeof form) => {
-    if (!touched[name]) return false;
-    if (name === "name" || name === "email" || name === "address") {
-      return !form[name];
-    }
-    return false;
-  };
-
-  const handleVerifyPhone = () => {
-    if (!form.phone) {
-      toast.error("Phone number is required", {
-        description: "Please enter your phone number to continue",
-      });
-      return;
-    }
-
-    // const formattedPhone = form.phone.startsWith("+")
-    //   ? form.phone
-    //   : form.phone.startsWith("0")
-    //   ? `+88${form.phone}`
-    //   : `+880${form.phone}`;
-
-    setIsOtpModalOpen(true);
-  };
-
-  const handleOtpSuccess = (newUserId: string) => {
-    setIsVerified(true);
-    setUserId(newUserId);
-    toast.success("Phone verified", {
-      description: "Your phone number has been verified successfully",
-    });
-  };
-
-  const handleAddressSelect = (address: Address) => {
-    setSelectedAddress(address);
-    setShowAddressForm(false);
-
-    setForm({
-      ...form,
-      address: address.street,
-      city: address.city,
-      country: address.division,
-    });
-  };
-
-  const handleAddNewAddress = () => {
-    setSelectedAddress(null);
-    setShowAddressForm(true);
-
-    setForm({
-      ...form,
+  // Initialize form
+  const form = useForm<CheckoutFormValues>({
+    defaultValues: {
+      name: user?.name || "",
+      email: user?.email || "",
+      phone: user?.mobileNumber || "",
       address: "",
       city: "",
       country: "Bangladesh",
-    });
-  };
+      createAccount: false,
+    },
+    mode: "onBlur",
+  });
 
-  const handleSubmit = async () => {
-    // Mark all fields as touched for validation
-    const allTouched = Object.keys(form).reduce(
-      (acc, key) => ({ ...acc, [key]: true }),
-      {}
-    );
-    setTouched(allTouched);
+  const { watch, setValue } = form;
+  const createAccount = watch("createAccount");
+  const phoneValue = watch("phone");
 
-    if (!form.name || !form.email || !form.address) {
-      toast.error("Please fill in all required fields");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchMethods = async () => {
+      try {
+        const [shippingResponse, paymentResponse] = await Promise.all([
+          fetchData("shipping-methods") as Promise<ShippingMethod[]>,
+          fetchData("order-payment-methods") as Promise<PaymentMethod[]>,
+        ]);
+
+        setShippingMethods(shippingResponse as ShippingMethod[]);
+        setPaymentMethods(
+          (paymentResponse as PaymentMethod[]).filter(
+            (method) => method.code !== "bkash"
+          )
+        );
+
+        if ((shippingResponse as ShippingMethod[]).length > 0) {
+          setSelectedShippingMethod(shippingResponse[0].id.toString());
+        }
+        if (paymentResponse.length > 0) {
+          setSelectedPaymentMethod(paymentResponse[0].code);
+        }
+      } catch (error) {
+        console.error("Error fetching methods:", error);
+        toast.error("Failed to load checkout options");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMethods();
+  }, []);
+
+  // Handle phone verification
+  const handleVerifyPhone = async () => {
+    if (!phoneValue) {
+      toast.error("Phone number is required");
       return;
     }
 
-    // If guest user wants to create account but hasn't verified phone
+    const formattedNumber = phoneValue.startsWith("+")
+      ? phoneValue
+      : `+880${phoneValue.replace(/^0+/, "")}`;
+
+    try {
+      await mobileLogin(formattedNumber);
+      setShowOtpModal(true);
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      toast.error("Failed to send OTP. Please try again.");
+    }
+  };
+
+  // Handle OTP verification success
+  const handleOtpSuccess = (userId: string) => {
+    setIsVerified(true);
+    setUserId(userId);
+    setShowOtpModal(false);
+    toast.success("Phone number verified successfully");
+  };
+
+  // Handle address selection
+  const handleAddressSelect = (address: Address) => {
+    setShowAddressForm(false);
+    setValue("address", address.street);
+    setValue("city", address.city);
+    setValue("country", address.division);
+  };
+
+  const handleAddNewAddress = () => {
+    setShowAddressForm(true);
+    setValue("address", "");
+    setValue("city", "");
+    setValue("country", "Bangladesh");
+  };
+
+  // Submit order
+  const onSubmit = async (data: CheckoutFormValues) => {
     if (createAccount && !user && !isVerified) {
-      toast.error("Phone verification required", {
-        description: "Please verify your phone number to create an account",
-      });
+      toast.error("Please verify your phone number to create an account");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Simulate placing order
-      await new Promise((res) => setTimeout(res, 1500));
+      // Prepare order data
+      const orderData = {
+        customer: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          userId: user?.id || userId,
+          createAccount: createAccount,
+        },
+        shipping: {
+          method: selectedShippingMethod,
+          address: {
+            street: data.address,
+            city: data.city,
+            country: data.country,
+          },
+        },
+        payment: {
+          method: selectedPaymentMethod,
+        },
+        items: cart.items.map((item: CartItem) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          price: item.product.sellingPrice,
+        })),
+        coupon: appliedCoupon?.code,
+        total,
+      };
+      console.log(orderData);
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      await clearCart();
 
       toast.success("Order placed successfully!");
-      await clearCart();
-      router.push("/thank-you"); // You can create this page
     } catch (error) {
       console.error(error);
       toast.error("Failed to place order");
@@ -256,7 +234,6 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     }
   };
 
-  // If cart is empty, show message and redirect button
   if (!cart?.items?.length) {
     return (
       <div className="container mx-auto py-16 text-center">
@@ -274,10 +251,9 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     );
   }
 
-  const isLoading = isLoadingShippingMethods || isLoadingPaymentMethods;
-
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
+      {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold md:text-3xl">Checkout</h1>
@@ -304,349 +280,419 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
         </div>
       ) : (
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Checkout Form */}
+          {/* Main Form */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Shipping Information */}
-            <div className="space-y-5">
-              <div className="flex items-center gap-2 border-b pb-4">
-                <MapPin className="h-5 w-5 text-primary" />
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    Shipping Information
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Enter your shipping address details
-                  </p>
-                </div>
-              </div>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-8"
+              >
+                {/* Customer Information */}
+                <div className="space-y-5">
+                  <div className="flex items-center gap-2 border-b pb-4">
+                    <User className="h-5 w-5 text-primary" />
+                    <div>
+                      <h2 className="text-lg font-semibold">
+                        Customer Information
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        Enter your contact details
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="space-y-5 px-1">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="flex items-center">
-                    Full Name <span className="ml-1 text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    className={cn(isFieldInvalid("name") && "border-red-500")}
-                    placeholder="Enter your full name"
-                  />
-                  {isFieldInvalid("name") && (
-                    <p className="text-xs text-red-500">Name is required</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center">
-                      Email <span className="ml-1 text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      className={cn(
-                        isFieldInvalid("email") && "border-red-500"
+                  <div className="space-y-5 px-1">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      rules={{ required: "Name is required" }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name *</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Your full name" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                      placeholder="Enter your email address"
                     />
-                    {isFieldInvalid("email") && (
-                      <p className="text-xs text-red-500">Email is required</p>
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      rules={{
+                        required: "Email is required",
+                        pattern: {
+                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                          message: "Invalid email address",
+                        },
+                      }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email *</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="email"
+                              placeholder="your@email.com"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      rules={{ required: "Phone number is required" }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number *</FormLabel>
+                          <div className="flex gap-2">
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="01XXXXXXXXX"
+                                className={cn(
+                                  "flex-1",
+                                  (isVerified || user) && "border-green-500"
+                                )}
+                                disabled={!!user || isVerified}
+                              />
+                            </FormControl>
+                            {!user && !isVerified && (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={handleVerifyPhone}
+                              >
+                                Verify
+                              </Button>
+                            )}
+                            {(isVerified || user) && (
+                              <Badge className="bg-green-500">Verified</Badge>
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Shipping Information */}
+                <div className="space-y-5">
+                  <div className="flex items-center gap-2 border-b pb-4">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    <div>
+                      <h2 className="text-lg font-semibold">
+                        Shipping Address
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        Where should we deliver your order?
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-1 space-y-5">
+                    {user && (
+                      <AddressSelector
+                        userId={String(user.id)}
+                        onAddressSelect={handleAddressSelect}
+                        onAddNewClick={handleAddNewAddress}
+                      />
+                    )}
+
+                    {showAddressForm && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="address"
+                          rules={{ required: "Address is required" }}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Street Address *</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="House #, Road #, Area"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          rules={{ required: "City is required" }}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>City *</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Your city" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="country"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Country</FormLabel>
+                              <FormControl>
+                                <Input {...field} disabled />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center">
-                      Phone Number <span className="ml-1 text-red-500">*</span>
-                    </Label>
-                    <div className="flex">
-                      <Input
-                        id="phone"
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                        placeholder="Enter your phone number"
-                        className={cn(
-                          "flex-1",
-                          (isVerified || user) && "border-green-500 pr-10"
-                        )}
-                        disabled={!!user}
-                      />
-                      {!user ? (
-                        !isVerified ? (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            className="ml-2 whitespace-nowrap"
-                            onClick={handleVerifyPhone}
-                          >
-                            Verify
-                          </Button>
-                        ) : (
-                          <div className="relative">
-                            <Badge className="absolute right-3 top-1/2 -translate-y-1/2 bg-green-500">
-                              Verified
+                </div>
+
+                {/* Shipping Method */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b pb-4">
+                    <Truck className="h-5 w-5 text-primary" />
+                    <div>
+                      <h2 className="text-lg font-semibold">Shipping Method</h2>
+                      <p className="text-sm text-muted-foreground">
+                        How would you like to receive your order?
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-1">
+                    <RadioGroup
+                      value={selectedShippingMethod}
+                      onValueChange={setSelectedShippingMethod}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                    >
+                      {shippingMethods.map((method) => (
+                        <div
+                          key={method.id}
+                          className={cn(
+                            "flex items-center justify-between rounded-lg border p-4",
+                            selectedShippingMethod === method.id.toString() &&
+                              "border-primary bg-primary/5"
+                          )}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <RadioGroupItem
+                              value={method.id.toString()}
+                              id={`shipping-${method.id}`}
+                            />
+                            <Label
+                              htmlFor={`shipping-${method.id}`}
+                              className="flex cursor-pointer flex-col"
+                            >
+                              <span className="font-medium">{method.name}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {method.deliveryTime}
+                              </span>
+                            </Label>
+                          </div>
+                          <span className="font-medium">
+                            {formatCurrencyEnglish(
+                              Number.parseFloat(method.cost)
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                </div>
+
+                {/* Payment Method */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b pb-4">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    <div>
+                      <h2 className="text-lg font-semibold">Payment Method</h2>
+                      <p className="text-sm text-muted-foreground">
+                        How would you like to pay?
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-1">
+                    <RadioGroup
+                      value={selectedPaymentMethod}
+                      onValueChange={setSelectedPaymentMethod}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                    >
+                      {paymentMethods.map((method) => (
+                        <div
+                          key={method.id}
+                          className={cn(
+                            "flex items-center justify-between rounded-lg border p-4",
+                            selectedPaymentMethod === method.code &&
+                              "border-primary bg-primary/5"
+                          )}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <RadioGroupItem
+                              value={method.code}
+                              id={`payment-${method.id}`}
+                            />
+                            <Label
+                              htmlFor={`payment-${method.id}`}
+                              className="flex cursor-pointer flex-col"
+                            >
+                              <div className="flex items-center">
+                                <DollarSign className="h-4 w-4 mr-2" />
+                                <span className="font-medium">
+                                  {method.name}
+                                </span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">
+                                {method.description}
+                              </span>
+                            </Label>
+                          </div>
+                          {!method.isActive && (
+                            <Badge variant="outline" className="bg-yellow-50">
+                              Inactive
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                </div>
+
+                {/* Account Creation */}
+                {!user && (
+                  <FormField
+                    control={form.control}
+                    name="createAccount"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Create an account</FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Save your information for faster checkout next time
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Order Items */}
+                <div className="space-y-4">
+                  <div className="border-b pb-4">
+                    <h2 className="text-lg font-semibold">
+                      Order Items ({itemCount})
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Review your items before placing your order
+                    </p>
+                  </div>
+
+                  <div className="space-y-4 divide-y">
+                    {cart.items.map((item: CartItem) => (
+                      <div key={item.id} className="pt-4 first:pt-0">
+                        <CartItemProductPage item={item} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mobile Order Summary */}
+                <div className="lg:hidden space-y-4 border rounded-lg p-5">
+                  <div className="border-b pb-4">
+                    <h2 className="text-lg font-semibold">Order Summary</h2>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>{formatCurrencyEnglish(originalSubtotal)}</span>
+                      </div>
+
+                      {productDiscounts > 0 && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>Product Discounts</span>
+                          <span>
+                            -{formatCurrencyEnglish(productDiscounts)}
+                          </span>
+                        </div>
+                      )}
+
+                      {appliedCoupon && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <div className="flex items-center">
+                            <span>Coupon</span>
+                            <Badge
+                              variant="outline"
+                              className="ml-2 bg-green-50"
+                            >
+                              {appliedCoupon.code.toUpperCase()}
                             </Badge>
                           </div>
-                        )
-                      ) : (
-                        <div className="relative">
-                          <Badge className="absolute right-3 top-1/2 -translate-y-1/2 bg-green-500">
-                            Verified
-                          </Badge>
+                          <span>
+                            -{formatCurrencyEnglish(appliedCoupon.discount)}
+                          </span>
                         </div>
                       )}
-                    </div>
-                    {user && (
-                      <p className="text-xs text-muted-foreground">
-                        Your verified phone number is associated with your
-                        account
-                      </p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Address Selection */}
-                {user && (
-                  <div className="mb-4">
-                    <AddressSelector
-                      userId={String(user.id)}
-                      onAddressSelect={(address) =>
-                        handleAddressSelect(address as Address)
-                      }
-                      onAddNewClick={handleAddNewAddress}
-                    />
-                  </div>
-                )}
-
-                {/* Address Form */}
-                {showAddressForm && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="address" className="flex items-center">
-                        Address <span className="ml-1 text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="address"
-                        name="address"
-                        value={form.address}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={cn(
-                          isFieldInvalid("address") && "border-red-500"
-                        )}
-                        placeholder="Enter your street address"
-                      />
-                      {isFieldInvalid("address") && (
-                        <p className="text-xs text-red-500">
-                          Address is required
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        value={form.city}
-                        onChange={handleChange}
-                        placeholder="Enter your city"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="country">Country</Label>
-                      <Input
-                        id="country"
-                        name="country"
-                        value={form.country}
-                        onChange={handleChange}
-                        placeholder="Enter your country"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {!user && (
-                  <div className="flex items-start space-x-2 pt-2">
-                    <Checkbox
-                      id="create-account"
-                      checked={createAccount}
-                      onCheckedChange={(checked) =>
-                        setCreateAccount(checked === true)
-                      }
-                    />
-                    <div className="grid gap-1.5 leading-none">
-                      <Label
-                        htmlFor="create-account"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Create an account for faster checkout
-                      </Label>
-                      <p className="text-sm text-muted-foreground">
-                        Save your information for future orders
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Shipping Method */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 border-b pb-4">
-                <Truck className="h-5 w-5 text-primary" />
-                <div>
-                  <h2 className="text-lg font-semibold">Shipping Method</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Select your preferred delivery option
-                  </p>
-                </div>
-              </div>
-
-              <div className="px-1">
-                {shippingMethods.length > 0 ? (
-                  <RadioGroup
-                    value={selectedShippingMethod}
-                    onValueChange={setSelectedShippingMethod}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-3"
-                  >
-                    {shippingMethods.map((method) => (
-                      <div
-                        key={method.id}
-                        className={cn(
-                          "flex items-center justify-between rounded-lg border p-4",
-                          selectedShippingMethod === method.id.toString() &&
-                            "border-primary bg-primary/5"
-                        )}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem
-                            value={method.id.toString()}
-                            id={`shipping-${method.id}`}
-                          />
-                          <Label
-                            htmlFor={`shipping-${method.id}`}
-                            className="flex cursor-pointer flex-col"
-                          >
-                            <span className="font-medium">{method.name}</span>
-                            <span className="text-sm text-muted-foreground">
-                              {method.deliveryTime}
-                            </span>
-                          </Label>
-                        </div>
-                        <span className="font-medium">
-                          {formatCurrencyEnglish(
-                            Number.parseFloat(method.cost)
-                          )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Shipping</span>
+                        <span>
+                          {formatCurrencyEnglish(Number(shippingCost))}
                         </span>
                       </div>
-                    ))}
-                  </RadioGroup>
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground">
-                    No shipping methods available
-                  </div>
-                )}
-              </div>
-            </div>
 
-            {/* Payment Method */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 border-b pb-4">
-                <CreditCard className="h-5 w-5 text-primary" />
-                <div>
-                  <h2 className="text-lg font-semibold">Payment Method</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Select your preferred payment option
-                  </p>
-                </div>
-              </div>
+                      <Separator className="my-2" />
 
-              <div className="px-1">
-                {paymentMethods.length > 0 ? (
-                  <RadioGroup
-                    value={selectedPaymentMethod}
-                    onValueChange={setSelectedPaymentMethod}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-3"
-                  >
-                    {paymentMethods.map((method) => (
-                      <div
-                        key={method.id}
-                        className={cn(
-                          "flex items-center justify-between rounded-lg border p-4",
-                          selectedPaymentMethod === method.code &&
-                            "border-primary bg-primary/5"
-                        )}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem
-                            value={method.code}
-                            id={`payment-${method.id}`}
-                          />
-                          <Label
-                            htmlFor={`payment-${method.id}`}
-                            className="flex cursor-pointer flex-col"
-                          >
-                            <div className="flex items-center">
-                              <DollarSign className="h-4 w-4 mr-2" />
-                              <span className="font-medium">{method.name}</span>
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {method.description}
-                            </span>
-                          </Label>
-                        </div>
-                        {!method.isActive && (
-                          <Badge
-                            variant="outline"
-                            className="bg-yellow-50 text-yellow-600 border-yellow-200"
-                          >
-                            Inactive
-                          </Badge>
-                        )}
+                      <div className="flex justify-between font-medium">
+                        <span>Total</span>
+                        <span className="text-lg">
+                          {formatCurrencyEnglish(total)}
+                        </span>
                       </div>
-                    ))}
-                  </RadioGroup>
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground">
-                    No payment methods available
-                  </div>
-                )}
-              </div>
-            </div>
+                    </div>
 
-            {/* Order Items */}
-            <div className="space-y-4">
-              <div className="border-b pb-4">
-                <h2 className="text-lg font-semibold">
-                  Order Items ({itemCount})
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Review your items before placing your order
-                </p>
-              </div>
-
-              <div className="space-y-4 divide-y">
-                {cart?.items.map((item: CartItem) => (
-                  <div key={item.id} className="pt-4 first:pt-0">
-                    <CartItemProductPage item={item} />
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Placing Order...
+                        </>
+                      ) : (
+                        "Place Order"
+                      )}
+                    </Button>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              </form>
+            </Form>
           </div>
 
-          {/* Order Summary */}
-          <div>
+          {/* Desktop Order Summary */}
+          <div className="hidden lg:block">
             <div className="sticky top-4 border rounded-lg p-5 bg-background/50 backdrop-blur-sm">
-              <div className="border-b pb-4 mb-4">
+              <div className="border-b pb-4">
                 <h2 className="text-lg font-semibold">Order Summary</h2>
               </div>
 
@@ -668,10 +714,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
                     <div className="flex justify-between text-sm text-green-600">
                       <div className="flex items-center">
                         <span>Coupon</span>
-                        <Badge
-                          variant="outline"
-                          className="ml-2 bg-green-50 text-green-600 border-green-200"
-                        >
+                        <Badge variant="outline" className="ml-2 bg-green-50">
                           {appliedCoupon.code.toUpperCase()}
                         </Badge>
                       </div>
@@ -683,7 +726,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
 
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span>{formatCurrencyEnglish(shippingCost)}</span>
+                    <span>{formatCurrencyEnglish(Number(shippingCost))}</span>
                   </div>
 
                   <Separator className="my-2" />
@@ -697,63 +740,53 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
                 </div>
 
                 <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  onClick={form.handleSubmit(onSubmit)}
                   size="lg"
-                  className="mt-2 w-full"
+                  className="w-full"
+                  disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
+                      Placing Order...
                     </>
                   ) : (
                     "Place Order"
                   )}
                 </Button>
 
-                <div className="mt-4 space-y-3">
+                <div className="mt-4 space-y-3 text-sm">
                   {selectedShippingMethod && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <Truck className="h-4 w-4" />
                       <span>
-                        Delivery via{" "}
                         {shippingMethods.find(
                           (m) => m.id.toString() === selectedShippingMethod
-                        )?.name || "Selected shipping method"}
+                        )?.name || "Standard Shipping"}
                       </span>
                     </div>
                   )}
                   {selectedPaymentMethod && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <CreditCard className="h-4 w-4" />
                       <span>
-                        Payment via{" "}
                         {paymentMethods.find(
                           (m) => m.code === selectedPaymentMethod
-                        )?.name || "Selected payment method"}
+                        )?.name || "Credit Card"}
                       </span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <ShieldCheck className="h-4 w-4" />
-                    <span>Secure checkout process</span>
+                    <span>Secure checkout</span>
                   </div>
-                  {user ? (
-                    <div className="flex items-center gap-2 text-xs text-green-600">
+                  {user && (
+                    <div className="flex items-center gap-2 text-green-600">
                       <User className="h-4 w-4" />
                       <span>
                         Signed in as {user.email || user.mobileNumber}
                       </span>
                     </div>
-                  ) : (
-                    createAccount &&
-                    isVerified && (
-                      <div className="flex items-center gap-2 text-xs text-green-600">
-                        <User className="h-4 w-4" />
-                        <span>Account will be created after checkout</span>
-                      </div>
-                    )
                   )}
                 </div>
 
@@ -762,14 +795,14 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
                     By placing your order, you agree to our{" "}
                     <Link
                       href="/terms"
-                      className="underline underline-offset-2"
+                      className="underline hover:text-primary"
                     >
                       Terms of Service
                     </Link>{" "}
                     and{" "}
                     <Link
                       href="/privacy"
-                      className="underline underline-offset-2"
+                      className="underline hover:text-primary"
                     >
                       Privacy Policy
                     </Link>
@@ -783,10 +816,16 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
 
       {/* OTP Verification Modal */}
       <OtpVerificationModal
-        isOpen={isOtpModalOpen}
-        onClose={() => setIsOtpModalOpen(false)}
-        phoneNumber={form.phone}
+        isOpen={showOtpModal}
+        phoneNumber={
+          phoneValue.startsWith("+")
+            ? phoneValue
+            : `+880${phoneValue.replace(/^0+/, "")}`
+        }
+        onClose={() => setShowOtpModal(false)}
         onSuccess={handleOtpSuccess}
+        onResendOtp={mobileLogin}
+        onVerifyOtp={verifyOtp}
       />
     </div>
   );

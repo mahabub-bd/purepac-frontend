@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrencyEnglish } from "@/lib/utils";
-
 import { getBlurData } from "@/utils/blur-generator";
 import type { Product } from "@/utils/types";
 import { DiscountType } from "@/utils/types";
+import { Weight } from "lucide-react"; // Import weight icon
 import Image from "next/image";
 import Link from "next/link";
 import { AddToCartButton } from "../cart/add-to-cart-button";
@@ -80,6 +80,14 @@ export default async function ProductCard({ product }: { product: Product }) {
           {product.name}
         </p>
 
+        {/* Weight Display - Added this section */}
+        {product.weight && product.weight > 0 && (
+          <div className="flex items-center justify-center text-xs text-muted-foreground mt-1">
+            <Weight className="w-3 h-3 mr-1" />
+            {`${product.weight} kg`}
+          </div>
+        )}
+
         {/* Price */}
         <div className="flex items-center justify-center my-2 sm:my-2 md:flex-row flex-col">
           {discountedPrice ? (
@@ -108,7 +116,6 @@ export default async function ProductCard({ product }: { product: Product }) {
         >
           Buy Now
         </Button>
-        {/* <AddToCartButton productId={product.id} disabled={!product?.stock} /> */}
         <AddToCartButton product={product} disabled={!product?.stock} />
       </div>
     </div>

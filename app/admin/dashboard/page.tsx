@@ -1,57 +1,55 @@
+import { getUser } from "@/actions/auth";
 import { StatsCard } from "@/components/admin/dashboard/stats-card";
+import MonthWiseSalesOrders from "@/components/orders/monthwise-salesorders";
+import OrdersTable from "@/components/orders/orders-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { getTopCategoryByProductCount } from "@/lib/utils";
+  getTopBrandByProductCount,
+  getTopCategoryByProductCount,
+} from "@/lib/utils";
 import { fetchData, fetchDataPagination } from "@/utils/api-utils";
-import type { ApiResponseusers, Category, Product } from "@/utils/types";
+import type {
+  ApiResponseusers,
+  Brand,
+  Category,
+  Product,
+  User,
+} from "@/utils/types";
 
 import {
   Activity,
-  BarChart3,
-  CreditCard,
   DollarSign,
+  Layers,
   Package,
   ShoppingCart,
+  Tag,
   Users,
 } from "lucide-react";
 
 export default async function DashboardPage() {
   const products = await fetchData<Product[]>("products?limit=100");
-
+  const user: User = await getUser();
   const categories = await fetchData<Category[]>("categories");
+  const brands = await fetchData<Brand[]>("brands");
   const response = await fetchDataPagination<ApiResponseusers>("users");
 
   const customers = [...response.data.customers];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Last updated:</span>
-          <span className="font-medium text-foreground">
-            April 4, 2023 at 7:38 AM
-          </span>
-        </div>
-      </div>
-
       {/* Overview Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {user?.name}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatsCard
           title="Total Revenue"
-          value="$45,231.89"
+          value="45,231.89"
           description="+20.1% from last month"
           trend="up"
           icon={DollarSign}
           colorScheme="green"
         />
         <StatsCard
-          title="Orders"
+          title="Total Orders"
           value="2,350"
           description="+12.2% from last month"
           trend="up"
@@ -69,64 +67,34 @@ export default async function DashboardPage() {
         <StatsCard
           title="Customers"
           value={customers?.length?.toString() || "0"}
-          description="-2.5% from last month"
-          trend="down"
+          description="+3.1% from last month"
+          trend="up"
           icon={Users}
+          colorScheme="blue"
+        />
+        <StatsCard
+          title="Categories"
+          value={categories?.length?.toString() || "0"}
+          description={`${getTopCategoryByProductCount(categories)} is top`}
+          trend="neutral"
+          icon={Layers}
           colorScheme="indigo"
+        />
+        <StatsCard
+          title="Brands"
+          value={brands?.length?.toString() || "0"}
+          description={`${getTopBrandByProductCount(brands)} is top`}
+          trend="neutral"
+          icon={Tag}
+          colorScheme="violet"
         />
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div className="space-y-1">
-              <CardTitle>Recent Sales</CardTitle>
-              <CardDescription>You made 265 sales this month.</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex items-center justify-center border rounded-md">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Sales chart visualization would appear here
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Recent Activity Section */}
+      <div className="grid grid-cols-1 gap-8 ">
+        <MonthWiseSalesOrders />
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center gap-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {order.customer}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Order #{order.id}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">${order.amount}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {order.date}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <OrdersTable />
       </div>
 
       {/* Additional Stats */}
@@ -193,36 +161,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-
-const recentOrders = [
-  {
-    id: "1001",
-    customer: "John Doe",
-    amount: "125.99",
-    date: "2 hours ago",
-  },
-  {
-    id: "1002",
-    customer: "Jane Smith",
-    amount: "89.50",
-    date: "5 hours ago",
-  },
-  {
-    id: "1003",
-    customer: "Robert Johnson",
-    amount: "245.00",
-    date: "Yesterday",
-  },
-  {
-    id: "1004",
-    customer: "Emily Davis",
-    amount: "32.75",
-    date: "Yesterday",
-  },
-  {
-    id: "1005",
-    customer: "Michael Wilson",
-    amount: "149.99",
-    date: "2 days ago",
-  },
-];

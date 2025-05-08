@@ -1,9 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 
-type ColorScheme = "blue" | "purple" | "green" | "amber" | "pink" | "indigo";
+type ColorScheme =
+  | "blue"
+  | "purple"
+  | "green"
+  | "amber"
+  | "pink"
+  | "indigo"
+  | "violet";
 type TrendDirection = "up" | "down" | "neutral";
 
 interface StatsCardProps {
@@ -78,6 +85,16 @@ const COLOR_SCHEMES: Record<
       neutral: "text-gray-500 dark:text-gray-400",
     },
   },
+  // New violet color scheme
+  violet: {
+    card: "bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950/40 dark:to-violet-900/20",
+    icon: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+    trend: {
+      up: "text-violet-700 dark:text-violet-400",
+      down: "text-red-600 dark:text-red-400",
+      neutral: "text-gray-500 dark:text-gray-400",
+    },
+  },
 };
 
 const TREND_ICONS: Record<TrendDirection, LucideIcon> = {
@@ -105,8 +122,14 @@ export function StatsCard({
   const TrendIcon = TREND_ICONS[trend];
 
   return (
-    <Card className={cn("border-none shadow-sm", colors.card, className)}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div
+      className={cn(
+        "border-none shadow-sm p-4 rounded-lg",
+        colors.card,
+        className
+      )}
+    >
+      <div className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <div
           className={cn(
@@ -116,14 +139,14 @@ export function StatsCard({
         >
           <Icon className="h-4 w-4" />
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+      </div>
+      <div>
+        <div className="text-xl font-bold">{value}</div>
         <p className="text-xs flex items-center mt-1">
           <TrendIcon className={cn("h-3 w-3 mr-1", TREND_COLORS[trend])} />
           <span className={colors.trend[trend]}>{description}</span>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

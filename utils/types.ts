@@ -71,6 +71,7 @@ export interface Product {
   supplier: Supplier;
   productSku: string;
   stock: number;
+  weight: number | null;
   attachment: Attachment;
   isActive: boolean;
   isFeatured: boolean;

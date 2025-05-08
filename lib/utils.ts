@@ -1,4 +1,4 @@
-import { Category } from "@/utils/types";
+import { Brand, Category } from "@/utils/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -46,7 +46,14 @@ export function getTopCategoryByProductCount(
 
   return topCategory?.name || null;
 }
-
+// Add to your utils file if not already present
+export function getTopBrandByProductCount(brands?: Brand[]): string {
+  if (!brands || brands.length === 0) return "None";
+  const sorted = [...brands].sort(
+    (a, b) => (b.products?.length || 0) - (a.products?.length || 0)
+  );
+  return sorted[0].name;
+}
 export function capitalizeFirstLetter(string: string) {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }

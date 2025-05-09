@@ -73,6 +73,8 @@ export interface Product {
   stock: number;
   weight: number | null;
   attachment: Attachment;
+
+  attachments: [Attachment];
   isActive: boolean;
   isFeatured: boolean;
   createdAt: string;

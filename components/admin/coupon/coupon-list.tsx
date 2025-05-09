@@ -112,7 +112,7 @@ export function CouponList() {
               <TableCell>
                 {coupon.discountType === "percentage"
                   ? `${coupon.value}%`
-                  : `$${coupon.value}`}
+                  : `${coupon.value}`}
               </TableCell>
               <TableCell>
                 {coupon.timesUsed} / {coupon.maxUsage}
@@ -139,7 +139,9 @@ export function CouponList() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/marketing/coupon/${coupon.id}/edit`}>
+                      <Link
+                        href={`/admin/marketing/coupon/${coupon?.code}/edit`}
+                      >
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </Link>
                     </DropdownMenuItem>

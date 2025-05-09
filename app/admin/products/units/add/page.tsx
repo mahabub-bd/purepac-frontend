@@ -12,7 +12,7 @@ export default function AddUnitPage() {
 
   const handleSuccess = () => {
     toast.success("Unit created successfully");
-    router.push("/admin/units");
+    router.back();
   };
 
   return (

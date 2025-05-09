@@ -121,7 +121,7 @@ export function UnitList() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/units/${unit.id}/edit`}>
+                      <Link href={`/admin/products/units/${unit.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </Link>
                     </DropdownMenuItem>

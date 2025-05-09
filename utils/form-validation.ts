@@ -82,74 +82,6 @@ const paymentSchema = z.object({
   notes: z.string().optional(),
 });
 
-// const productSchema = z
-//   .object({
-//     name: z.string().min(1, "Product name is required"),
-//     description: z.string().min(1, "Description is required"),
-//     sellingPrice: z.coerce
-//       .number()
-//       .min(0.01, "Unit price must be greater than 0"),
-//     purchasePrice: z.coerce
-//       .number()
-//       .min(0.01, "Unit price must be greater than 0"),
-//     stock: z.coerce.number().int().nonnegative("Stock cannot be negative"),
-//     unitId: z.number().min(1, "Brand is required"),
-//     productSku: z.string().min(1, "SKU is required"),
-//     imageUrl: z.string().optional(),
-//     isActive: z.boolean().default(true),
-//     isFeatured: z.boolean().default(false),
-//     brandId: z.number().min(1, "Brand is required"),
-//     categoryId: z.number().min(1, "Category is required"),
-//     supplierId: z.number().min(1, "Supplier is required"),
-//     hasDiscount: z.boolean().default(false),
-//     discountType: z.nativeEnum(DiscountType).optional(),
-//     discountValue: z.coerce.number().optional(),
-//     discountStartDate: z.date().optional(),
-//     discountEndDate: z.date().optional(),
-//   })
-//   .superRefine((data, ctx) => {
-//     if (data.hasDiscount) {
-//       if (!data.discountType) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message: "Discount type is required",
-//           path: ["discountType"],
-//         });
-//       }
-//       if (data.discountValue === undefined || data.discountValue <= 0) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message: "Discount value must be greater than 0",
-//           path: ["discountValue"],
-//         });
-//       }
-//       if (!data.discountStartDate) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message: "Discount start date is required",
-//           path: ["discountStartDate"],
-//         });
-//       }
-//       if (!data.discountEndDate) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message: "Discount end date is required",
-//           path: ["discountEndDate"],
-//         });
-//       }
-//       if (
-//         data.discountStartDate &&
-//         data.discountEndDate &&
-//         data.discountEndDate <= data.discountStartDate
-//       ) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message: "End date must be after start date",
-//           path: ["discountEndDate"],
-//         });
-//       }
-//     }
-//   });
 const productSchema = z
   .object({
     name: z.string().min(1, "Product name is required"),
@@ -164,6 +96,7 @@ const productSchema = z
     unitId: z.number().min(1, "Unit is required"),
     productSku: z.string().min(1, "SKU is required"),
     imageUrl: z.string().optional(),
+    weight: z.coerce.number().int(),
     isActive: z.boolean().default(true),
     isFeatured: z.boolean().default(false),
     brandId: z.number().min(1, "Brand is required"),
@@ -251,9 +184,26 @@ const supplierSchema = z.object({
   isActive: z.boolean().default(true),
   imageUrl: z.string().optional(),
 });
+
+const couponSchema = z.object({
+  code: z.string().min(3, "Code must be at least 3 characters"),
+  discountType: z.enum(["percentage", "fixed"]),
+  value: z.coerce
+    .number() // Convert string input to number
+    .min(0.01, "Value must be greater than 0")
+    .refine((val) => val >= 0, "Value cannot be negative"),
+  maxUsage: z.coerce
+    .number() // Also fix maxUsage
+    .min(1, "Max usage must be at least 1")
+    .optional(),
+  validFrom: z.string().min(1, "Start date is required"),
+  validUntil: z.string().min(1, "End date is required"),
+  isActive: z.boolean(),
+});
 export {
   bannerSchema,
   brandSchema,
+  couponSchema,
   loginSchema,
   menuSchema,
   paymentSchema,

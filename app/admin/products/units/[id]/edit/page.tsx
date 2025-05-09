@@ -27,7 +27,7 @@ export default function EditUnitPage() {
       } catch (error) {
         console.error("Error fetching unit:", error);
         toast.error("Failed to load unit data");
-        router.push("/admin/units");
+        router.back();
       } finally {
         setIsLoading(false);
       }
@@ -38,11 +38,11 @@ export default function EditUnitPage() {
 
   const handleSuccess = () => {
     toast.success("Unit updated successfully");
-    router.push("/admin/units");
+    router.back();
   };
 
   if (isLoading) {
-    return <LoadingIndicator message="oading unit data..." />;
+    return <LoadingIndicator message="Loading unit data..." />;
   }
 
   if (!unit) {
@@ -70,7 +70,7 @@ export default function EditUnitPage() {
             <CardDescription>Update the unit details.</CardDescription>
           </div>
           <Button asChild variant="outline">
-            <Link href="/admin/units">Back to Units</Link>
+            <Link href="/admin/products/units">Back to Units</Link>
           </Button>
         </div>
       </div>

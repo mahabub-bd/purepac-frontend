@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { patchData, postData } from "@/utils/api-utils";
+import { couponSchema } from "@/utils/form-validation";
 import { Coupon } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -27,16 +28,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-
-const couponSchema = z.object({
-  code: z.string().min(3, "Code must be at least 3 characters"),
-  discountType: z.enum(["percentage", "fixed"]),
-  value: z.string().min(1, "Value is required"),
-  maxUsage: z.number().min(1, "Max usage must be at least 1"),
-  validFrom: z.string().min(1, "Start date is required"),
-  validUntil: z.string().min(1, "End date is required"),
-  isActive: z.boolean(),
-});
 
 interface CouponFormProps {
   coupon?: Coupon;
@@ -52,7 +43,7 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
     defaultValues: {
       code: coupon?.code || "",
       discountType: coupon?.discountType || "percentage",
-      value: coupon?.value || "",
+      value: coupon?.value ? Number(coupon.value) : 0,
       maxUsage: coupon?.maxUsage || 100,
       validFrom: coupon?.validFrom || "",
       validUntil: coupon?.validUntil || "",
@@ -141,12 +132,18 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
                   <FormControl>
                     <Input
                       type="number"
+                      step={
+                        form.watch("discountType") === "percentage"
+                          ? "1"
+                          : "0.01"
+                      }
                       placeholder={
                         form.watch("discountType") === "percentage"
                           ? "Enter percentage (e.g. 20)"
                           : "Enter amount (e.g. 10.50)"
                       }
                       {...field}
+                      value={field.value || ""}
                       className="w-full"
                     />
                   </FormControl>
@@ -248,7 +245,7 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
           </Button>
           <Button type="submit" disabled={isSubmitting} className="w-32">
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === "create" ? "Create Coupon" : "Update Coupon"}
+            {mode === "create" ? "Create " : "Update "}
           </Button>
         </div>
       </form>

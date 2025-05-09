@@ -1,7 +1,8 @@
 import { getUser } from "@/actions/auth";
 import { StatsCard } from "@/components/admin/dashboard/stats-card";
-import MonthWiseSalesOrders from "@/components/orders/monthwise-salesorders";
+import MonthWiseSalesOrders from "@/components/orders/orders-monthwise";
 import OrdersTable from "@/components/orders/orders-table";
+import SalesAmountMonthwise from "@/components/orders/sales-amount-monthwise";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getTopBrandByProductCount,
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       {/* Overview Stats */}
       {user?.name}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <StatsCard
           title="Total Revenue"
           value="45,231.89"
@@ -91,12 +92,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent Activity Section */}
-      <div className="grid grid-cols-1 gap-8 ">
+      <div className="grid grid-cols-2 gap-8 ">
         <MonthWiseSalesOrders />
-
-        <OrdersTable />
+        <SalesAmountMonthwise />
       </div>
-
+      <OrdersTable />
       {/* Additional Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20 border-none">

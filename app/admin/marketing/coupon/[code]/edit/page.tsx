@@ -1,11 +1,11 @@
 "use client";
 
 import { CouponForm } from "@/components/admin/coupon/coupon-form";
+import { LoadingIndicator } from "@/components/admin/loading-indicator";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import { Coupon } from "@/utils/types";
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 export default function EditCouponPage() {
   const router = useRouter();
   const params = useParams();
-  const couponId = params.id as string;
+  const code = params.code as string;
 
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function EditCouponPage() {
   useEffect(() => {
     const fetchCouponData = async () => {
       try {
-        const couponData = await fetchData<Coupon>(`coupons/${couponId}`);
+        const couponData = await fetchData<Coupon>(`coupons/${code}`);
         setCoupon(couponData);
       } catch (error) {
         console.error("Error fetching coupon:", error);
@@ -34,7 +34,7 @@ export default function EditCouponPage() {
     };
 
     fetchCouponData();
-  }, [couponId, router]);
+  }, []);
 
   const handleSuccess = () => {
     toast.success("Coupon updated successfully");
@@ -42,16 +42,7 @@ export default function EditCouponPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-6 flex justify-center items-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">
-            Loading coupon data...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingIndicator message="Loading coupon data..." />;
   }
 
   if (!coupon) {

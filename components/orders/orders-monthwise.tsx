@@ -12,7 +12,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Cell, LabelList, XAxis, YAxis } from "recharts";
 
 type OrderData = {
   month: string;
@@ -20,18 +20,18 @@ type OrderData = {
 };
 
 const monthlyOrders: OrderData[] = [
-  { month: "January", orders: 200 },
-  { month: "February", orders: 240 },
-  { month: "March", orders: 120 },
-  { month: "April", orders: 180 },
+  { month: "Jan", orders: 200 },
+  { month: "Feb", orders: 240 },
+  { month: "Mar", orders: 120 },
+  { month: "Apr", orders: 180 },
   { month: "May", orders: 220 },
-  { month: "June", orders: 260 },
-  { month: "July", orders: 230 },
-  { month: "August", orders: 270 },
-  { month: "September", orders: 250 },
-  { month: "October", orders: 290 },
-  { month: "November", orders: 260 },
-  { month: "December", orders: 300 },
+  { month: "Jun", orders: 260 },
+  { month: "Jul", orders: 230 },
+  { month: "Aug", orders: 270 },
+  { month: "Sep", orders: 250 },
+  { month: "Oct", orders: 290 },
+  { month: "Nov", orders: 260 },
+  { month: "Dec", orders: 300 },
 ];
 
 const COLORS = [
@@ -49,8 +49,7 @@ const COLORS = [
   "hsl(330, 70%, 60%)", // December - Magenta
 ];
 
-export default function MonthlyOrders() {
-  // Create config object for ChartContainer
+export default function OrdersMonthWise() {
   const chartConfig = monthlyOrders.reduce((config, item, index) => {
     config[item.month] = {
       label: item.month,
@@ -76,7 +75,7 @@ export default function MonthlyOrders() {
               accessibilityLayer
               data={monthlyOrders}
               margin={{
-                top: 5,
+                top: 20,
                 right: 15,
                 left: 15,
                 bottom: 5,
@@ -98,6 +97,16 @@ export default function MonthlyOrders() {
                 {monthlyOrders.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index]} />
                 ))}
+                <LabelList
+                  dataKey="orders"
+                  position="top"
+                  style={{
+                    fill: "#374151",
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                  }}
+                  formatter={(value: number) => value.toLocaleString()}
+                />
               </Bar>
               <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
             </BarChart>

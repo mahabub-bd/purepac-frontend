@@ -30,13 +30,16 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import {
+  deleteData,
   fetchData,
   formPostData,
   patchData,
   postData,
 } from "@/utils/api-utils";
 import {
+  Attachment,
   DiscountType,
+  Gallery,
   type Brand,
   type Category,
   type Product,
@@ -45,6 +48,7 @@ import {
 } from "@/utils/types";
 import { useRouter } from "next/navigation";
 
+import { DatePicker } from "@/components/ui/date-picker";
 import { productSchema } from "@/utils/form-validation";
 import { InfoBox, Section } from "../helper";
 
@@ -78,6 +82,10 @@ export function ProductForm({
   const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
   const router = useRouter();
 
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  console.log(galleryFiles);
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -86,6 +94,7 @@ export function ProductForm({
       sellingPrice: product?.sellingPrice || 0,
       purchasePrice: product?.purchasePrice || 0,
       stock: product?.stock || 0,
+      weight: product?.weight || 0,
       unitId: product?.unit?.id || 0,
       productSku: product?.productSku || "",
       imageUrl: product?.attachment?.url || "",
@@ -94,6 +103,7 @@ export function ProductForm({
       brandId: product?.brand?.id || 0,
       categoryId: product?.category?.id || 0,
       supplierId: product?.supplier?.id || 0,
+      galleryId: product?.gallery?.id || 0,
       hasDiscount: Boolean(product?.discountType),
       discountType: product?.discountType || undefined,
       discountValue: product?.discountValue || 0,
@@ -140,6 +150,26 @@ export function ProductForm({
 
         setUnits(unitsResponse);
         setSuppliers(suppliersResponse);
+
+        // Fetch gallery images if in edit mode and product has a gallery
+        if (mode === "edit" && product?.gallery?.id) {
+          try {
+            const galleryResponse = await fetchData<Gallery>(
+              `galleries/${product.gallery.id}`
+            );
+            if (
+              galleryResponse?.attachments &&
+              Array.isArray(galleryResponse.attachments)
+            ) {
+              const galleryImages = galleryResponse.attachments.map(
+                (attachment: Attachment) => attachment.url
+              );
+              setGalleryPreviews(galleryImages);
+            }
+          } catch (error) {
+            console.error("Error fetching gallery images:", error);
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to load initial data");
@@ -147,7 +177,7 @@ export function ProductForm({
     };
 
     fetchInitialData();
-  }, []);
+  }, [mode, product]);
 
   const fetchSubCategories = async (parentId: number) => {
     setIsLoadingSubCategories(true);
@@ -210,8 +240,57 @@ export function ProductForm({
     form.setValue("imageUrl", "");
   };
 
+  const handleGalleryFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles || selectedFiles.length === 0) return;
+
+    const newFiles = Array.from(selectedFiles);
+    setGalleryFiles((prev) => [...prev, ...newFiles]);
+
+    // Create preview URLs for the new files
+    const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+    setGalleryPreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+
+    URL.revokeObjectURL(galleryPreviews[index]);
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const deleteGalleryImage = async (attachmentId: number) => {
+    try {
+      if (!product?.gallery?.id) return;
+
+      // Use the correct endpoint format: galleries/{galleryId}/attachments/{attachmentId}
+      await deleteData(
+        `galleries/${product.gallery.id}/attachments`,
+        attachmentId
+      );
+
+      toast.success("Image deleted successfully");
+
+      // Refresh gallery images
+      const galleryResponse = await fetchData<Gallery>(
+        `galleries/${product.gallery.id}`
+      );
+      if (
+        galleryResponse?.attachments &&
+        Array.isArray(galleryResponse.attachments)
+      ) {
+        const galleryImages = galleryResponse.attachments.map(
+          (attachment: Attachment) => attachment.url
+        );
+        setGalleryPreviews(galleryImages);
+      }
+    } catch (error) {
+      console.error("Error deleting gallery image:", error);
+      toast.error("An error occurred while deleting the image");
+    }
+  };
+
   const handleSubmit = async (data: ProductFormValues) => {
-    // Add this validation before setting isSubmitting to true
     if (
       selectedMainCategory &&
       subCategories.length > 0 &&
@@ -225,6 +304,7 @@ export function ProductForm({
 
     try {
       let attachmentId = product?.attachment?.id;
+      let galleryId = product?.gallery?.id;
 
       if (file) {
         const formData = new FormData();
@@ -233,11 +313,37 @@ export function ProductForm({
         attachmentId = result.data.id;
       }
 
+      if (galleryFiles.length > 0) {
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("description", data.description || "");
+
+        galleryFiles.forEach((file) => {
+          formData.append("files", file);
+        });
+
+        const galleryResponse = await formPostData("galleries", formData);
+
+        if (
+          galleryResponse?.statusCode === 200 ||
+          galleryResponse?.statusCode === 201
+        ) {
+          if (galleryResponse.data?.id) {
+            galleryId = galleryResponse.data.id;
+          }
+        } else {
+          toast.error(galleryResponse?.message || "Failed to create gallery");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const productData = {
         ...data,
         unitId: data.unitId.toString(),
         supplierId: data.supplierId.toString(),
         attachment: attachmentId,
+        galleryId: galleryId?.toString() || undefined,
       };
 
       const endpoint =
@@ -269,8 +375,14 @@ export function ProductForm({
       if (imagePreview && !imagePreview.startsWith("http")) {
         URL.revokeObjectURL(imagePreview);
       }
+
+      galleryPreviews.forEach((url) => {
+        if (!url.startsWith("http")) {
+          URL.revokeObjectURL(url);
+        }
+      });
     };
-  }, [imagePreview]);
+  }, [imagePreview, galleryPreviews]);
 
   return (
     <Form {...form}>
@@ -574,6 +686,19 @@ export function ProductForm({
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weight (g)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <InfoBox
               title="Inventory Management"
@@ -649,12 +774,11 @@ export function ProductForm({
                     <FormItem>
                       <FormLabel>Start Date</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          onChange={(e) =>
-                            field.onChange(new Date(e.target.value))
-                          }
-                          value={field.value?.toISOString().split("T")[0] || ""}
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select start date"
+                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage />
@@ -669,18 +793,11 @@ export function ProductForm({
                     <FormItem>
                       <FormLabel>End Date</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          onChange={(e) =>
-                            field.onChange(new Date(e.target.value))
-                          }
-                          value={field.value?.toISOString().split("T")[0] || ""}
-                          min={
-                            form
-                              .watch("discountStartDate")
-                              ?.toISOString()
-                              .split("T")[0]
-                          }
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select End date"
+                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage />
@@ -742,6 +859,112 @@ export function ProductForm({
                   </FormItem>
                 )}
               />
+            </Section>
+
+            <Section title="Product Gallery">
+              <div className="space-y-4">
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    {mode === "create"
+                      ? "The gallery will be created automatically using the product name and description when you submit the form. Upload images below to include them in the gallery."
+                      : "Manage your product gallery images below. You can add new images or remove existing ones."}
+                  </p>
+                </div>
+
+                <FormItem>
+                  <FormLabel>Gallery Images</FormLabel>
+                  <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {/* Display existing gallery images from the server */}
+                      {mode === "edit" &&
+                        product?.gallery?.id &&
+                        galleryPreviews.map((preview, index) => (
+                          <div
+                            key={`existing-${index}`}
+                            className="relative group"
+                          >
+                            <div className="relative w-full h-24 border rounded-md overflow-hidden bg-gray-50">
+                              <Image
+                                src={preview || "/placeholder.svg"}
+                                alt={`Gallery image ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                // If product has gallery and we have attachment IDs
+                                if (
+                                  product?.gallery?.attachments &&
+                                  product.gallery.attachments[index]?.id
+                                ) {
+                                  deleteGalleryImage(
+                                    product.gallery.attachments[index].id
+                                  );
+                                } else {
+                                  // If we don't have attachment IDs, just remove from UI
+                                  const newPreviews = [...galleryPreviews];
+                                  newPreviews.splice(index, 1);
+                                  setGalleryPreviews(newPreviews);
+                                }
+                              }}
+                            >
+                              <span className="sr-only">Remove</span>×
+                            </Button>
+                          </div>
+                        ))}
+
+                      {/* Display newly uploaded images */}
+                      {galleryFiles.map((_, index) => (
+                        <div key={`new-${index}`} className="relative group">
+                          <div className="relative w-full h-24 border rounded-md overflow-hidden bg-gray-50">
+                            <Image
+                              src={
+                                URL.createObjectURL(galleryFiles[index]) ||
+                                "/placeholder.svg"
+                              }
+                              alt={`New gallery image ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeGalleryImage(index)}
+                          >
+                            <span className="sr-only">Remove</span>×
+                          </Button>
+                        </div>
+                      ))}
+
+                      <div
+                        className="flex items-center justify-center w-full h-24 border rounded-md bg-muted/20 cursor-pointer"
+                        onClick={() =>
+                          document.getElementById("gallery-upload")?.click()
+                        }
+                      >
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    </div>
+
+                    <Input
+                      id="gallery-upload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleGalleryFilesChange}
+                    />
+                  </div>
+                </FormItem>
+              </div>
             </Section>
 
             <Section title="Status">

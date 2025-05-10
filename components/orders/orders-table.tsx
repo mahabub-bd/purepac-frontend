@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Edit, Eye } from "lucide-react"; // Importing Lucid icons
 
 // Order type with phone number
 type Order = {
@@ -144,10 +145,10 @@ export default function OrdersTable() {
               <TableCell>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm">
-                    View
+                    <Eye className="mr-1" /> View
                   </Button>
                   <Button variant="secondary" size="sm">
-                    Edit
+                    <Edit className="mr-1" /> Edit
                   </Button>
                 </div>
               </TableCell>

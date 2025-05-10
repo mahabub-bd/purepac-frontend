@@ -59,6 +59,15 @@ export enum DiscountType {
   FIXED = "fixed",
 }
 
+export interface Gallery {
+  id: number;
+  name: string;
+  description: string;
+
+  attachments: Attachment[];
+  createdAt: string;
+  updatedAt: string;
+}
 export interface Product {
   id: number;
   name: string;
@@ -73,10 +82,10 @@ export interface Product {
   stock: number;
   weight: number | null;
   attachment: Attachment;
-
-  attachments: [Attachment];
+  gallery: Gallery;
   isActive: boolean;
   isFeatured: boolean;
+
   createdAt: string;
   updatedAt: string;
   brand: Brand;

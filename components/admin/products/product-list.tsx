@@ -32,6 +32,7 @@ import { formatCurrencyEnglish } from "@/lib/utils";
 import { deleteData, fetchData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand, Category, Product } from "@/utils/types";
 import {
+  Eye,
   Filter,
   MoreHorizontal,
   Package,
@@ -428,6 +429,15 @@ export function ProductList({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    {/* View Option */}
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`/admin/products/${product.id}/view`}
+                        passHref
+                      >
+                        <Eye className="mr-2 h-4 w-4" /> View
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href={`/admin/products/${product.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit

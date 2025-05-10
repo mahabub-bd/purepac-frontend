@@ -100,6 +100,7 @@ const productSchema = z
     isActive: z.boolean().default(true),
     isFeatured: z.boolean().default(false),
     brandId: z.number().min(1, "Brand is required"),
+    galleryId: z.number().optional(),
     categoryId: z.number().min(1, "Category is required"),
     supplierId: z.number().min(1, "Supplier is required"),
     hasDiscount: z.boolean().default(false),
@@ -196,14 +197,34 @@ const couponSchema = z.object({
     .number() // Also fix maxUsage
     .min(1, "Max usage must be at least 1")
     .optional(),
-  validFrom: z.string().min(1, "Start date is required"),
-  validUntil: z.string().min(1, "End date is required"),
+  validFrom: z.date({ message: "Start date is required" }),
+  validUntil: z.date({ message: "End date is required" }),
   isActive: z.boolean(),
+});
+
+const discountFormSchema = z.object({
+  discountType: z.enum([DiscountType.PERCENTAGE, DiscountType.FIXED], {
+    required_error: "Please select a discount type",
+  }),
+  discountValue: z.coerce
+    .number({
+      required_error: "Please enter a discount value",
+      invalid_type_error: "Please enter a valid number",
+    })
+    .positive("Discount must be greater than 0"),
+  startDate: z.date({
+    required_error: "Please select a start date",
+  }),
+  endDate: z.date({
+    required_error: "Please select an end date",
+  }),
+  productIds: z.array(z.number()).min(1, "Please select at least one product"),
 });
 export {
   bannerSchema,
   brandSchema,
   couponSchema,
+  discountFormSchema,
   loginSchema,
   menuSchema,
   paymentSchema,

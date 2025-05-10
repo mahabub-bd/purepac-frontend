@@ -14,10 +14,10 @@ import {
 import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
-  value?: string;
+  value?: Date;
   onChange?: (value: string) => void;
   placeholder?: string;
-  minDate?: string;
+  minDate?: Date;
   maxDate?: string;
   className?: string;
 }

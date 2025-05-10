@@ -45,8 +45,8 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
       discountType: coupon?.discountType || "percentage",
       value: coupon?.value ? Number(coupon.value) : 0,
       maxUsage: coupon?.maxUsage || 100,
-      validFrom: coupon?.validFrom || "",
-      validUntil: coupon?.validUntil || "",
+      validFrom: coupon?.validFrom ? new Date(coupon.validFrom) : undefined,
+      validUntil: coupon?.validUntil ? new Date(coupon.validUntil) : undefined,
       isActive: coupon?.isActive ?? true,
     },
   });

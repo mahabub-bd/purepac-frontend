@@ -13,6 +13,7 @@ import type {
   ApiResponseusers,
   Brand,
   Category,
+  OrderResponse,
   Product,
   User,
 } from "@/utils/types";
@@ -33,6 +34,7 @@ export default async function DashboardPage() {
   const categories = await fetchData<Category[]>("categories");
   const brands = await fetchData<Brand[]>("brands");
   const response = await fetchDataPagination<ApiResponseusers>("users");
+  const orders = await fetchDataPagination<OrderResponse>(`orders`);
 
   const customers = [...response.data.customers];
 
@@ -51,7 +53,7 @@ export default async function DashboardPage() {
         />
         <StatsCard
           title="Total Orders"
-          value="2,350"
+          value={orders.data.length?.toString()}
           description="+12.2% from last month"
           trend="up"
           icon={ShoppingCart}

@@ -111,6 +111,12 @@ export interface ProductResponse {
   statusCode: number;
   data: Product | Product[];
 }
+
+export interface OrderResponse {
+  message: string;
+  statusCode: number;
+  data: Order[];
+}
 export interface BrandResponse {
   message: string;
   statusCode: number;

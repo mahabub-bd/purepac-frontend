@@ -1,4 +1,11 @@
 type UserRole = "superadmin" | "admin" | "user";
+export enum OrderStatus {
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  SHIPPED = "SHIPPED",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+}
 
 export type UserTypes = {
   id: number;
@@ -374,4 +381,31 @@ export interface Address {
   city: string;
   type: string;
   isDefault: boolean;
+}
+
+export interface OrderItem {
+  id: number;
+  productId: number;
+  quantity: number;
+  createdAt: string;
+  updatedAt: string;
+  product: Product;
+}
+
+export interface Order {
+  id: number;
+  orderNo: string;
+  orderStatus: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  paymentStatus: string;
+  discountType: string;
+  discountValue: number;
+  totalValue: number;
+  user: User;
+  address: Address;
+  shippingMethod: ShippingMethod;
+  paymentMethod: PaymentMethod;
+  items: OrderItem;
+  coupon: Coupon | null;
+  createdAt: string;
+  updatedAt: string;
 }

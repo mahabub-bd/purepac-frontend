@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,95 +8,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Eye } from "lucide-react"; // Importing Lucid icons
+import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
+import { fetchDataPagination } from "@/utils/api-utils";
+import { Order, OrderStatus } from "@/utils/types";
 
-// Order type with phone number
-type Order = {
-  id: string;
-  customer: string;
-  phone: string;
-  date: string;
-  amount: number;
-  status: "Pending" | "Shipped" | "Delivered" | "Cancelled";
+import { Edit, Eye } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type PaginatedResponse<T> = {
+  message: string;
+  statusCode: number;
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 };
 
-// Sample data with phone numbers
-const orders: Order[] = [
-  {
-    id: "ORD-001",
-    customer: "John Doe",
-    phone: "01710000001",
-    date: "2025-05-01",
-    amount: 120.5,
-    status: "Delivered",
-  },
-  {
-    id: "ORD-002",
-    customer: "Jane Smith",
-    phone: "01710000002",
-    date: "2025-05-03",
-    amount: 89.99,
-    status: "Pending",
-  },
-  {
-    id: "ORD-003",
-    customer: "Alice Johnson",
-    phone: "01710000003",
-    date: "2025-05-05",
-    amount: 99.0,
-    status: "Shipped",
-  },
-  {
-    id: "ORD-004",
-    customer: "Md. Rakib Hossain",
-    phone: "01812345678",
-    date: "2025-05-06",
-    amount: 150.0,
-    status: "Delivered",
-  },
-  {
-    id: "ORD-005",
-    customer: "Nasima Akter",
-    phone: "01987654321",
-    date: "2025-05-07",
-    amount: 75.25,
-    status: "Pending",
-  },
-  {
-    id: "ORD-006",
-    customer: "Shahidul Islam",
-    phone: "01611112222",
-    date: "2025-05-07",
-    amount: 210.75,
-    status: "Cancelled",
-  },
-  {
-    id: "ORD-007",
-    customer: "Ayesha Sultana",
-    phone: "01555556666",
-    date: "2025-05-08",
-    amount: 180.0,
-    status: "Shipped",
-  },
-  {
-    id: "ORD-008",
-    customer: "Mizanur Rahman",
-    phone: "01333334444",
-    date: "2025-05-08",
-    amount: 99.99,
-    status: "Delivered",
-  },
-];
-
-const getStatusIcon = (status: Order["status"]) => {
+const getStatusIcon = (status: Order["orderStatus"]) => {
   switch (status) {
-    case "Pending":
+    case OrderStatus.PENDING:
       return "⏳";
-    case "Shipped":
+    case OrderStatus.SHIPPED:
       return "🚚";
-    case "Delivered":
+    case OrderStatus.DELIVERED:
       return "✅";
-    case "Cancelled":
+    case OrderStatus.CANCELLED:
       return "❌";
     default:
       return "";
@@ -105,8 +41,46 @@ const getStatusIcon = (status: Order["status"]) => {
 };
 
 export default function OrdersTable() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [totalOrders, setTotalOrders] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const [limit] = useState<number>(10);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      setError(""); // Reset error state before fetching
+
+      try {
+        const data: PaginatedResponse<Order> = await fetchDataPagination(
+          `orders?page=${page}&limit=${limit}`
+        );
+        setOrders(data.data);
+        setTotalOrders(data.total);
+      } catch (err) {
+        console.error(err)
+        setError("Error fetching orders.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [page, limit]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= Math.ceil(totalOrders / limit)) {
+      setPage(newPage);
+    }
+  };
+
   return (
     <div className="overflow-x-auto md:p-6 p-2 rounded-lg border">
+      {loading && <div>Loading...</div>}
+      {error && <div>{error}</div>}
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -123,23 +97,23 @@ export default function OrdersTable() {
           {orders.map((order) => (
             <TableRow key={order.id}>
               <TableCell>{order.id}</TableCell>
-              <TableCell>{order.customer}</TableCell>
-              <TableCell>{order.phone}</TableCell>
-              <TableCell>{order.date}</TableCell>
-              <TableCell>৳{order.amount.toFixed(2)}</TableCell>
+              <TableCell>{order.user.name}</TableCell>
+              <TableCell>{order.user.mobileNumber}</TableCell>
+              <TableCell>{formatDateTime(order.createdAt)}</TableCell>
+              <TableCell>{formatCurrencyEnglish(order?.totalValue)}</TableCell>
               <TableCell>
                 <span
                   className={`inline-flex items-center gap-1 font-semibold ${
-                    order.status === "Pending"
+                    order.orderStatus === OrderStatus.PENDING
                       ? "text-yellow-500"
-                      : order.status === "Shipped"
+                      : order.orderStatus === OrderStatus.SHIPPED
                       ? "text-blue-500"
-                      : order.status === "Delivered"
+                      : order.orderStatus === OrderStatus.DELIVERED
                       ? "text-green-600"
                       : "text-red-500"
                   }`}
                 >
-                  {getStatusIcon(order.status)} {order.status}
+                  {getStatusIcon(order.orderStatus)} {order.orderStatus}
                 </span>
               </TableCell>
               <TableCell>
@@ -156,6 +130,24 @@ export default function OrdersTable() {
           ))}
         </TableBody>
       </Table>
+
+      <div className="flex justify-between items-center mt-4">
+        <Button
+          variant="outline"
+          disabled={page <= 1}
+          onClick={() => handlePageChange(page - 1)}
+        >
+          Previous
+        </Button>
+        <span>Page {page}</span>
+        <Button
+          variant="outline"
+          disabled={page >= Math.ceil(totalOrders / limit)}
+          onClick={() => handlePageChange(page + 1)}
+        >
+          Next
+        </Button>
+      </div>
     </div>
   );
 }

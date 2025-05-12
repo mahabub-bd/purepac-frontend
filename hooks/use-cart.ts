@@ -38,8 +38,7 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
 
     if (isLoggedIn && serverCart) {
       setLocalCart(null);
-      // For logged-in users, we would fetch the coupon from the server
-      // This would be implemented in your backend
+      
     } else {
       const storedCart = getCartFromLocalStorage();
       const storedCoupon = getCouponFromLocalStorage();
@@ -82,7 +81,7 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
             });
           }
 
-          // If there's a coupon applied locally, apply it to the server cart too
+          
           if (appliedCoupon) {
             try {
               await applyCouponApi(
@@ -91,7 +90,7 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
               );
             } catch (error) {
               console.error("Error syncing coupon:", error);
-              // Don't fail the whole sync if just the coupon fails
+             
             }
           }
 

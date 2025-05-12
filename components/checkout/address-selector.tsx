@@ -21,9 +21,8 @@ import {
 import { cn } from "@/lib/utils";
 import { fetchProtectedData } from "@/utils/api-utils";
 
-// Update the Address interface to match the one used in the checkout page
 export interface Address {
-  id: number; // Keep as number since that's what your API returns
+  id: number;
   street: string;
   area: string;
   division: string;

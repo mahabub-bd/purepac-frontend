@@ -256,7 +256,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     setIsSubmitting(true);
     try {
       const orderData = {
-        addressId: 4, // You'll need to implement address handling
+        addressId: 4,
         userId: user?.id || userId || null,
         shippingMethodId: Number(selectedShippingMethod),
         paymentMethodId: paymentMethods.find(
@@ -270,7 +270,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
         discountType: "PERCENTAGE",
         discountValue: 0,
         totalValue: total,
-        paymentAmount: total, // Assuming full payment for now
+        paymentAmount: 0,
       };
 
       const response = await postData("orders", orderData);

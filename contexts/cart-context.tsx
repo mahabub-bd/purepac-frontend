@@ -15,8 +15,8 @@ type CartContextType = {
   ) => Promise<void>;
   removeItem: (itemId: number | string) => Promise<void>;
   clearCart: () => Promise<void>;
-  applyCoupon: (code: string, subtotal: number) => Promise<void>; // Added apply coupon method
-  removeCoupon: () => void; // Added remove coupon method
+  applyCoupon: (code: string, subtotal: number) => Promise<void>;
+  removeCoupon: () => void;
   getCartTotals: () => {
     itemCount: number;
     originalSubtotal: number;

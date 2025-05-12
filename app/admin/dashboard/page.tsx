@@ -1,4 +1,3 @@
-import { getUser } from "@/actions/auth";
 import { StatsCard } from "@/components/admin/dashboard/stats-card";
 import MonthWiseSalesOrders from "@/components/orders/orders-monthwise";
 import OrdersTable from "@/components/orders/orders-table";
@@ -15,7 +14,6 @@ import type {
   Category,
   OrderResponse,
   Product,
-  User,
 } from "@/utils/types";
 
 import {
@@ -30,7 +28,7 @@ import {
 
 export default async function DashboardPage() {
   const products = await fetchData<Product[]>("products?limit=100");
-  const user: User = await getUser();
+
   const categories = await fetchData<Category[]>("categories");
   const brands = await fetchData<Brand[]>("brands");
   const response = await fetchDataPagination<ApiResponseusers>("users");
@@ -40,8 +38,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
-      {user?.name}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <StatsCard
           title="Total Revenue"
@@ -94,7 +90,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent Activity Section */}
-      <div className="grid grid-cols-2 gap-8 ">
+      <div className="grid 2xl:grid-cols-2 grid-col-1 gap-8 ">
         <MonthWiseSalesOrders />
         <SalesAmountMonthwise />
       </div>

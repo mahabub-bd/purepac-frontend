@@ -306,6 +306,7 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
       if (applyRes.statusCode === 200 && applyRes.data) {
         const couponData = backendCouponToLocalCoupon(
           code,
+
           applyRes.data.discountValue
         );
 

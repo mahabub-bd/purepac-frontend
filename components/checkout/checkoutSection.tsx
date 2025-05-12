@@ -46,7 +46,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/contexts/cart-context";
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
-import { fetchData, patchData } from "@/utils/api-utils";
+import { fetchData, patchData, postData } from "@/utils/api-utils";
 import { clearLocalCoupon } from "@/utils/cart-storage";
 import type {
   Address,
@@ -74,16 +74,13 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
   const { originalSubtotal, discountedSubtotal, itemCount, productDiscounts } =
     getCartTotals();
 
-  // Data states
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Selected states
   const [selectedShippingMethod, setSelectedShippingMethod] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
-  // Account verification states
   const [isVerified, setIsVerified] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -250,6 +247,8 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
 
   const onSubmit = async (data: CheckoutFormValues) => {
     if (createAccount && !user && !isVerified) {
+      console.log(data);
+
       toast.error("Please verify your phone number to create an account");
       return;
     }
@@ -257,43 +256,40 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     setIsSubmitting(true);
     try {
       const orderData = {
-        customer: {
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          userId: user?.id || userId,
-          createAccount: createAccount,
-        },
-        shipping: {
-          method: selectedShippingMethod,
-          address: {
-            street: data.address,
-            city: data.city,
-            country: data.country,
-          },
-        },
-        payment: {
-          method: selectedPaymentMethod,
-        },
+        addressId: 4, // You'll need to implement address handling
+        userId: user?.id || userId || null,
+        shippingMethodId: Number(selectedShippingMethod),
+        paymentMethodId: paymentMethods.find(
+          (method) => method.code === selectedPaymentMethod
+        )?.id,
         items: cart.items.map((item: CartItem) => ({
           productId: item.product.id,
           quantity: item.quantity,
-          price: item.product.sellingPrice,
         })),
-        coupon: appliedCoupon?.code,
-        total,
+        couponId: appliedCoupon?.code || null,
+        discountType: "PERCENTAGE",
+        discountValue: 0,
+        totalValue: total,
+        paymentAmount: total, // Assuming full payment for now
       };
-      console.log(orderData);
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await postData("orders", orderData);
 
       await clearCart();
       await clearLocalCoupon();
 
       toast.success("Order placed successfully!");
+
+      window.location.href = `/order-confirmation/${response.data.orderId}`;
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to place order");
+      console.error("Order submission error:", error);
+      if (error instanceof Error) {
+        toast.error(
+          error.message || "Failed to place order. Please try again."
+        );
+      } else {
+        toast.error("Failed to place order. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

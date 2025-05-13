@@ -127,6 +127,18 @@ export default function OrdersTable() {
     return pageNumbers;
   };
 
+  // Calculate the range of orders being displayed
+  const getOrderRange = () => {
+    if (totalOrders === 0) return { start: 0, end: 0 };
+
+    const start = (page - 1) * limit + 1;
+    const end = Math.min(page * limit, totalOrders);
+
+    return { start, end };
+  };
+
+  const { start, end } = getOrderRange();
+
   return (
     <div className="overflow-x-auto md:p-6 p-2 rounded-lg border">
       {loading && (
@@ -198,8 +210,11 @@ export default function OrdersTable() {
       </Table>
 
       {totalOrders > 0 && (
-        <div className="mt-4">
-          <Pagination>
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <div className="text-sm text-muted-foreground order-2 sm:order-1">
+            Showing {start} to {end} of {totalOrders} Orders
+          </div>
+          <Pagination className="order-1 sm:order-2">
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious

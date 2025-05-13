@@ -80,6 +80,7 @@ export async function fetchProtectedData<T>(endpoint: string): Promise<T> {
     throw error;
   }
 }
+
 export async function fetchDataPagination<T>(endpoint: string): Promise<T> {
   const url = `${apiUrl}/${endpoint}`;
 
@@ -328,4 +329,8 @@ export function buildQueryString(
   });
 
   return queryParams.toString();
+}
+
+export async function fetchOrderById(id: string) {
+  return fetchData(`orders/${id}`);
 }

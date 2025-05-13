@@ -55,6 +55,7 @@ import type {
   ShippingMethod,
   User as UserType,
 } from "@/utils/types";
+import { useRouter } from "next/navigation";
 import { LoadingIndicator } from "../admin/loading-indicator";
 import { AddressSelector } from "./address-selector";
 
@@ -96,6 +97,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
   const couponDiscount = appliedCoupon?.discount || 0;
   const total =
     Number(discountedSubtotal) + Number(shippingCost) - Number(couponDiscount);
+  const router = useRouter();
 
   const form = useForm<CheckoutFormValues>({
     defaultValues: {
@@ -276,8 +278,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
       await clearLocalCoupon();
 
       toast.success("Order placed successfully!");
-
-      window.location.href = `/order-confirmation/${response.data.orderId}`;
+      router.push(`/order-confirmation/${response.data.id}`);
     } catch (error) {
       console.error("Order submission error:", error);
       if (error instanceof Error) {

@@ -27,7 +27,7 @@ export async function setUserCookies(userData: any) {
     httpOnly: true,
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 604800,
+    maxAge: 86400,
     sameSite: "lax",
   });
 
@@ -75,7 +75,7 @@ export async function setUserCookies(userData: any) {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 604800,
+      maxAge: 86400,
       sameSite: "lax",
     });
 
@@ -112,9 +112,7 @@ export async function login(formData: LoginFormData) {
       await setUserCookies(userData);
       const user = await getUser();
 
-      const redirectPath = user?.isAdmin
-        ? "/admin/dashboard"
-        : "/user/dashboard";
+      const redirectPath = user?.isAdmin ? "/admin/dashboard" : "/";
 
       return {
         success: true,
@@ -274,9 +272,7 @@ export async function verifyOtp(data: {
       await setUserCookies(userData);
       const user = await getUser();
 
-      const redirectPath = user?.isAdmin
-        ? "/admin/dashboard"
-        : "/user/dashboard";
+      const redirectPath = user?.isAdmin ? "/admin/dashboard" : "/";
 
       return {
         success: true,

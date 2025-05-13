@@ -10,20 +10,10 @@ import {
 } from "@/components/ui/table";
 import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import { fetchDataPagination } from "@/utils/api-utils";
-import { Order, OrderStatus } from "@/utils/types";
+import { Order, OrderStatus, PaginatedResponse } from "@/utils/types";
 
 import { Edit, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-
-type PaginatedResponse<T> = {
-  message: string;
-  statusCode: number;
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
 
 const getStatusIcon = (status: Order["orderStatus"]) => {
   switch (status) {
@@ -51,7 +41,7 @@ export default function OrdersTable() {
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
-      setError(""); // Reset error state before fetching
+      setError("");
 
       try {
         const data: PaginatedResponse<Order> = await fetchDataPagination(
@@ -60,7 +50,7 @@ export default function OrdersTable() {
         setOrders(data.data);
         setTotalOrders(data.total);
       } catch (err) {
-        console.error(err)
+        console.error(err);
         setError("Error fetching orders.");
       } finally {
         setLoading(false);
@@ -96,7 +86,7 @@ export default function OrdersTable() {
         <TableBody>
           {orders.map((order) => (
             <TableRow key={order.id}>
-              <TableCell>{order.id}</TableCell>
+              <TableCell>{order.orderNo}</TableCell>
               <TableCell>{order.user.name}</TableCell>
               <TableCell>{order.user.mobileNumber}</TableCell>
               <TableCell>{formatDateTime(order.createdAt)}</TableCell>

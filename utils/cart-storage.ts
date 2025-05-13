@@ -12,6 +12,7 @@ export type LocalCart = {
 };
 
 export type LocalCoupon = {
+  id: number;
   code: string;
   discount: number;
   appliedAt: number;
@@ -95,10 +96,12 @@ export function clearLocalCoupon(): void {
 
 // Convert backend coupon to local format
 export function backendCouponToLocalCoupon(
+  id: number,
   code: string,
   discount: number
 ): LocalCoupon {
   return {
+    id,
     code,
     discount,
     appliedAt: Date.now(),

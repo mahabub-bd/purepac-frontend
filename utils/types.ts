@@ -7,6 +7,15 @@ export enum OrderStatus {
   CANCELLED = "CANCELLED",
 }
 
+export type PaginatedResponse<T> = {
+  message: string;
+  statusCode: number;
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
 export type UserTypes = {
   id: number;
   name: string;

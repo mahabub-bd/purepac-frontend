@@ -246,9 +246,9 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
   };
 
   const onSubmit = async (data: CheckoutFormValues) => {
-    if (createAccount && !user && !isVerified) {
-      console.log(data);
+    console.log(data);
 
+    if (createAccount && !user && !isVerified) {
       toast.error("Please verify your phone number to create an account");
       return;
     }
@@ -266,11 +266,8 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
           productId: item.product.id,
           quantity: item.quantity,
         })),
-        couponId: appliedCoupon?.code || null,
-        discountType: "PERCENTAGE",
-        discountValue: 0,
+        couponId: appliedCoupon?.id || null,
         totalValue: total,
-        paymentAmount: 0,
       };
 
       const response = await postData("orders", orderData);

@@ -12,6 +12,7 @@ export interface ApplyCouponResponse {
 
   discountedAmount: number;
   discountValue: number;
+  couponId: number;
 }
 
 export async function validateCoupon(

@@ -38,7 +38,6 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
 
     if (isLoggedIn && serverCart) {
       setLocalCart(null);
-      
     } else {
       const storedCart = getCartFromLocalStorage();
       const storedCoupon = getCouponFromLocalStorage();
@@ -81,7 +80,6 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
             });
           }
 
-          
           if (appliedCoupon) {
             try {
               await applyCouponApi(
@@ -90,7 +88,6 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
               );
             } catch (error) {
               console.error("Error syncing coupon:", error);
-             
             }
           }
 
@@ -301,9 +298,11 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
 
       // Apply the coupon
       const applyRes = await applyCouponApi(code, subtotal);
+      console.log(applyRes);
 
       if (applyRes.statusCode === 200 && applyRes.data) {
         const couponData = backendCouponToLocalCoupon(
+          applyRes.data.couponId,
           code,
 
           applyRes.data.discountValue

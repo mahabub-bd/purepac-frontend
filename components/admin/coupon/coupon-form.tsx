@@ -21,13 +21,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { patchData, postData } from "@/utils/api-utils";
 import { couponSchema } from "@/utils/form-validation";
-import { Coupon } from "@/utils/types";
+import type { Coupon } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod";
+import type * as z from "zod";
 
 interface CouponFormProps {
   coupon?: Coupon;
@@ -48,6 +48,9 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
       validFrom: coupon?.validFrom ? new Date(coupon.validFrom) : undefined,
       validUntil: coupon?.validUntil ? new Date(coupon.validUntil) : undefined,
       isActive: coupon?.isActive ?? true,
+      maxDiscountAmount: coupon?.maxDiscountAmount
+        ? Number(coupon.maxDiscountAmount)
+        : null,
     },
   });
 
@@ -56,10 +59,8 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
     try {
       if (mode === "create") {
         await postData("coupons", values);
-        toast.success("Coupon created successfully");
       } else if (mode === "edit" && coupon) {
         await patchData(`coupons/${coupon.id}`, values);
-        toast.success("Coupon updated successfully");
       }
       onSuccess();
     } catch (error) {
@@ -153,6 +154,40 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
             />
           </div>
 
+          {form.watch("discountType") === "percentage" && (
+            <FormField
+              control={form.control}
+              name="maxDiscountAmount"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Maximum Discount Amount</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Enter maximum discount amount (optional)"
+                      {...field}
+                      value={field.value === null ? "" : field.value}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === ""
+                            ? null
+                            : Number.parseFloat(e.target.value)
+                        )
+                      }
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-xs text-muted-foreground">
+                    Limits the maximum discount amount when using percentage
+                    discounts
+                  </p>
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={form.control}
             name="maxUsage"
@@ -164,7 +199,9 @@ export function CouponForm({ coupon, mode, onSuccess }: CouponFormProps) {
                     type="number"
                     placeholder="Enter maximum usage limit"
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                    onChange={(e) =>
+                      field.onChange(Number.parseInt(e.target.value))
+                    }
                     className="w-full"
                   />
                 </FormControl>

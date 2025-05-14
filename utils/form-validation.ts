@@ -193,6 +193,11 @@ const couponSchema = z.object({
     .number() // Convert string input to number
     .min(0.01, "Value must be greater than 0")
     .refine((val) => val >= 0, "Value cannot be negative"),
+  maxDiscountAmount: z.coerce
+    .number()
+    .min(0, "Maximum discount amount cannot be negative")
+    .optional()
+    .nullable(),
   maxUsage: z.coerce
     .number() // Also fix maxUsage
     .min(1, "Max usage must be at least 1")
@@ -220,6 +225,38 @@ const discountFormSchema = z.object({
   }),
   productIds: z.array(z.number()).min(1, "Please select at least one product"),
 });
+
+const orderSchema = z.object({
+  customer: z.object({
+    name: z.string().min(1, "Customer name is required"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().min(1, "Phone number is required"),
+  }),
+  shippingAddress: z.object({
+    street: z.string().min(1, "Street address is required"),
+    city: z.string().min(1, "City is required"),
+
+    country: z.string().min(1, "Country is required"),
+  }),
+  status: z.enum([
+    "pending",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ]),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1, "Product is required"),
+        quantity: z.number().min(1, "Quantity must be at least 1"),
+        price: z.number().min(0, "Price must be at least 0"),
+      })
+    )
+    .min(1, "At least one item is required"),
+  notes: z.string().optional(),
+});
+
 export {
   bannerSchema,
   brandSchema,
@@ -227,6 +264,7 @@ export {
   discountFormSchema,
   loginSchema,
   menuSchema,
+  orderSchema,
   paymentSchema,
   productSchema,
   purchaseSchema,

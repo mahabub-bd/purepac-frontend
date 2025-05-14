@@ -20,53 +20,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime, getRoleColor } from "@/lib/utils";
-import { deleteData, fetchDataPagination } from "@/utils/api-utils";
-import { User } from "@/utils/types";
+import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
+import { fetchDataPagination } from "@/utils/api-utils";
+import type { Order } from "@/utils/types";
 import {
   Filter,
   MoreHorizontal,
   Pencil,
-  Plus,
   Search,
-  Trash2,
-  UserCircle,
+  ShoppingCart,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import DeleteConfirmationDialog from "../delete-confirmation-dialog";
 import { LoadingIndicator } from "../loading-indicator";
-import { PageHeader } from "../page-header";
 
-interface ApiResponse {
-  message: string;
-  statusCode: number;
-  data: {
-    customers: User[];
-    others: User[];
-    pagination: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-  };
-}
-
-interface UserListProps {
-  initialPage?: number;
-  initialLimit?: number;
+interface OrderListProps {
+  initialPage: number;
+  initialLimit: number;
   initialSearchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export function UserList({
-  initialPage = 1,
-  initialLimit = 10,
+export function OrderList({
+  initialPage,
+  initialLimit,
   initialSearchParams = {},
-}: UserListProps) {
+}: OrderListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -76,17 +57,15 @@ export function UserList({
     return param ? param : initialSearchParams?.[key] || "";
   };
 
-  const [users, setUsers] = useState<User[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState(
     getInitialParam("search") as string
   );
-  const [roleFilter, setRoleFilter] = useState(
-    getInitialParam("role") as string
+  const [statusFilter, setStatusFilter] = useState(
+    getInitialParam("status") as string
   );
   const [isLoading, setIsLoading] = useState(true);
 
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [limit] = useState(initialLimit);
@@ -99,12 +78,13 @@ export function UserList({
     params.set("limit", limit.toString());
 
     if (searchQuery) params.set("search", searchQuery);
-    if (roleFilter && roleFilter !== "all") params.set("role", roleFilter);
+    if (statusFilter && statusFilter !== "all")
+      params.set("status", statusFilter);
 
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname, currentPage, limit, searchQuery, roleFilter]);
+  }, [router, pathname, currentPage, limit, searchQuery, statusFilter]);
 
-  const fetchUsers = async () => {
+  const fetchOrders = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -112,60 +92,42 @@ export function UserList({
       params.append("limit", limit.toString());
 
       if (searchQuery) params.append("search", searchQuery);
-      if (roleFilter && roleFilter !== "all") params.append("role", roleFilter);
+      if (statusFilter && statusFilter !== "all")
+        params.append("status", statusFilter);
 
-      const response = await fetchDataPagination<ApiResponse>("users");
-
-      const allUsers = [...response.data.others];
-
-      setUsers(allUsers);
-      setTotalItems(response.data.pagination.total);
-      setTotalPages(response.data.pagination.totalPages);
+      const response = await fetchDataPagination<{
+        data: Order[];
+        total: number;
+        totalPages: number;
+      }>(`orders?${params.toString()}`);
+      setOrders(response.data);
+      setTotalItems(response.total);
+      setTotalPages(response.totalPages);
     } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to load users. Please try again.");
-      setUsers([]);
+      console.error("Error fetching orders:", error);
+      toast.error("Failed to load orders. Please try again.");
+      setOrders([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchOrders();
   }, []);
 
   useEffect(() => {
-    fetchUsers();
+    fetchOrders();
     updateUrl();
-  }, [currentPage, limit, searchQuery, roleFilter]);
+  }, [currentPage, limit, searchQuery, statusFilter]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  const handleDeleteClick = (user: User) => {
-    setSelectedUser(user);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDelete = async () => {
-    if (!selectedUser) return;
-
-    try {
-      await deleteData("users", selectedUser.id);
-      fetchUsers();
-      toast.success("User deleted successfully");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error("Failed to delete user. Please try again.");
-    } finally {
-      setIsDeleteDialogOpen(false);
-    }
-  };
-
   const clearFilters = () => {
     setSearchQuery("");
-    setRoleFilter("");
+    setStatusFilter("");
     setCurrentPage(1);
   };
 
@@ -174,22 +136,33 @@ export function UserList({
     setCurrentPage(1);
   };
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "secondary";
+      case "processing":
+        return "secondary";
+      case "shipped":
+        return "default";
+      case "delivered":
+        return "default"; // Changed from "success" to "default"
+      case "cancelled":
+        return "destructive";
+      default:
+        return "outline";
+    }
+  };
+
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center p-8 text-center">
-      <UserCircle className="h-10 w-10 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-semibold">No users found</h3>
+      <ShoppingCart className="h-10 w-10 text-muted-foreground mb-4" />
+      <h3 className="text-lg font-semibold">No orders found</h3>
       <p className="text-sm text-muted-foreground mt-2">
-        {searchQuery || roleFilter
-          ? "No users match your search criteria. Try different filters."
-          : "Get started by adding your first user."}
+        {searchQuery || statusFilter
+          ? "No orders match your search criteria. Try different filters."
+          : "There are no orders in the system yet."}
       </p>
-      {!(searchQuery || roleFilter) && (
-        <Button className="mt-4" asChild>
-          <Link href="/admin/user/add" />
-          <Plus className="mr-2 h-4 w-4" /> Add User
-        </Button>
-      )}
-      {(searchQuery || roleFilter) && (
+      {(searchQuery || statusFilter) && (
         <Button variant="outline" className="mt-4" onClick={clearFilters}>
           Clear Filters
         </Button>
@@ -198,7 +171,7 @@ export function UserList({
   );
 
   const renderActiveFilters = () => {
-    const hasFilters = searchQuery || roleFilter;
+    const hasFilters = searchQuery || statusFilter;
 
     if (!hasFilters) return null;
 
@@ -216,13 +189,13 @@ export function UserList({
           </Badge>
         )}
 
-        {roleFilter && roleFilter !== "all" && (
+        {statusFilter && statusFilter !== "all" && (
           <Badge
             variant="outline"
             className="flex items-center gap-1 px-3 py-1"
           >
-            Role: {roleFilter}
-            <button onClick={() => setRoleFilter("")} className="ml-1">
+            Status: {statusFilter}
+            <button onClick={() => setStatusFilter("")} className="ml-1">
               <XCircle className="h-3 w-3" />
             </button>
           </Badge>
@@ -241,43 +214,35 @@ export function UserList({
   };
 
   const renderTableView = () => (
-    <div className=" md:p-6 p-2">
+    <div className="md:p-6 p-2">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead className="hidden md:table-cell">Mobile</TableHead>
+            <TableHead>Order ID</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead className="hidden md:table-cell">Date</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
-            <TableHead className="hidden md:table-cell">Role</TableHead>
-            <TableHead className="hidden md:table-cell">Last Login</TableHead>
+            <TableHead className="hidden md:table-cell text-right">
+              Total
+            </TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.name}</TableCell>
-              <TableCell>{user.email}</TableCell>
+          {orders.map((order) => (
+            <TableRow key={order.id}>
+              <TableCell className="font-medium">#{order.orderNo}</TableCell>
+              <TableCell>{order.user.name}</TableCell>
               <TableCell className="hidden md:table-cell">
-                {user.mobileNumber || "N/A"}
+                {formatDateTime(order.createdAt)}
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                <Badge variant={user.isVerified ? "default" : "secondary"}>
-                  {user.isVerified ? "Verified" : "Unverified"}
+                <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
+                  {order.orderStatus}
                 </Badge>
               </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <Badge
-                  className={`capitalize ${getRoleColor(user?.role?.rolename)}`}
-                >
-                  {user?.role?.rolename}
-                </Badge>
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {user.lastLoginAt
-                  ? formatDateTime(user.lastLoginAt)
-                  : "Never logged in"}
+              <TableCell className="hidden md:table-cell text-right">
+                {formatCurrencyEnglish(order.totalValue)}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -289,15 +254,9 @@ export function UserList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/user/${user?.id}/edit`}>
+                      <Link href={`/admin/orders/${order.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-600"
-                      onClick={() => handleDeleteClick(user)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -312,20 +271,13 @@ export function UserList({
   return (
     <>
       <div className="w-full md:p-6 p-2">
-        <PageHeader
-          title="Users"
-          description=" Manage your system users"
-          actionLabel="Add User"
-          actionHref="/admin/user/add"
-        />
-
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search users..."
+                placeholder="Search orders..."
                 className="pl-8"
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -353,7 +305,7 @@ export function UserList({
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-medium">Filters</h4>
-                      {roleFilter && roleFilter !== "all" && (
+                      {statusFilter && statusFilter !== "all" && (
                         <button
                           onClick={clearFilters}
                           className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
@@ -363,19 +315,19 @@ export function UserList({
                       )}
                     </div>
 
-                    {/* Role Filter */}
+                    {/* Status Filter */}
                     <div className="space-y-2">
                       <label className="text-xs text-muted-foreground">
-                        Role
+                        Status
                       </label>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => {
-                            setRoleFilter("all");
+                            setStatusFilter("all");
                             setCurrentPage(1);
                           }}
                           className={`text-xs py-1.5 px-2 rounded-md border ${
-                            roleFilter === "all"
+                            statusFilter === "all"
                               ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
                               : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                           }`}
@@ -384,29 +336,68 @@ export function UserList({
                         </button>
                         <button
                           onClick={() => {
-                            setRoleFilter("customer");
+                            setStatusFilter("pending");
                             setCurrentPage(1);
                           }}
                           className={`text-xs py-1.5 px-2 rounded-md border ${
-                            roleFilter === "customer"
-                              ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800 text-green-600 dark:text-green-400"
+                            statusFilter === "pending"
+                              ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400"
                               : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                           }`}
                         >
-                          Customer
+                          Pending
                         </button>
                         <button
                           onClick={() => {
-                            setRoleFilter("admin");
+                            setStatusFilter("processing");
                             setCurrentPage(1);
                           }}
                           className={`text-xs py-1.5 px-2 rounded-md border ${
-                            roleFilter === "admin"
+                            statusFilter === "processing"
                               ? "bg-purple-50 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 text-purple-600 dark:text-purple-400"
                               : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                           }`}
                         >
-                          Admin
+                          Processing
+                        </button>
+                        <button
+                          onClick={() => {
+                            setStatusFilter("shipped");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            statusFilter === "shipped"
+                              ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 text-blue-600 dark:text-blue-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          Shipped
+                        </button>
+                        <button
+                          onClick={() => {
+                            setStatusFilter("delivered");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            statusFilter === "delivered"
+                              ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800 text-green-600 dark:text-green-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          Delivered
+                        </button>
+                        <button
+                          onClick={() => {
+                            setStatusFilter("cancelled");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-xs py-1.5 px-2 rounded-md border ${
+                            statusFilter === "cancelled"
+                              ? "bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800 text-red-600 dark:text-red-400"
+                              : "bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
+                          }`}
+                        >
+                          Cancelled
                         </button>
                       </div>
                     </div>
@@ -419,18 +410,18 @@ export function UserList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <LoadingIndicator message="   Loading users..." />
-          ) : users.length === 0 ? (
+            <LoadingIndicator message="Loading Orders..." />
+          ) : orders.length === 0 ? (
             renderEmptyState()
           ) : (
             <div className="mt-6">{renderTableView()}</div>
           )}
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground text-center md:text-left truncate">
-              {`Showing ${users.length} of ${totalItems} users`}
+              {`Showing ${orders.length} of ${totalItems} orders`}
             </p>
           </div>
 
@@ -444,14 +435,6 @@ export function UserList({
           </div>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        open={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDelete}
-        defaultToast={false}
-      />
     </>
   );
 }

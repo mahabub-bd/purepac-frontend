@@ -25,7 +25,6 @@ import { fetchDataPagination } from "@/utils/api-utils";
 import type { ApiResponseusers, User } from "@/utils/types";
 import {
   Filter,
-  Loader2,
   MoreHorizontal,
   Pencil,
   Search,
@@ -36,6 +35,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { LoadingIndicator } from "../loading-indicator";
 import { PageHeader } from "../page-header";
 
 interface UserListProps {
@@ -361,14 +361,7 @@ export function CustomerList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading users...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message="   Loading users..." />
           ) : users.length === 0 ? (
             renderEmptyState()
           ) : (

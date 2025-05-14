@@ -18,7 +18,7 @@ export function formatCurrencyEnglish(amount: number): string {
     .replace("BDT", "৳ ");
 }
 
-export const formatDateTime = (isoString: string) => {
+export const formatDateTime = (isoString: string | Date) => {
   const date = new Date(isoString);
   return date.toLocaleString("en-US", {
     day: "2-digit",
@@ -46,7 +46,7 @@ export function getTopCategoryByProductCount(
 
   return topCategory?.name || null;
 }
-// Add to your utils file if not already present
+
 export function getTopBrandByProductCount(brands?: Brand[]): string {
   if (!brands || brands.length === 0) return "None";
   const sorted = [...brands].sort(

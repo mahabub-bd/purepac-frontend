@@ -28,11 +28,12 @@ import { PaginationComponent } from "@/components/common/pagination";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import { fetchData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand, Category, Product, Supplier } from "@/utils/types";
-import { Filter, Loader2, Package, Search, XCircle } from "lucide-react";
+import { Filter, Package, Search, XCircle } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ProductImage } from "../../image-wrapper";
+import { LoadingIndicator } from "../../loading-indicator";
 import { PageHeader } from "../../page-header";
 
 interface StockReportProps {
@@ -478,14 +479,7 @@ export function StockReport({
         {renderActiveFilters()}
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
-                Loading Stock Report...
-              </p>
-            </div>
-          </div>
+          <LoadingIndicator message=" Loading Stock Report..." />
         ) : products.length === 0 ? (
           renderEmptyState()
         ) : (

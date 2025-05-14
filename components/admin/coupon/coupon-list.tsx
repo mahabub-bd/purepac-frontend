@@ -96,6 +96,7 @@ export function CouponList() {
             <TableHead>Discount</TableHead>
             <TableHead>Usage</TableHead>
             <TableHead>Valid Period</TableHead>
+            <TableHead>Max Discount</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="hidden md:table-cell">Created</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -121,6 +122,7 @@ export function CouponList() {
                 {formatDateTime(coupon.validFrom)} -{" "}
                 {formatDateTime(coupon.validUntil)}
               </TableCell>
+              <TableCell>{coupon?.maxDiscountAmount}</TableCell>
               <TableCell className="hidden md:table-cell">
                 <Badge variant={coupon.isActive ? "default" : "secondary"}>
                   {coupon.isActive ? "Active" : "Inactive"}

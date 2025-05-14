@@ -22,7 +22,6 @@ import { deleteData, fetchDataPagination } from "@/utils/api-utils";
 import type { Brand } from "@/utils/types";
 import {
   Filter,
-  Loader2,
   MoreHorizontal,
   Package,
   Pencil,
@@ -37,6 +36,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { LoadingIndicator } from "../loading-indicator";
 import { PageHeader } from "../page-header";
 
 interface BrandListProps {
@@ -409,14 +409,7 @@ export function BrandList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading Brands...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message="  Loading Brands..." />
           ) : brands.length === 0 ? (
             renderEmptyState()
           ) : (

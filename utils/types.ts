@@ -356,17 +356,18 @@ export interface CartItem {
 }
 
 export interface Coupon {
-  id: number;
+  id: string;
   code: string;
-  discountType: DiscountType;
-  value: string;
-  timesUsed: number;
+  discountType: "percentage" | "fixed";
+  value: number;
+  maxDiscountAmount?: number | null;
   maxUsage: number;
-  validFrom: string;
-  validUntil: string;
+  timesUsed: number;
+  validFrom: Date;
+  validUntil: Date;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ShippingMethod {
@@ -415,6 +416,8 @@ export interface OrderItem {
 export interface Order {
   id: number;
   orderNo: string;
+  paidAmount: number;
+  totalDiscount: number;
   orderStatus: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   paymentStatus: string;
   discountType: string;
@@ -424,7 +427,7 @@ export interface Order {
   address: Address;
   shippingMethod: ShippingMethod;
   paymentMethod: PaymentMethod;
-  items: OrderItem;
+  items: OrderItem[];
   coupon: Coupon | null;
   createdAt: string;
   updatedAt: string;

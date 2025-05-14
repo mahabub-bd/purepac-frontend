@@ -40,7 +40,6 @@ import {
   BadgePercent,
   CalendarRange,
   Filter,
-  Loader2,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -55,6 +54,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "../delete-confirmation-dialog";
+import { LoadingIndicator } from "../loading-indicator";
 import { PageHeader } from "../page-header";
 
 interface DiscountListProps {
@@ -701,14 +701,7 @@ export function DiscountList({
           {renderActiveFilters()}
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading Discounted Products...
-                </p>
-              </div>
-            </div>
+            <LoadingIndicator message=" Loading Discounted Products..." />
           ) : products.length === 0 ? (
             renderEmptyState()
           ) : (

@@ -49,7 +49,7 @@ export default async function DashboardPage() {
         />
         <StatsCard
           title="Total Orders"
-          value={orders.data.length?.toString()}
+          value={orders.total.toString()}
           description="+12.2% from last month"
           trend="up"
           icon={ShoppingCart}

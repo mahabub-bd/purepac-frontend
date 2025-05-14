@@ -269,13 +269,12 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
           quantity: item.quantity,
         })),
         couponId: appliedCoupon?.id || null,
-        totalValue: total,
       };
 
       const response = await postData("orders", orderData);
 
       await clearCart();
-      await clearLocalCoupon();
+      clearLocalCoupon();
 
       toast.success("Order placed successfully!");
       router.push(`/order-confirmation/${response.data.id}`);

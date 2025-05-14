@@ -1,11 +1,11 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/admin/loading-indicator";
 import { PaymentMethodForm } from "@/components/admin/payment-method/payment-method-form";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import type { PaymentMethod } from "@/utils/types";
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -46,16 +46,7 @@ export default function EditPaymentMethodPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-6 flex justify-center items-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">
-            Loading payment method data...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingIndicator message=" Loading payment method data..." />;
   }
 
   if (!paymentMethod) {

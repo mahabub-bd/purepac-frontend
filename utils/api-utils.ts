@@ -83,9 +83,14 @@ export async function fetchProtectedData<T>(endpoint: string): Promise<T> {
 
 export async function fetchDataPagination<T>(endpoint: string): Promise<T> {
   const url = `${apiUrl}/${endpoint}`;
-
+  const token = await getToken();
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       let errorMessage;

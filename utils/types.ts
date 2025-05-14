@@ -125,6 +125,11 @@ export interface OrderResponse {
   message: string;
   statusCode: number;
   data: Order[];
+
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 export interface BrandResponse {
   message: string;

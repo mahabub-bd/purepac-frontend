@@ -41,7 +41,7 @@ export const OtpVerificationModal = ({
   onResendOtp,
   onVerifyOtp,
   otpLength = 6,
-  resendCooldown = 30,
+  resendCooldown = 180,
 }: OtpVerificationModalProps) => {
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -145,7 +145,7 @@ export const OtpVerificationModal = ({
 
         <div className="p-4 space-y-4">
           <p className="text-sm text-muted-foreground">
-            We&aposve sent a {otpLength}-digit verification code to{" "}
+            We have sent a {otpLength}-digit verification code to{" "}
             <span className="font-medium">{phoneNumber}</span>
           </p>
 

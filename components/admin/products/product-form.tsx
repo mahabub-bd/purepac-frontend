@@ -863,13 +863,7 @@ export function ProductForm({
 
             <Section title="Product Gallery">
               <div className="space-y-4">
-                <div className="mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    {mode === "create"
-                      ? "The gallery will be created automatically using the product name and description when you submit the form. Upload images below to include them in the gallery."
-                      : "Manage your product gallery images below. You can add new images or remove existing ones."}
-                  </p>
-                </div>
+                
 
                 <FormItem>
                   <FormLabel>Gallery Images</FormLabel>

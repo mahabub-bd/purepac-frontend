@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   Check,
+  CheckCircle,
   CreditCard,
   DollarSign,
   Edit,
@@ -11,6 +12,7 @@ import {
   MapPin,
   Package,
   Receipt,
+  ShieldAlert,
   ShieldCheck,
   ShoppingBag,
   ShoppingCart,
@@ -121,7 +123,6 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // <-- NEW: Reset form values when `user` prop changes -->
   useEffect(() => {
     if (user) {
       reset({
@@ -135,7 +136,6 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
       });
     }
   }, [user, reset]);
-  // <-- END NEW -->
 
   useEffect(() => {
     const fetchMethods = async () => {
@@ -146,11 +146,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
         ]);
 
         setShippingMethods(shippingResponse as ShippingMethod[]);
-        setPaymentMethods(
-          (paymentResponse as PaymentMethod[]).filter(
-            (method) => method.code !== "bkash"
-          )
-        );
+        setPaymentMethods(paymentResponse as PaymentMethod[]);
 
         if ((shippingResponse as ShippingMethod[]).length > 0) {
           setSelectedShippingMethod(shippingResponse[0].id.toString());
@@ -470,31 +466,52 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
                       rules={{ required: "Phone number is required" }}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number *</FormLabel>
-                          <div className="flex gap-2">
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Phone Number *</FormLabel>
+                            {(isVerified || user) && (
+                              <span className="text-xs font-medium text-green-600 flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Verified
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2 items-stretch">
                             <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="01XXXXXXXXX"
-                                className={cn(
-                                  "flex-1",
-                                  (isVerified || user) && "border-green-500"
+                              <div className="relative flex-1">
+                                <Input
+                                  {...field}
+                                  placeholder="01XXXXXXXXX"
+                                  className={cn(
+                                    "pr-10",
+                                    (isVerified || user) &&
+                                      "border-green-500 bg-green-50"
+                                  )}
+                                  disabled={!!user || isVerified}
+                                />
+                                {(isVerified || user) && (
+                                  <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
                                 )}
-                                disabled={!!user || isVerified}
-                              />
+                              </div>
                             </FormControl>
+
                             {!user && !isVerified && (
                               <Button
                                 type="button"
-                                variant="secondary"
+                                variant={field.value ? "default" : "outline"}
                                 onClick={handleVerifyPhone}
-                                className="whitespace-nowrap"
+                                disabled={!field.value}
+                                className="shrink-0 w-24 justify-center"
                               >
-                                Verify
+                                {isVerified ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <ShieldAlert className="h-4 w-4 mr-1" />
+                                    Verify
+                                  </>
+                                )}
                               </Button>
-                            )}
-                            {(isVerified || user) && (
-                              <Badge className="bg-green-500">Verified</Badge>
                             )}
                           </div>
                           <FormMessage />

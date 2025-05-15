@@ -15,10 +15,10 @@ import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
   value?: Date;
-  onChange?: (value: string) => void;
+  onChange?: (value: Date) => void;
   placeholder?: string;
   minDate?: Date;
-  maxDate?: string;
+  maxDate?: Date;
   className?: string;
 }
 
@@ -43,7 +43,7 @@ export function DatePicker({
   const handleSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
     if (selectedDate && onChange) {
-      onChange(selectedDate.toISOString());
+      onChange(selectedDate);
     }
   };
 

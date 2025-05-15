@@ -48,6 +48,7 @@ import { useCartContext } from "@/contexts/cart-context";
 import { cn, formatCurrencyEnglish } from "@/lib/utils";
 import { fetchData, patchData, postData } from "@/utils/api-utils";
 import { clearLocalCoupon } from "@/utils/cart-storage";
+import { serverRevalidate } from "@/utils/revalidatePath";
 import type {
   Address,
   CartItem,
@@ -70,6 +71,8 @@ type CheckoutFormValues = {
 };
 
 export default function CheckoutPage({ user }: { user?: UserType }) {
+  console.log(user);
+
   const { getCartTotals, clearCart, cart, appliedCoupon } = useCartContext();
 
   const { originalSubtotal, discountedSubtotal, itemCount, productDiscounts } =
@@ -83,7 +86,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
   const [isVerified, setIsVerified] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+
   const [showOtpModal, setShowOtpModal] = useState(false);
 
   const [showAddressForm, setShowAddressForm] = useState(true);
@@ -112,11 +115,27 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     mode: "onBlur",
   });
 
-  const { watch, setValue } = form;
+  const { watch, setValue, reset } = form;
   const createAccount = watch("createAccount");
   const phoneValue = watch("phone");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // <-- NEW: Reset form values when `user` prop changes -->
+  useEffect(() => {
+    if (user) {
+      reset({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.mobileNumber || "",
+        address: "",
+        city: "",
+        country: "Bangladesh",
+        createAccount: false,
+      });
+    }
+  }, [user, reset]);
+  // <-- END NEW -->
 
   useEffect(() => {
     const fetchMethods = async () => {
@@ -169,31 +188,15 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     }
   };
 
-  const handleOtpSuccess = (userId: string) => {
+  // In the handleOtpSuccess function:
+  const handleOtpSuccess = () => {
     setIsVerified(true);
-    setUserId(userId);
+
     setShowOtpModal(false);
     toast.success("Phone number verified successfully");
-
-    if (!form.watch("name") || !form.watch("email")) {
-      fetchUserInfo(userId);
-    }
-  };
-
-  const fetchUserInfo = async (userId: string) => {
-    try {
-      const userData = (await fetchData(`users/${userId}`)) as UserType;
-      if (userData) {
-        if (userData.name && !form.watch("name")) {
-          setValue("name", userData.name);
-        }
-        if (userData.email && !form.watch("email")) {
-          setValue("email", userData.email);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-    }
+    serverRevalidate("/");
+    serverRevalidate("/checkout");
+    router.refresh();
   };
 
   const handleAddressSelect = (address: Address) => {
@@ -226,7 +229,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
 
     setIsUpdatingInfo(true);
     try {
-      const userIdToUpdate = user?.id || userId;
+      const userIdToUpdate = user?.id;
       if (!userIdToUpdate) {
         toast.error("User ID not available");
         return;
@@ -259,7 +262,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
     try {
       const orderData = {
         addressId: 4,
-        userId: user?.id || userId || null,
+        userId: user?.id || null,
         shippingMethodId: Number(selectedShippingMethod),
         paymentMethodId: paymentMethods.find(
           (method) => method.code === selectedPaymentMethod
@@ -740,7 +743,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
 
                   <div className="space-y-4 divide-y">
                     {cart.items.map((item: CartItem) => (
-                      <div key={item.id} className="pt-4 first:pt-0">
+                      <div key={item.product.id} className="pt-4 first:pt-0">
                         <CartItemProductPage item={item} />
                       </div>
                     ))}

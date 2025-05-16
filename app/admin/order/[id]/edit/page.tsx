@@ -57,7 +57,7 @@ export default function EditOrderPage() {
             <CardDescription>Update the order information.</CardDescription>
           </div>
           <Button asChild variant="outline">
-            <Link href="/admin/order">Back to Orders</Link>
+            <Link href="/admin/orders">Back to Orders</Link>
           </Button>
         </div>
       </div>

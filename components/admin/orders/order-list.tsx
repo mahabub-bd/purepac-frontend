@@ -24,6 +24,7 @@ import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import { fetchDataPagination } from "@/utils/api-utils";
 import type { Order } from "@/utils/types";
 import {
+  Eye,
   Filter,
   MoreHorizontal,
   Pencil,
@@ -221,7 +222,10 @@ export function OrderList({
             <TableHead>Order ID</TableHead>
             <TableHead>Customer</TableHead>
             <TableHead className="hidden md:table-cell">Date</TableHead>
-            <TableHead className="hidden md:table-cell">Status</TableHead>
+            <TableHead className="hidden md:table-cell">Order Status</TableHead>
+            <TableHead className="hidden md:table-cell">
+              payment Status
+            </TableHead>
             <TableHead className="hidden md:table-cell text-right">
               Total
             </TableHead>
@@ -241,6 +245,12 @@ export function OrderList({
                   {order.orderStatus}
                 </Badge>
               </TableCell>
+
+              <TableCell className="hidden md:table-cell">
+                <Badge variant={getStatusBadgeVariant(order.paymentStatus)}>
+                  {order.paymentStatus}
+                </Badge>
+              </TableCell>
               <TableCell className="hidden md:table-cell text-right">
                 {formatCurrencyEnglish(order.totalValue)}
               </TableCell>
@@ -254,7 +264,12 @@ export function OrderList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/orders/${order.id}/edit`}>
+                      <Link href={`/admin/order/${order.id}/view`}>
+                        <Eye className="mr-2 h-4 w-4" /> View
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/order/${order.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </Link>
                     </DropdownMenuItem>

@@ -263,7 +263,7 @@ export function ProductForm({
     try {
       if (!product?.gallery?.id) return;
 
-      // Use the correct endpoint format: galleries/{galleryId}/attachments/{attachmentId}
+    
       await deleteData(
         `galleries/${product.gallery.id}/attachments`,
         attachmentId

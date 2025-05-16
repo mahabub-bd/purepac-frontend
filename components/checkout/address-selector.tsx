@@ -20,16 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { fetchProtectedData } from "@/utils/api-utils";
-
-export interface Address {
-  id: number;
-  street: string;
-  area: string;
-  division: string;
-  city: string;
-  type: string;
-  isDefault: boolean;
-}
+import { Address } from "@/utils/types";
 
 interface AddressSelectorProps {
   userId?: string;
@@ -151,7 +142,7 @@ export function AddressSelector({
                   </span>
                 </div>
                 <span className="text-sm text-muted-foreground truncate max-w-full">
-                  {selectedAddress.street}, {selectedAddress.area},{" "}
+                  {selectedAddress.address}, {selectedAddress.area},{" "}
                   {selectedAddress.city}
                 </span>
               </div>
@@ -167,7 +158,7 @@ export function AddressSelector({
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0">
+        <PopoverContent className="w-[350px] p-0">
           <Command>
             <CommandInput placeholder="Search address..." />
             <CommandList>
@@ -183,7 +174,9 @@ export function AddressSelector({
                     <div className="flex flex-col w-full">
                       <div className="flex items-center justify-between">
                         <span className="font-medium">
-                          {address.type === "shipping" ? "Shipping" : "Billing"}
+                          {address.type === "shipping"
+                            ? "Shipping Address"
+                            : "Billing Address"}
                         </span>
                         {address.isDefault && (
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
@@ -192,7 +185,7 @@ export function AddressSelector({
                         )}
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {address.street}, {address.area}, {address.city}
+                        {address.address}, {address.area}, {address.city}
                       </span>
                     </div>
                     <Check

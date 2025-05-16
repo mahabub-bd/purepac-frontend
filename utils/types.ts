@@ -396,7 +396,7 @@ export interface PaymentMethod {
 
 export interface Address {
   id: number;
-  street: string;
+  address: string;
   area: string;
   division: string;
   city: string;
@@ -431,4 +431,11 @@ export interface Order {
   coupon: Coupon | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OrderSummary {
+  year: number;
+  month: string;
+  orderCount: number;
+  totalValue: number;
 }

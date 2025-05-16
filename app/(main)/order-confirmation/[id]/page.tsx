@@ -2,24 +2,18 @@ import {
   CheckCircle,
   Clock,
   CreditCard,
+  Download,
   MapPin,
   Package,
   Truck,
   User,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -29,73 +23,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
+import { fetchProtectedData } from "@/utils/api-utils";
+import { Order, OrderItem } from "@/utils/types";
 
-// This would typically come from an API call
-const fetchOrder = async (id: string) => {
-  return {
-    id: id,
-    orderNo: "ORD-2025055933",
-    orderStatus: "PENDING",
-    paymentStatus: "PENDING",
-    totalValue: 38080,
-    paidAmount: 0,
-    createdAt: "2025-05-12T16:59:56.902Z",
-    updatedAt: "2025-05-12T16:59:56.902Z",
-    user: {
-      id: 1,
-      name: "Mahabub Hossain",
-      email: "palashmahabub@gmail.com",
-      mobileNumber: "+8801711852202",
-      profilePhoto: {
-        url: "https://purepacbd.s3.ap-southeast-1.amazonaws.com/a3895160-179f-493d-b6df-1fbfb5f35626.jpg",
-      },
-    },
-    address: {
-      id: 4,
-      street: "542, East Badda",
-      area: "Badda",
-      division: "Dhaka",
-      city: "Dhaka",
-      type: "shipping",
-      isDefault: true,
-    },
-    shippingMethod: {
-      id: 2,
-      name: "Standard Shipping",
-      cost: "80.00",
-      deliveryTime: "1-2 Business Days",
-      description: "Standard Shipping",
-    },
-    paymentMethod: {
-      id: 1,
-      code: "bank_transfer",
-      name: "Bank Transfer",
-      description: "Direct bank transfer payment",
-    },
-    items: [
-      {
-        id: 16,
-        productId: 20,
-        quantity: 1,
-        product: {
-          id: 20,
-          name: "vivo V27 5G",
-          slug: "vivo-v27-5g",
-          description: "vivo V27 5G",
-          sellingPrice: 40000,
-          discountType: "percentage",
-          discountValue: "5.00",
-          attachment: {
-            url: "https://purepacbd.s3.ap-southeast-1.amazonaws.com/a4202128-76ed-4d1d-8051-3ee506e7f46a.jpg",
-          },
-          unit: {
-            name: "Piece",
-          },
-        },
-      },
-    ],
-  };
-};
+async function fetchOrder(id: string) {
+  try {
+    const order = await fetchProtectedData<Order>(`orders/${id}`);
+    return order;
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return null;
+  }
+}
 
 export default async function OrderConfirmationPage({
   params,
@@ -109,14 +49,6 @@ export default async function OrderConfirmationPage({
     notFound();
   }
 
-  // Format date
-  const orderDate = new Date(order.createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  // Calculate discounted price
   const calculateDiscountedPrice = (
     price: number,
     discountType: string,
@@ -132,12 +64,14 @@ export default async function OrderConfirmationPage({
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col gap-6">
         {/* Order Status Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-lg border">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">
               Order #{order.orderNo}
             </h1>
-            <p className="text-muted-foreground">Placed on {orderDate}</p>
+            <p className="text-muted-foreground">
+              Placed on {formatDateTime(order?.createdAt)}
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Badge
@@ -169,118 +103,108 @@ export default async function OrderConfirmationPage({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Customer Information */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center">
-                <User className="h-5 w-5 mr-2" />
-                Customer Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="relative h-12 w-12 rounded-full overflow-hidden">
-                  <Image
-                    src={order.user.profilePhoto.url || "/placeholder.svg"}
-                    alt={order.user.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="font-medium">{order.user.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {order.user.email}
-                  </p>
-                </div>
+          <div className="bg-white p-6 rounded-lg border">
+            <div className="flex items-center mb-4">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              <h2 className="text-lg font-semibold">Customer Information</h2>
+            </div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="relative h-12 w-12 rounded-full overflow-hidden">
+                <Image
+                  src={
+                    order.user.profilePhoto?.url ||
+                    "/placeholder.svg?height=48&width=48&query=user"
+                  }
+                  alt={order.user.name}
+                  fill
+                  className="object-cover"
+                />
               </div>
-              <p className="text-sm flex items-center">
-                <span className="font-medium mr-2">Phone:</span>{" "}
-                {order.user.mobileNumber}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Information */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Shipping Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-3">
+              <div>
                 <p className="font-medium">{order.user.name}</p>
                 <p className="text-sm text-muted-foreground">
-                  {order.address.street}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {order.address.area}, {order.address.city}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {order.address.division}
+                  {order.user.email}
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Truck className="h-4 w-4" />
-                <div>
-                  <span className="font-medium">
-                    {order.shippingMethod.name}
-                  </span>
-                  <p className="text-muted-foreground">
-                    {order.shippingMethod.deliveryTime}
-                  </p>
-                </div>
+            </div>
+            <p className="text-sm flex items-center">
+              <span className="font-medium mr-2">Phone:</span>{" "}
+              {order.user.mobileNumber}
+            </p>
+          </div>
+
+          {/* Shipping Information */}
+          <div className="bg-white p-6 rounded-lg border">
+            <div className="flex items-center mb-4">
+              <MapPin className="h-5 w-5 mr-2 text-primary" />
+              <h2 className="text-lg font-semibold">Shipping Information</h2>
+            </div>
+            <div className="mb-3">
+              <p className="font-medium">{order.user.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {order.address.address}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {order.address.area}, {order.address.city}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {order.address.division}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Truck className="h-4 w-4 text-primary" />
+              <div>
+                <span className="font-medium">{order.shippingMethod.name}</span>
+                <p className="text-muted-foreground">
+                  {order.shippingMethod.deliveryTime}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Payment Information */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center">
-                <CreditCard className="h-5 w-5 mr-2" />
-                Payment Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-3">
-                <p className="font-medium">{order.paymentMethod.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {order.paymentMethod.description}
+          <div className="bg-white p-6 rounded-lg border">
+            <div className="flex items-center mb-4">
+              <CreditCard className="h-5 w-5 mr-2 text-primary" />
+              <h2 className="text-lg font-semibold">Payment Information</h2>
+            </div>
+            <div className="mb-3">
+              <p className="font-medium">{order.paymentMethod.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {order.paymentMethod.description}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <p className="text-muted-foreground">Total Amount:</p>
+                <p className="font-medium">
+                  {formatCurrencyEnglish(order.totalValue)}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Total Amount:</p>
-                  <p className="font-medium">
-                    ৳{order.totalValue.toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Paid Amount:</p>
-                  <p className="font-medium">
-                    ৳{order.paidAmount.toLocaleString()}
-                  </p>
-                </div>
+              <div>
+                <p className="text-muted-foreground">Paid Amount:</p>
+                <p className="font-medium">
+                  {formatCurrencyEnglish(order.paidAmount)}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Order Items */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Package className="h-5 w-5 mr-2" />
-              Order Items
-            </CardTitle>
-            <CardDescription>
+        <div className="bg-white p-6 rounded-lg border">
+          <div className="mb-4">
+            <div className="flex items-center mb-1">
+              <Package className="h-5 w-5 mr-2 text-primary" />
+              <h2 className="text-lg font-semibold">Order Items</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">
               {order.items.length} {order.items.length === 1 ? "item" : "items"}{" "}
               in your order
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -293,11 +217,11 @@ export default async function OrderConfirmationPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {order.items.map((item) => {
+                {order.items.map((item: OrderItem) => {
                   const discountedPrice = calculateDiscountedPrice(
                     item.product.sellingPrice,
-                    item.product.discountType,
-                    item.product.discountValue
+                    item.product.discountType ?? "",
+                    (item.product.discountValue ?? 0).toString()
                   );
 
                   return (
@@ -306,7 +230,8 @@ export default async function OrderConfirmationPage({
                         <div className="relative h-16 w-16 rounded-md overflow-hidden">
                           <Image
                             src={
-                              item.product.attachment.url || "/placeholder.svg"
+                              item.product.attachment?.url ||
+                              "/placeholder.svg?height=64&width=64&query=product"
                             }
                             alt={item.product.name}
                             fill
@@ -323,58 +248,71 @@ export default async function OrderConfirmationPage({
                         </div>
                       </TableCell>
                       <TableCell>
-                        ৳{item.product.sellingPrice.toLocaleString()}
+                        {formatCurrencyEnglish(item.product.sellingPrice)}
                       </TableCell>
                       <TableCell>
                         {item.product.discountValue}
                         {item.product.discountType === "percentage" ? "%" : "৳"}
                       </TableCell>
                       <TableCell>
-                        {item.quantity} {item.product.unit.name}
+                        {item.quantity} {item.product.unit?.name || "Piece"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ৳{(discountedPrice * item.quantity).toLocaleString()}
+                        {formatCurrencyEnglish(discountedPrice * item.quantity)}
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
-          </CardContent>
-          <CardFooter className="flex flex-col items-end">
+          </div>
+
+          <div className="flex flex-col items-end mt-6">
             <div className="w-full md:w-72 space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
                 <span>
-                  ৳
-                  {(
+                  {formatCurrencyEnglish(
                     order.totalValue -
-                    Number.parseFloat(order.shippingMethod.cost)
-                  ).toLocaleString()}
+                      Number.parseFloat(order.shippingMethod.cost)
+                  )}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Shipping:</span>
                 <span>
-                  ৳
-                  {Number.parseFloat(
-                    order.shippingMethod.cost
-                  ).toLocaleString()}
+                  {formatCurrencyEnglish(
+                    Number.parseFloat(order.shippingMethod.cost)
+                  )}
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>Total:</span>
-                <span>৳{order.totalValue.toLocaleString()}</span>
+                <span>{formatCurrencyEnglish(order.totalValue)}</span>
               </div>
               <Button className="w-full mt-4">
-                {order.paymentStatus === "PENDING"
-                  ? "Pay Now"
-                  : "Download Invoice"}
+                {order.paymentStatus === "PENDING" ? (
+                  "Pay Now"
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Invoice
+                  </>
+                )}
               </Button>
             </div>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
+
+        <div className="flex justify-between">
+          <Button variant="outline" asChild>
+            <Link href="/orders">View All Orders</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/">Continue Shopping</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

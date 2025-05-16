@@ -1,21 +1,25 @@
+import OrdersTable from "@/components/admin/dashboard/orders-table";
 import { StatsCard } from "@/components/admin/dashboard/stats-card";
-import MonthWiseSalesOrders from "@/components/orders/orders-monthwise";
-import OrdersTable from "@/components/orders/orders-table";
-import SalesAmountMonthwise from "@/components/orders/sales-amount-monthwise";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getTopBrandByProductCount,
   getTopCategoryByProductCount,
 } from "@/lib/utils";
-import { fetchData, fetchDataPagination } from "@/utils/api-utils";
+import {
+  fetchData,
+  fetchDataPagination,
+  fetchProtectedData,
+} from "@/utils/api-utils";
 import type {
   ApiResponseusers,
   Brand,
   Category,
   OrderResponse,
+  OrderSummary,
   Product,
 } from "@/utils/types";
 
+import CombinedOrdersSalesChart from "@/components/admin/dashboard/combined-order-saleschart";
 import {
   Activity,
   DollarSign,
@@ -33,15 +37,19 @@ export default async function DashboardPage() {
   const brands = await fetchData<Brand[]>("brands");
   const response = await fetchDataPagination<ApiResponseusers>("users");
   const orders = await fetchDataPagination<OrderResponse>(`orders`);
+  const chartdata = await fetchProtectedData("orders/reports/monthly");
 
   const customers = [...response.data.customers];
-
+  const totalSales = (chartdata as { totalValue: number }[]).reduce(
+    (sum, item) => sum + item.totalValue,
+    0
+  );
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <StatsCard
-          title="Total Revenue"
-          value="45,231.89"
+          title="Total Sales"
+          value={totalSales.toString()}
           description="+20.1% from last month"
           trend="up"
           icon={DollarSign}
@@ -89,11 +97,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Recent Activity Section */}
-      <div className="grid 2xl:grid-cols-2 grid-col-1 gap-8 ">
-        <MonthWiseSalesOrders />
-        <SalesAmountMonthwise />
-      </div>
+      <CombinedOrdersSalesChart chartData={chartdata as OrderSummary[]} />
       <OrdersTable />
       {/* Additional Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

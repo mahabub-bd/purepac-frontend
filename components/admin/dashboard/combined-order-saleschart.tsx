@@ -21,14 +21,10 @@ import {
   YAxis,
 } from "recharts";
 
-// Define the data structure that will be passed as props
-
-// Props interface for the component
 interface CombinedOrdersSalesChartProps {
   chartData: OrderSummary[];
 }
 
-// Colors for the chart
 const ORDERS_COLOR = "hsl(215, 70%, 60%)"; // Blue for orders
 const SALES_COLOR = "hsl(145, 70%, 50%)"; // Green for sales
 

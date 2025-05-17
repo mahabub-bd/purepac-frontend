@@ -63,7 +63,7 @@ export function OrderList({
     getInitialParam("search") as string
   );
   const [statusFilter, setStatusFilter] = useState(
-    getInitialParam("status") as string
+    getInitialParam("orderStatus") as string
   );
   const [isLoading, setIsLoading] = useState(true);
 
@@ -80,7 +80,7 @@ export function OrderList({
 
     if (searchQuery) params.set("search", searchQuery);
     if (statusFilter && statusFilter !== "all")
-      params.set("status", statusFilter);
+      params.set("orderStatus", statusFilter);
 
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [router, pathname, currentPage, limit, searchQuery, statusFilter]);
@@ -92,9 +92,9 @@ export function OrderList({
       params.append("page", currentPage.toString());
       params.append("limit", limit.toString());
 
-      if (searchQuery) params.append("search", searchQuery);
+      if (searchQuery) params.append("orderStatus", searchQuery);
       if (statusFilter && statusFilter !== "all")
-        params.append("status", statusFilter);
+        params.append("orderStatus", statusFilter);
 
       const response = await fetchDataPagination<{
         data: Order[];
@@ -235,18 +235,18 @@ export function OrderList({
         <TableBody>
           {orders.map((order) => (
             <TableRow key={order.id}>
-              <TableCell className="font-medium">#{order.orderNo}</TableCell>
+              <TableCell className="font-medium">{order.orderNo}</TableCell>
               <TableCell>{order.user.name}</TableCell>
               <TableCell className="hidden md:table-cell">
                 {formatDateTime(order.createdAt)}
               </TableCell>
-              <TableCell className="hidden md:table-cell">
+              <TableCell className="hidden md:table-cell capitalize">
                 <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
                   {order.orderStatus}
                 </Badge>
               </TableCell>
 
-              <TableCell className="hidden md:table-cell">
+              <TableCell className="hidden md:table-cell capitalize">
                 <Badge variant={getStatusBadgeVariant(order.paymentStatus)}>
                   {order.paymentStatus}
                 </Badge>

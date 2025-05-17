@@ -17,21 +17,6 @@ import { Edit, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoadingIndicator } from "../loading-indicator";
 
-const getStatusIcon = (status: Order["orderStatus"]) => {
-  switch (status) {
-    case OrderStatus.PENDING:
-      return "⏳";
-    case OrderStatus.SHIPPED:
-      return "🚚";
-    case OrderStatus.DELIVERED:
-      return "✅";
-    case OrderStatus.CANCELLED:
-      return "❌";
-    default:
-      return "";
-  }
-};
-
 export default function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalOrders, setTotalOrders] = useState<number>(0);
@@ -120,7 +105,7 @@ export default function OrdersTable() {
                 </TableCell>
                 <TableCell>
                   <span
-                    className={`inline-flex items-center gap-1 font-semibold ${
+                    className={`inline-flex items-center gap-1 font-semibold capitalize ${
                       order.orderStatus === OrderStatus.PENDING
                         ? "text-yellow-500"
                         : order.orderStatus === OrderStatus.SHIPPED
@@ -130,16 +115,16 @@ export default function OrdersTable() {
                         : "text-red-500"
                     }`}
                   >
-                    {getStatusIcon(order.orderStatus)} {order.orderStatus}
+                    {order.orderStatus}
                   </span>
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-1" /> View
+                      <Eye className="h-4 w-4 mr-1" />
                     </Button>
                     <Button variant="secondary" size="sm">
-                      <Edit className="h-4 w-4 mr-1" /> Edit
+                      <Edit className="h-4 w-4 mr-1" />
                     </Button>
                   </div>
                 </TableCell>

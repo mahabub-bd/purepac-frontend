@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  ArrowRight,
   Calendar,
   CheckCircle2,
   Clock,
@@ -29,7 +28,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -54,19 +52,12 @@ import { Section } from "../helper";
 // Create strict schema for admin updates
 const orderUpdateSchema = z.object({
   orderStatus: z.union([
-    z.literal("PENDING"),
-    z.literal("PROCESSING"),
-    z.literal("SHIPPED"),
-    z.literal("DELIVERED"),
-    z.literal("CANCELLED"),
+    z.literal("pending"),
+    z.literal("processing"),
+    z.literal("shipped"),
+    z.literal("delivered"),
+    z.literal("cancelled"),
   ]),
-  paymentStatus: z.union([
-    z.literal("PENDING"),
-    z.literal("PAID"),
-    z.literal("FAILED"),
-    z.literal("REFUNDED"),
-  ]),
-  paidAmount: z.coerce.number().min(0, "Paid amount cannot be negative"),
 });
 
 type OrderUpdateValues = z.infer<typeof orderUpdateSchema>;
@@ -79,45 +70,21 @@ export function OrderForm({ order }: OrderFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  // Safely set default values with type checking
   const defaultValues: OrderUpdateValues = {
     orderStatus:
-      order.orderStatus === "PENDING" ||
-      order.orderStatus === "SHIPPED" ||
-      order?.orderStatus === "CANCELLED" ||
-      order?.orderStatus === "DELIVERED" ||
-      order?.orderStatus === "PROCESSING"
+      order.orderStatus === "pending" ||
+      order.orderStatus === "shipped" ||
+      order?.orderStatus === "cancelled" ||
+      order?.orderStatus === "delivered" ||
+      order?.orderStatus === "processing"
         ? order?.orderStatus
-        : "PENDING",
-    paymentStatus:
-      order.paymentStatus === "PENDING" ||
-      order.paymentStatus === "PAID" ||
-      order.paymentStatus === "FAILED" ||
-      order.paymentStatus === "REFUNDED"
-        ? order.paymentStatus
-        : "PENDING",
-    paidAmount: Math.min(order.paidAmount, order.totalValue),
+        : "pending",
   };
 
   const form = useForm<OrderUpdateValues>({
     resolver: zodResolver(orderUpdateSchema),
     defaultValues,
   });
-
-  const paidAmount = form.watch("paidAmount");
-
-  const updatePaymentStatus = (amount: number) => {
-    if (amount <= 0) {
-      form.setValue("paymentStatus", "PENDING");
-    } else if (amount >= order.totalValue) {
-      form.setValue("paymentStatus", "PAID");
-    } else if (amount > 0 && amount < order.totalValue) {
-      const currentStatus = form.getValues("paymentStatus");
-      if (currentStatus === "PENDING" || currentStatus === "PAID") {
-        form.setValue("paymentStatus", "PENDING");
-      }
-    }
-  };
 
   const handleSubmit = async (data: OrderUpdateValues) => {
     setIsSubmitting(true);
@@ -127,7 +94,7 @@ export function OrderForm({ order }: OrderFormProps) {
       const orderStatusResponse = await patchData(
         `orders/${order.id}/order-status`,
         {
-          orderStatus: data.orderStatus,
+          status: data.orderStatus,
         }
       );
 
@@ -137,22 +104,7 @@ export function OrderForm({ order }: OrderFormProps) {
         );
       }
 
-      // Update payment status
-      const paymentStatusResponse = await patchData(
-        `orders/${order.id}/payment-status`,
-        {
-          paymentStatus: data.paymentStatus,
-          paidAmount: Math.min(data.paidAmount, order.totalValue),
-        }
-      );
-
-      if (!paymentStatusResponse || paymentStatusResponse.statusCode !== 200) {
-        throw new Error(
-          paymentStatusResponse?.message || "Failed to update payment status"
-        );
-      }
-
-      toast.success("Order updated successfully");
+      toast.success("Order status updated successfully");
       router.push("/admin/orders");
     } catch (error) {
       console.error("Error updating order:", error);
@@ -173,13 +125,14 @@ export function OrderForm({ order }: OrderFormProps) {
   const subtotal = calculateSubtotal();
   const shippingCost = Number(order.shippingMethod?.cost || 0);
   const total = order.totalValue;
+  const paidAmount = order.paidAmount || 0;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="p-6 space-y-6  mx-auto w-full">
+        <div className="p-6 space-y-6 mx-auto w-full">
           <Section title="Update Order Status">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <FormField
                 control={form.control}
                 name="orderStatus"
@@ -197,39 +150,11 @@ export function OrderForm({ order }: OrderFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="PENDING">Pending</SelectItem>
-                        <SelectItem value="PROCESSING">Processing</SelectItem>
-                        <SelectItem value="SHIPPED">Shipped</SelectItem>
-                        <SelectItem value="DELIVERED">Delivered</SelectItem>
-                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="paymentStatus"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Payment Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select payment status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PENDING">Pending</SelectItem>
-                        <SelectItem value="PAID">Paid</SelectItem>
-                        <SelectItem value="FAILED">Failed</SelectItem>
-                        <SelectItem value="REFUNDED">Refunded</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -239,88 +164,20 @@ export function OrderForm({ order }: OrderFormProps) {
             </div>
           </Section>
 
-          {/* Payment Information */}
+          {/* Payment Information (Read-only) */}
           <Section title="Payment Information">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2 w-full">
-                  <FormLabel>Total Order Value</FormLabel>
-                  <div className="p-3 border rounded-md bg-muted/20 font-medium h-10 flex items-center">
-                    {formatCurrencyEnglish(order.totalValue)}
-                  </div>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="paidAmount"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Paid Amount</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          max={order.totalValue}
-                          className="h-10"
-                          {...field}
-                          onChange={(e) => {
-                            const value =
-                              Number.parseFloat(e.target.value) || 0;
-                            field.onChange(value);
-                            updatePaymentStatus(value);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="space-y-2 w-full">
-                  <FormLabel>Due Amount</FormLabel>
-                  <div
-                    className={`p-3 border rounded-md h-10 flex items-center ${
-                      paidAmount >= order.totalValue
-                        ? "bg-green-50 text-green-700"
-                        : "bg-amber-50 text-amber-700"
-                    } font-medium`}
-                  >
-                    {formatCurrencyEnglish(
-                      Math.max(0, order.totalValue - paidAmount)
-                    )}
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 w-full">
+                <FormLabel>Total Order Value</FormLabel>
+                <div className="p-3 border rounded-md bg-muted/20 font-medium h-10 flex items-center">
+                  {formatCurrencyEnglish(order.totalValue)}
                 </div>
               </div>
 
-              {/* Payment progress bar */}
-              <div className="space-y-2 mt-4 w-full">
-                <div className="flex justify-between text-sm">
-                  <span className="flex items-center gap-1">
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    Payment Progress
-                  </span>
-                  <span className="flex items-center gap-1">
-                    {Math.min(
-                      100,
-                      Math.round((paidAmount / order.totalValue) * 100)
-                    )}
-                    %
-                    {paidAmount >= order.totalValue && (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    )}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-green-600 h-2.5 rounded-full"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        (paidAmount / order.totalValue) * 100
-                      )}%`,
-                    }}
-                  />
+              <div className="space-y-2 w-full">
+                <FormLabel>Paid Amount</FormLabel>
+                <div className="p-3 border rounded-md bg-muted/20 font-medium h-10 flex items-center">
+                  {formatCurrencyEnglish(paidAmount)}
                 </div>
               </div>
             </div>
@@ -416,7 +273,6 @@ export function OrderForm({ order }: OrderFormProps) {
                               <Image
                                 src={
                                   item.product.attachment.url ||
-                                  "/placeholder.svg" ||
                                   "/placeholder.svg"
                                 }
                                 alt={item.product.name}
@@ -522,7 +378,7 @@ export function OrderForm({ order }: OrderFormProps) {
           </Section>
         </div>
 
-        <div className="flex justify-end p-6 gap-4  mx-auto w-full">
+        <div className="flex justify-end p-6 gap-4 mx-auto w-full">
           <Button
             type="button"
             variant="outline"

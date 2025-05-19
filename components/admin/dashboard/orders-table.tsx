@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import { fetchDataPagination } from "@/utils/api-utils";
-import { type Order, OrderStatus, type PaginatedResponse } from "@/utils/types";
+import { type Order, type PaginatedResponse } from "@/utils/types";
 
 import { Edit, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -106,11 +106,11 @@ export default function OrdersTable() {
                 <TableCell>
                   <span
                     className={`inline-flex items-center gap-1 font-semibold capitalize ${
-                      order.orderStatus === OrderStatus.PENDING
+                      order.orderStatus === "pending"
                         ? "text-yellow-500"
-                        : order.orderStatus === OrderStatus.SHIPPED
+                        : order.orderStatus === "shipped"
                         ? "text-blue-500"
-                        : order.orderStatus === OrderStatus.DELIVERED
+                        : order.orderStatus === "delivered"
                         ? "text-green-600"
                         : "text-red-500"
                     }`}

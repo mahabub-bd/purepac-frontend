@@ -418,7 +418,7 @@ export interface Order {
   orderNo: string;
   paidAmount: number;
   totalDiscount: number;
-  orderStatus: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  orderStatus: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentStatus: string;
   discountType: string;
   discountValue: number;

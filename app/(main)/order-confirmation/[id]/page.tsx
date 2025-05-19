@@ -75,10 +75,10 @@ export default async function OrderConfirmationPage({
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Badge
-              variant={order.orderStatus === "PENDING" ? "outline" : "default"}
+              variant={order.orderStatus === "pending" ? "outline" : "default"}
               className="px-3 py-1 text-sm"
             >
-              {order.orderStatus === "PENDING" ? (
+              {order.orderStatus === "pending" ? (
                 <Clock className="mr-1 h-4 w-4" />
               ) : (
                 <CheckCircle className="mr-1 h-4 w-4" />

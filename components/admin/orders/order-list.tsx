@@ -24,8 +24,10 @@ import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import { fetchDataPagination } from "@/utils/api-utils";
 import type { Order } from "@/utils/types";
 import {
+  DollarSign,
   Eye,
   Filter,
+  List,
   MoreHorizontal,
   Pencil,
   Search,
@@ -271,6 +273,18 @@ export function OrderList({
                     <DropdownMenuItem asChild>
                       <Link href={`/admin/order/${order.id}/edit`}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
+                      </Link>
+                    </DropdownMenuItem>
+                    {order.paidAmount < order.totalValue && (
+                      <DropdownMenuItem asChild>
+                        <Link href={`/admin/order/${order.id}/payment`}>
+                          <DollarSign className="mr-2 h-4 w-4" /> Update Payment
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/order/${order.id}/payments`}>
+                        <List className="mr-2 h-4 w-4" /> View Payments
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>

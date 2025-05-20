@@ -58,7 +58,10 @@ export function PaymentMethodForm({
         await postData("order-payment-methods", values);
         toast.success("Payment method created successfully");
       } else if (mode === "edit" && paymentMethod) {
-        await patchData(`order-payment-methods/${paymentMethod.id}`, values);
+        await patchData(`order-payment-methods/${paymentMethod.id}`, {
+          ...values,
+          id: paymentMethod.id,
+        });
         toast.success("Payment method updated successfully");
       }
       onSuccess();

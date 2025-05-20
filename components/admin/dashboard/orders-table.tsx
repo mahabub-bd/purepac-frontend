@@ -14,6 +14,7 @@ import { fetchDataPagination } from "@/utils/api-utils";
 import { type Order, type PaginatedResponse } from "@/utils/types";
 
 import { Edit, Eye } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LoadingIndicator } from "../loading-indicator";
 
@@ -120,11 +121,15 @@ export default function OrdersTable() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-1" />
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <Link href={`/admin/order/${order.id}/view`}>
+                        <Eye className="h-4 w-4 mr-1" />
+                      </Link>
                     </Button>
-                    <Button variant="secondary" size="sm">
-                      <Edit className="h-4 w-4 mr-1" />
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <Link href={`/admin/order/${order.id}/edit`}>
+                        <Edit className="h-4 w-4 mr-1" />
+                      </Link>
                     </Button>
                   </div>
                 </TableCell>

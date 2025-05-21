@@ -182,7 +182,7 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
       return;
     }
 
-    // Validate form data
+ 
     if (!formData.name || !formData.email || !formData.phone) {
       toast.error("Please fill in all required customer information");
       return;

@@ -99,6 +99,7 @@ export interface Product {
   weight: number | null;
   attachment: Attachment;
   gallery: Gallery;
+  saleCount:number;
   isActive: boolean;
   isFeatured: boolean;
 

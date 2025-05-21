@@ -381,6 +381,7 @@ export function ProductList({
             <TableHead className="hidden md:table-cell">Brand</TableHead>
             <TableHead className="hidden md:table-cell">Category</TableHead>
             <TableHead className="hidden md:table-cell">Stock</TableHead>
+            <TableHead className="hidden md:table-cell">Sale Count</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
 
             <TableHead className="text-right">Actions</TableHead>
@@ -413,6 +414,9 @@ export function ProductList({
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 {product.stock}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {product.saleCount}
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 <Badge variant={product.isActive ? "default" : "destructive"}>

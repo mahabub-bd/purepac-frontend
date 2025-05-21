@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/admin/loading-indicator";
 import OrderView from "@/components/admin/orders/order-view";
 import { fetchData } from "@/utils/api-utils";
 import { Order } from "@/utils/types";
@@ -28,11 +29,7 @@ export default function OrderPage() {
   }, [orderId]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingIndicator message="Laoding Order..." />;
   }
 
   if (!order) {

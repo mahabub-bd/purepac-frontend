@@ -290,26 +290,23 @@ export function useCart({ serverCart, isLoggedIn }: UseCartProps) {
     setIsLoading(true);
 
     try {
-      // Validate the coupon first
       const validationRes = await validateCoupon(code);
       if (validationRes.statusCode !== 200) {
         throw new Error(validationRes.message || "Coupon validation failed");
       }
 
-      // Apply the coupon
       const applyRes = await applyCouponApi(code, subtotal);
-      console.log(applyRes);
 
       if (applyRes.statusCode === 200 && applyRes.data) {
         const couponData = backendCouponToLocalCoupon(
           applyRes.data.couponId,
           code,
-
           applyRes.data.discountValue
         );
 
         setAppliedCoupon(couponData);
 
+        // Make sure to save the coupon to localStorage for non-logged in users
         if (!isLoggedIn) {
           saveCouponToLocalStorage(couponData);
         } else {

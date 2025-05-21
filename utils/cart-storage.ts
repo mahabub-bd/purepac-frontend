@@ -56,7 +56,6 @@ export function backendCartToLocalCart(cart: Cart): LocalCart {
   };
 }
 
-// Convert local cart to format needed for backend sync
 export function localCartToBackendFormat(localCart: LocalCart) {
   return localCart.items.map((item) => ({
     productId: item.productId,
@@ -64,8 +63,8 @@ export function localCartToBackendFormat(localCart: LocalCart) {
   }));
 }
 
-// Coupon storage functions
 export function saveCouponToLocalStorage(coupon: LocalCoupon | null): void {
+  console.log("Saving coupon to localStorage:", coupon);
   if (typeof window === "undefined") return;
 
   if (coupon === null) {
@@ -94,7 +93,6 @@ export function clearLocalCoupon(): void {
   localStorage.removeItem(COUPON_STORAGE_KEY);
 }
 
-// Convert backend coupon to local format
 export function backendCouponToLocalCoupon(
   id: number,
   code: string,

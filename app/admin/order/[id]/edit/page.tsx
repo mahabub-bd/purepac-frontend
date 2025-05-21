@@ -1,11 +1,12 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/admin/loading-indicator";
 import { OrderForm } from "@/components/admin/orders/order-form";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchData } from "@/utils/api-utils";
 import type { Order } from "@/utils/types";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -33,11 +34,7 @@ export default function EditOrderPage() {
   }, [orderId]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <LoadingIndicator message="Loading Order Details..." />;
   }
 
   if (!order) {
@@ -56,8 +53,12 @@ export default function EditOrderPage() {
             <CardTitle>Edit Order</CardTitle>
             <CardDescription>Update the order information.</CardDescription>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/admin/orders">Back to Orders</Link>
+          <Button variant="default" asChild>
+            <Link href={`/admin/orders`}>
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Back</span>
+              Back To Orders
+            </Link>
           </Button>
         </div>
       </div>

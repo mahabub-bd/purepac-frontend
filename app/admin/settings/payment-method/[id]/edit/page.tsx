@@ -25,7 +25,7 @@ export default function EditPaymentMethodPage() {
     const fetchPaymentMethodData = async () => {
       try {
         const methodData = await fetchData<PaymentMethod>(
-          `payment-methods/${methodId}`
+          `order-payment-methods/${methodId}`
         );
         setPaymentMethod(methodData);
       } catch (error) {

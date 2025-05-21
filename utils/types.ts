@@ -429,11 +429,25 @@ export interface Order {
   shippingMethod: ShippingMethod;
   paymentMethod: PaymentMethod;
   items: OrderItem[];
+  payments?: OrderPayment[];
   coupon: Coupon | null;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface OrderPayment {
+  id: number;
+  paymentNumber: string;
+  amount: string;
+  paymentDate: string;
+  sslPaymentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  order: Order;
+  paymentMethod: PaymentMethod;
+  createdBy: User;
+  updatedBy: User;
+}
 export interface OrderSummary {
   year: number;
   month: string;

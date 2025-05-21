@@ -99,7 +99,7 @@ export interface Product {
   weight: number | null;
   attachment: Attachment;
   gallery: Gallery;
-  saleCount:number;
+  saleCount: number;
   isActive: boolean;
   isFeatured: boolean;
 
@@ -414,6 +414,14 @@ export interface OrderItem {
   product: Product;
 }
 
+export interface StatusTrack {
+  id: number;
+  status: string;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+  updatedBy: User;
+}
 export interface Order {
   id: number;
   orderNo: string;
@@ -430,6 +438,7 @@ export interface Order {
   paymentMethod: PaymentMethod;
   items: OrderItem[];
   payments?: OrderPayment[];
+  statusTracks: StatusTrack[];
   coupon: Coupon | null;
   createdAt: string;
   updatedAt: string;

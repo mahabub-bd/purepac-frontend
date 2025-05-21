@@ -27,7 +27,7 @@ export const formatDateTime = (isoString: string | Date) => {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-    timeZone: "Asia/Dhaka", 
+    timeZone: "Asia/Dhaka", // Correct IANA timezone for Bangladesh GMT+6
   });
 };
 

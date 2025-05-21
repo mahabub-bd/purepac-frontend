@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -44,9 +45,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrencyEnglish } from "@/lib/utils";
+import {
+  Timeline,
+  TimelineConnector,
+  TimelineContent,
+  TimelineDot,
+  TimelineItem,
+  TimelineSeparator,
+} from "@/components/ui/timeline";
+import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import { patchData } from "@/utils/api-utils";
 import type { Order } from "@/utils/types";
+import { CheckCircle, Truck, XCircle } from "lucide-react";
 import { Section } from "../helper";
 
 // Create strict schema for admin updates
@@ -59,6 +69,15 @@ const orderUpdateSchema = z.object({
     z.literal("cancelled"),
   ]),
 });
+
+// Order status enum
+enum OrderStatus {
+  PENDING = "pending",
+  PROCESSING = "processing",
+  SHIPPED = "shipped",
+  DELIVERED = "delivered",
+  CANCELLED = "cancelled",
+}
 
 type OrderUpdateValues = z.infer<typeof orderUpdateSchema>;
 
@@ -127,6 +146,121 @@ export function OrderForm({ order }: OrderFormProps) {
   const total = order.totalValue;
   const paidAmount = order.paidAmount || 0;
 
+  // Status timeline helpers
+  const getStatusDotColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case OrderStatus.PENDING:
+        return "bg-yellow-500";
+      case OrderStatus.PROCESSING:
+        return "bg-blue-500";
+      case OrderStatus.SHIPPED:
+        return "bg-purple-500";
+      case OrderStatus.DELIVERED:
+        return "bg-green-500";
+      case OrderStatus.CANCELLED:
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case OrderStatus.DELIVERED:
+        return <CheckCircle className="h-4 w-4 mr-1" />;
+      case OrderStatus.PENDING:
+      case OrderStatus.PROCESSING:
+        return <Clock className="h-4 w-4 mr-1" />;
+      case OrderStatus.CANCELLED:
+        return <XCircle className="h-4 w-4 mr-1" />;
+      case OrderStatus.SHIPPED:
+        return <Truck className="h-4 w-4 mr-1" />;
+      default:
+        return null;
+    }
+  };
+
+  // Generate a complete timeline with all order statuses
+  const generateOrderTimeline = () => {
+    // Create a map of all possible statuses
+    const allStatuses = [
+      OrderStatus.PENDING,
+      OrderStatus.PROCESSING,
+      OrderStatus.SHIPPED,
+      OrderStatus.DELIVERED,
+      OrderStatus.CANCELLED,
+    ];
+
+    // Get the current order status
+    const currentStatus = order.orderStatus.toLowerCase();
+
+    // If order is cancelled, only show statuses up to cancellation
+    if (currentStatus === OrderStatus.CANCELLED) {
+      return [OrderStatus.PENDING, OrderStatus.CANCELLED];
+    }
+
+    // For normal order flow, show all statuses up to the current one
+    const statusIndex = allStatuses.findIndex(
+      (status) => status === currentStatus
+    );
+    if (statusIndex >= 0) {
+      return allStatuses.slice(0, statusIndex + 1);
+    }
+
+    // Fallback to just showing the current status
+    return [currentStatus];
+  };
+
+  // Get the timestamp for a specific status from statusTracks
+  const getStatusTimestamp = (status: string) => {
+    const statusTrack = order.statusTracks.find(
+      (track) => track.status.toLowerCase() === status.toLowerCase()
+    );
+    return statusTrack ? statusTrack.createdAt : null;
+  };
+
+  // Get the note for a specific status from statusTracks
+  const getStatusNote = (status: string) => {
+    const statusTrack = order.statusTracks.find(
+      (track) => track.status.toLowerCase() === status.toLowerCase()
+    );
+    return statusTrack ? statusTrack.note : null;
+  };
+
+  // Get the user who updated a specific status
+  const getStatusUpdatedBy = (status: string) => {
+    const statusTrack = order.statusTracks.find(
+      (track) => track.status.toLowerCase() === status.toLowerCase()
+    );
+    return statusTrack ? statusTrack.updatedBy : null;
+  };
+
+  // Check if a status is active (current or past)
+  const isStatusActive = (status: string) => {
+    const currentStatus = order.orderStatus.toLowerCase();
+
+    // If order is cancelled, only pending and cancelled are active
+    if (currentStatus === OrderStatus.CANCELLED) {
+      return status === OrderStatus.PENDING || status === OrderStatus.CANCELLED;
+    }
+
+    // For normal flow, all statuses up to current are active
+    const allStatuses = [
+      OrderStatus.PENDING,
+      OrderStatus.PROCESSING,
+      OrderStatus.SHIPPED,
+      OrderStatus.DELIVERED,
+    ];
+
+    const statusIndex = allStatuses.indexOf(status as OrderStatus);
+    const currentIndex = allStatuses.indexOf(currentStatus as OrderStatus);
+
+    return statusIndex <= currentIndex;
+  };
+
+  // Generate the timeline statuses
+  const timelineStatuses = generateOrderTimeline();
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -161,6 +295,91 @@ export function OrderForm({ order }: OrderFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
+          </Section>
+
+          {/* Order Status Timeline */}
+          <Section title="Order Status Timeline">
+            <div className="pl-2">
+              {order.statusTracks.length > 0 ? (
+                <Timeline>
+                  {timelineStatuses.map((status, index) => {
+                    const isActive = isStatusActive(status);
+                    const timestamp = getStatusTimestamp(status);
+                    const note = getStatusNote(status);
+                    const updatedBy = getStatusUpdatedBy(status);
+
+                    return (
+                      <TimelineItem key={status}>
+                        <TimelineSeparator>
+                          <TimelineDot
+                            className={
+                              isActive
+                                ? getStatusDotColor(status)
+                                : "bg-gray-300"
+                            }
+                          />
+                          {index < timelineStatuses.length - 1 && (
+                            <TimelineConnector
+                              className={isActive ? "" : "bg-gray-300"}
+                            />
+                          )}
+                        </TimelineSeparator>
+                        <TimelineContent>
+                          <div className="ml-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                {isActive && getStatusIcon(status)}
+                                <h4
+                                  className={`text-sm font-medium ${
+                                    !isActive ? "text-gray-400" : ""
+                                  }`}
+                                >
+                                  {status.charAt(0).toUpperCase() +
+                                    status.slice(1)}
+                                </h4>
+                              </div>
+                              {timestamp ? (
+                                <span className="text-xs text-muted-foreground">
+                                  {formatDateTime(timestamp)}
+                                </span>
+                              ) : (
+                                isActive && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {status === order.orderStatus
+                                      ? "Current"
+                                      : ""}
+                                  </Badge>
+                                )
+                              )}
+                            </div>
+                            {note && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {note}
+                              </p>
+                            )}
+                            {updatedBy ? (
+                              <div className="flex items-center mt-1 text-xs text-muted-foreground">
+                                <User className="h-3 w-3 mr-1" />
+                                Updated by: {updatedBy.name || "User"}
+                              </div>
+                            ) : (
+                              <div className="flex items-center mt-1 text-xs text-muted-foreground">
+                                <User className="h-3 w-3 mr-1" />
+                                Created by: {order.user.name || "User"}
+                              </div>
+                            )}
+                          </div>
+                        </TimelineContent>
+                      </TimelineItem>
+                    );
+                  })}
+                </Timeline>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No status updates available.
+                </p>
+              )}
             </div>
           </Section>
 
@@ -273,6 +492,7 @@ export function OrderForm({ order }: OrderFormProps) {
                               <Image
                                 src={
                                   item.product.attachment.url ||
+                                  "/placeholder.svg" ||
                                   "/placeholder.svg"
                                 }
                                 alt={item.product.name}

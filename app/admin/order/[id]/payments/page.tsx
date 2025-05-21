@@ -5,52 +5,12 @@ import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { formatCurrencyEnglish } from "@/lib/utils";
 import { fetchData } from "@/utils/api-utils";
+import { Order } from "@/utils/types";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PaymentsTable } from "./payment-table";
-
-// Define types based on the provided JSON structure
-interface Order {
-  id: number;
-  orderNo: string;
-  orderStatus: string;
-  paymentStatus: string;
-  totalValue: number;
-  totalDiscount: string;
-  paidAmount: string;
-  createdAt: string;
-  updatedAt: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    mobileNumber: string;
-  };
-  payments: Payment[];
-}
-
-interface Payment {
-  id: number;
-  paymentNumber: string;
-  amount: string;
-  paymentDate: string;
-  sslPaymentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-  paymentMethod: {
-    id: number;
-    name: string;
-    code: string;
-    isActive: boolean;
-    description: string;
-  };
-  createdBy: {
-    id: number;
-    name: string;
-  };
-}
 
 export default function OrderPaymentsListPage() {
   const params = useParams();
@@ -86,8 +46,7 @@ export default function OrderPaymentsListPage() {
     );
   }
 
-  const remainingAmount =
-    order.totalValue - Number.parseFloat(order.paidAmount);
+  const remainingAmount = order.totalValue - order.paidAmount;
 
   return (
     <div className="w-full md:p-6 p-2 border rounded-sm">
@@ -98,7 +57,7 @@ export default function OrderPaymentsListPage() {
             description={`Total: ${formatCurrencyEnglish(
               order.totalValue
             )} | Paid: ${formatCurrencyEnglish(
-              Number.parseFloat(order.paidAmount)
+              order.paidAmount
             )} | Remaining: ${formatCurrencyEnglish(remainingAmount)}`}
           />
           <Button variant="default" asChild>
@@ -118,7 +77,7 @@ export default function OrderPaymentsListPage() {
         </div>
       </div>
       <div className="md:p-6 p-2">
-        <PaymentsTable payments={order.payments} />
+        <PaymentsTable payments={order.payments ?? []} />
       </div>
     </div>
   );

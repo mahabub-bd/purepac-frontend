@@ -29,8 +29,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-
-
 interface UserFormProps {
   user?: User;
   mode: "create" | "edit";
@@ -197,7 +195,11 @@ export function CustomerForm({ user, mode, onSuccess }: UserFormProps) {
               render={({ field }) => (
                 <FormItem className="space-y-2">
                   <FormLabel>Role</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={true}
+                  >
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select role" />

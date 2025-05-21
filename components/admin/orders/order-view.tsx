@@ -8,6 +8,7 @@ import {
   FileText,
   MapPin,
   Package,
+  Pencil,
   Printer,
   Tag,
   Truck,
@@ -17,6 +18,7 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 
+import { PaymentsTable } from "@/app/admin/order/[id]/payments/payment-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,8 +31,9 @@ import {
   TimelineItem,
   TimelineSeparator,
 } from "@/components/ui/timeline";
-import { formatDateTime } from "@/lib/utils";
+import { formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
 import type { Order, OrderItem } from "@/utils/types";
+import Link from "next/link";
 
 // Order status enum
 enum OrderStatus {
@@ -56,8 +59,6 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
       setIsPrinting(false);
     }, 100);
   };
-
-  const subtotal: number = order.totalValue - Number(order.shippingMethod.cost);
 
   const getOrderStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -111,21 +112,20 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
       case "paid":
       case OrderStatus.DELIVERED:
       case "completed":
-        return <CheckCircle className="h-4 w-4 mr-1" />;
+        return <CheckCircle className="size-4 mr-1" />;
       case OrderStatus.PENDING:
       case OrderStatus.PROCESSING:
-        return <Clock className="h-4 w-4 mr-1" />;
+        return <Clock className="size-4 mr-1" />;
       case OrderStatus.CANCELLED:
       case "failed":
-        return <XCircle className="h-4 w-4 mr-1" />;
+        return <XCircle className="size-4 mr-1" />;
       case OrderStatus.SHIPPED:
-        return <Truck className="h-4 w-4 mr-1" />;
+        return <Truck className="size-4 mr-1" />;
       default:
         return null;
     }
   };
 
-  // Generate a complete timeline with all order statuses
   const generateOrderTimeline = () => {
     // Create a map of all possible statuses
     const allStatuses = [
@@ -136,15 +136,12 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
       OrderStatus.CANCELLED,
     ];
 
-    // Get the current order status
     const currentStatus = order.orderStatus.toLowerCase();
 
-    // If order is cancelled, only show statuses up to cancellation
     if (currentStatus === OrderStatus.CANCELLED) {
       return [OrderStatus.PENDING, OrderStatus.CANCELLED];
     }
 
-    // For normal order flow, show all statuses up to the current one
     const statusIndex = allStatuses.findIndex(
       (status) => status === currentStatus
     );
@@ -152,11 +149,9 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
       return allStatuses.slice(0, statusIndex + 1);
     }
 
-    // Fallback to just showing the current status
     return [currentStatus];
   };
 
-  // Get the timestamp for a specific status from statusTracks
   const getStatusTimestamp = (status: string) => {
     const statusTrack = order.statusTracks.find(
       (track) => track.status.toLowerCase() === status.toLowerCase()
@@ -164,7 +159,6 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
     return statusTrack ? statusTrack.createdAt : null;
   };
 
-  // Get the note for a specific status from statusTracks
   const getStatusNote = (status: string) => {
     const statusTrack = order.statusTracks.find(
       (track) => track.status.toLowerCase() === status.toLowerCase()
@@ -172,7 +166,6 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
     return statusTrack ? statusTrack.note : null;
   };
 
-  // Get the user who updated a specific status
   const getStatusUpdatedBy = (status: string) => {
     const statusTrack = order.statusTracks.find(
       (track) => track.status.toLowerCase() === status.toLowerCase()
@@ -180,16 +173,13 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
     return statusTrack ? statusTrack.updatedBy : null;
   };
 
-  // Check if a status is active (current or past)
   const isStatusActive = (status: string) => {
     const currentStatus = order.orderStatus.toLowerCase();
 
-    // If order is cancelled, only pending and cancelled are active
     if (currentStatus === OrderStatus.CANCELLED) {
       return status === OrderStatus.PENDING || status === OrderStatus.CANCELLED;
     }
 
-    // For normal flow, all statuses up to current are active
     const allStatuses = [
       OrderStatus.PENDING,
       OrderStatus.PROCESSING,
@@ -203,8 +193,42 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
     return statusIndex <= currentIndex;
   };
 
-  // Generate the timeline statuses
   const timelineStatuses = generateOrderTimeline();
+
+  const calculateOrderSummary = () => {
+    let originalSubtotal = 0;
+    let productDiscountTotal = 0;
+
+    order.items.forEach((item) => {
+      const originalItemPrice = item.product.sellingPrice * item.quantity;
+      originalSubtotal += originalItemPrice;
+
+      if (item.product.discountValue) {
+        let discountAmount = 0;
+        if (item.product.discountType === "percentage") {
+          discountAmount =
+            originalItemPrice * (Number(item.product.discountValue) / 100);
+        } else if (item.product.discountType === "fixed") {
+          discountAmount = Number(item.product.discountValue) * item.quantity;
+        }
+        productDiscountTotal += discountAmount;
+      }
+    });
+
+    const couponDiscount = order.coupon
+      ? Number(order.totalDiscount) - productDiscountTotal
+      : 0;
+
+    return {
+      originalSubtotal,
+      productDiscountTotal,
+      couponDiscount,
+      shippingCost: Number(order.shippingMethod.cost),
+      total: order.totalValue,
+    };
+  };
+
+  const orderSummary = calculateOrderSummary();
 
   return (
     <div className={`${isPrinting ? "print-mode" : ""}`}>
@@ -239,7 +263,7 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
           <div className="flex items-center gap-2">
             {onBack && (
               <Button variant="outline" size="icon" onClick={onBack}>
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="size-4" />
               </Button>
             )}
             <h1 className="text-xl font-semibold">Order Details</h1>
@@ -253,8 +277,13 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
             </Badge>
           </div>
           <div className="flex gap-2">
+            <Button variant="default" asChild>
+              <Link href={`/admin/order/${order.id}/edit`}>
+                Edit <Pencil className="mr-2 h-4 w-4" />
+              </Link>
+            </Button>
             <Button variant="outline" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
+              <Printer className="size-4 mr-2" />
               Print Invoice
             </Button>
           </div>
@@ -263,8 +292,10 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
         {/* Invoice Header for Print */}
         <div className="hidden print:flex flex-col items-center mb-6 text-center">
           <h1 className="text-2xl font-bold">INVOICE</h1>
-          <p className="text-muted-foreground">Order #{order.orderNo}</p>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
+            Order #{order.orderNo}
+          </p>
+          <p className="text-sm text-muted-foreground">
             {formatDateTime(order.createdAt)}
           </p>
         </div>
@@ -304,8 +335,8 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
           <div className="md:col-span-2 space-y-6">
             <div className="border rounded-lg p-4 bg-background">
               <div className="pb-3">
-                <h3 className="text-lg font-medium flex items-center">
-                  <Package className="h-5 w-5 mr-2" />
+                <h3 className="text-base font-medium flex items-center">
+                  <Package className="size-5 mr-2" />
                   Order Items
                 </h3>
               </div>
@@ -329,7 +360,7 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
                           />
                         ) : (
                           <div className="h-full w-full bg-muted flex items-center justify-center">
-                            <Package className="h-8 w-8 text-muted-foreground" />
+                            <Package className="size-8 text-muted-foreground" />
                           </div>
                         )}
                       </div>
@@ -373,79 +404,87 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
               </div>
             </div>
 
-            {/* Payment Information */}
-            <div className="border rounded-lg p-4 bg-background">
-              <div className="pb-3">
-                <h3 className="text-lg font-medium flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  Payment Information
-                </h3>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Payment Method
-                    </span>
-                    <span className="font-medium">
-                      {order.paymentMethod.name}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Payment Status
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className={getPaymentStatusColor(order.paymentStatus)}
-                    >
-                      {getStatusIcon(order.paymentStatus)}
-                      {order.paymentStatus.charAt(0).toUpperCase() +
-                        order.paymentStatus.slice(1)}
-                    </Badge>
-                  </div>
-                  {order.paidAmount > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="border rounded-lg p-4 bg-background">
+                <div className="pb-3">
+                  <h3 className="text-base font-medium flex items-center">
+                    <CreditCard className="size-5 mr-2" />
+                    Payment Information
+                  </h3>
+                </div>
+                <div>
+                  <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Amount Paid</span>
-                      <span className="font-medium">
-                        ৳{order.paidAmount.toLocaleString()}
+                      <span className="text-sm text-muted-foreground">
+                        Payment Method
+                      </span>
+                      <span className="text-sm font-medium">
+                        {order.paymentMethod.name}
                       </span>
                     </div>
-                  )}
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Payment Status
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={getPaymentStatusColor(order.paymentStatus)}
+                      >
+                        {getStatusIcon(order.paymentStatus)}
+                        {order.paymentStatus.charAt(0).toUpperCase() +
+                          order.paymentStatus.slice(1)}
+                      </Badge>
+                    </div>
+                    {order.paidAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Amount Paid
+                        </span>
+                        <span className="text-sm font-medium">
+                          ৳{order.paidAmount.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Shipping Information */}
-            <div className="border rounded-lg p-4 bg-background">
-              <div className="pb-3">
-                <h3 className="text-lg font-medium flex items-center">
-                  <Truck className="h-5 w-5 mr-2" />
-                  Shipping Information
-                </h3>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Shipping Method
-                    </span>
-                    <span className="font-medium">
-                      {order.shippingMethod.name}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Delivery Time</span>
-                    <span>{order.shippingMethod.deliveryTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping Cost</span>
-                    <span className="font-medium">
-                      ৳
-                      {Number.parseFloat(
-                        order.shippingMethod.cost
-                      ).toLocaleString()}
-                    </span>
+              {/* Shipping Information */}
+              <div className="border rounded-lg p-4 bg-background">
+                <div className="pb-3">
+                  <h3 className="text-base font-medium flex items-center">
+                    <Truck className="size-5 mr-2" />
+                    Shipping Information
+                  </h3>
+                </div>
+                <div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Shipping Method
+                      </span>
+                      <span className="text-sm font-medium">
+                        {order.shippingMethod.name}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Delivery Time
+                      </span>
+                      <span className="text-sm">
+                        {order.shippingMethod.deliveryTime}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Shipping Cost
+                      </span>
+                      <span className="text-sm font-medium">
+                        {formatCurrencyEnglish(
+                          Number(order.shippingMethod.cost)
+                        )}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -454,8 +493,8 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
             {/* Order Status Timeline */}
             <div className="border rounded-lg p-4 bg-background">
               <div className="pb-3">
-                <h3 className="text-lg font-medium flex items-center">
-                  <Clock className="h-5 w-5 mr-2" />
+                <h3 className="text-base font-medium flex items-center">
+                  <Clock className="size-5 mr-2" />
                   Order Status Timeline
                 </h3>
               </div>
@@ -515,12 +554,12 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
                             )}
                             {updatedBy ? (
                               <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                                <User className="h-3 w-3 mr-1" />
+                                <User className="size-3 mr-1" />
                                 Updated by: {updatedBy.name || "User"}
                               </div>
                             ) : (
                               <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                                <User className="h-3 w-3 mr-1" />
+                                <User className="size-3 mr-1" />
                                 Created by: {order.user.name || "User"}
                               </div>
                             )}
@@ -532,6 +571,16 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
                 </Timeline>
               </div>
             </div>
+
+            <div className="border rounded-lg p-4 bg-background">
+              <div className="pb-3">
+                <h3 className="text-base font-medium flex items-center">
+                  <CreditCard className="size-5 mr-2" />
+                  Payment History
+                </h3>
+              </div>
+              <PaymentsTable payments={order.payments ?? []} />
+            </div>
           </div>
 
           {/* Customer and Order Summary */}
@@ -539,14 +588,14 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
             {/* Customer Information */}
             <div className="border rounded-lg p-4 bg-background">
               <div className="pb-3">
-                <h3 className="text-lg font-medium flex items-center">
-                  <User className="h-5 w-5 mr-2" />
+                <h3 className="text-base font-medium flex items-center">
+                  <User className="size-5 mr-2" />
                   Customer Information
                 </h3>
               </div>
               <div>
                 <div className="flex items-center space-x-3 mb-4">
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="size-10">
                     <AvatarImage
                       src={order.user.profilePhoto?.url || "/placeholder.svg"}
                       alt={order.user.name}
@@ -562,32 +611,61 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Phone</span>
-                    <span>{order.user.mobileNumber}</span>
+                    <span className="text-sm text-muted-foreground">Phone</span>
+                    <span className="text-sm">{order.user.mobileNumber}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Shipping Address */}
+
             <div className="border rounded-lg p-4 bg-background">
+              {/* Section Header */}
               <div className="pb-3">
-                <h3 className="text-lg font-medium flex items-center">
-                  <MapPin className="h-5 w-5 mr-2" />
+                <h3 className="text-base font-medium flex items-center">
+                  <MapPin className="size-5 mr-2 text-muted-foreground" />
                   Shipping Address
                 </h3>
               </div>
-              <div>
-                <div className="space-y-1">
-                  <p className="font-medium">{order.user.name}</p>
-                  <p>{order.address.address}</p>
-                  <p>
+
+              {/* Shipping Address Details */}
+              <div className="space-y-3 grid grid-cols-1 md:grid-cols-2">
+                <div>
+                  <p className="font-medium text-sm text-muted-foreground">
+                    Name:
+                  </p>
+                  <p className="text-sm">{order.user.name}</p>
+                </div>
+
+                <div>
+                  <p className="font-medium text-sm text-muted-foreground">
+                    Address:
+                  </p>
+                  <p className="text-sm">{order.address.address}</p>
+                </div>
+
+                <div>
+                  <p className="font-medium text-sm text-muted-foreground">
+                    Area / City:
+                  </p>
+                  <p className="text-sm">
                     {order.address.area}, {order.address.city}
                   </p>
-                  <p>{order.address.division}</p>
-                  <p className="text-muted-foreground">
-                    {order.user.mobileNumber}
+                </div>
+
+                <div>
+                  <p className="font-medium text-sm text-muted-foreground">
+                    Division:
                   </p>
+                  <p className="text-sm">{order.address.division}</p>
+                </div>
+
+                <div>
+                  <p className="font-medium text-sm text-muted-foreground">
+                    Phone:
+                  </p>
+                  <p className="text-sm">{order.user.mobileNumber}</p>
                 </div>
               </div>
             </div>
@@ -595,43 +673,62 @@ export default function OrderView({ order, onBack }: OrderViewProps) {
             {/* Order Summary */}
             <div className="border rounded-lg p-4 bg-background">
               <div className="pb-3">
-                <h3 className="text-lg font-medium flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
+                <h3 className="text-base font-medium flex items-center">
+                  <FileText className="size-5 mr-2" />
                   Order Summary
                 </h3>
               </div>
               <div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>৳{subtotal.toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Subtotal
+                    </span>
+                    <span className="text-sm">
+                      ৳{orderSummary.originalSubtotal.toLocaleString()}
+                    </span>
                   </div>
-                  {order.coupon && (
+
+                  {orderSummary.productDiscountTotal > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground flex items-center">
-                        <Tag className="h-3 w-3 mr-1" />
-                        Discount ({order.coupon.code})
+                      <span className="text-sm text-muted-foreground flex items-center">
+                        <Tag className="size-3 mr-1" />
+                        Product Discounts
                       </span>
-                      <span className="text-green-600">
-                        -৳
-                        {order.totalDiscount}
+                      <span className="text-sm text-green-600">
+                        -৳{orderSummary.productDiscountTotal.toLocaleString()}
                       </span>
                     </div>
                   )}
+
+                  {order.coupon && orderSummary.couponDiscount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground flex items-center">
+                        <Tag className="size-3 mr-1" />
+                        Coupon Discount ({order.coupon.code})
+                      </span>
+                      <span className="text-sm text-green-600">
+                        -৳{orderSummary.couponDiscount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span>
-                      ৳
-                      {Number.parseFloat(
-                        order.shippingMethod.cost
-                      ).toLocaleString()}
+                    <span className="text-sm text-muted-foreground">
+                      Shipping
+                    </span>
+                    <span className="text-sm">
+                      ৳{orderSummary.shippingCost.toLocaleString()}
                     </span>
                   </div>
+
                   <Separator className="my-2" />
-                  <div className="flex justify-between font-medium text-lg">
+
+                  <div className="flex justify-between font-medium text-base">
                     <span>Total</span>
-                    <span>৳{order.totalValue.toLocaleString()}</span>
+                    <span>৳{orderSummary.total.toLocaleString()}</span>
                   </div>
+
                   {order.paymentStatus === "pending" && (
                     <div className="flex justify-between text-red-600 text-sm">
                       <span>Due Amount</span>

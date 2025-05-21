@@ -226,10 +226,13 @@ export function OrderList({
             <TableHead className="hidden md:table-cell">Date</TableHead>
             <TableHead className="hidden md:table-cell">Order Status</TableHead>
             <TableHead className="hidden md:table-cell">
-              payment Status
+              Payment Status
             </TableHead>
             <TableHead className="hidden md:table-cell text-right">
               Total
+            </TableHead>
+            <TableHead className="hidden md:table-cell text-right">
+              Total Paid
             </TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -255,6 +258,9 @@ export function OrderList({
               </TableCell>
               <TableCell className="hidden md:table-cell text-right">
                 {formatCurrencyEnglish(order.totalValue)}
+              </TableCell>
+               <TableCell className="hidden md:table-cell text-right">
+                {formatCurrencyEnglish(order.paidAmount)}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>

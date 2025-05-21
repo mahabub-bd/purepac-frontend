@@ -9,34 +9,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, formatCurrencyEnglish, formatDateTime } from "@/lib/utils";
-
-interface Payment {
-  id: number;
-  paymentNumber: string;
-  amount: string;
-  paymentDate: string;
-  sslPaymentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-  paymentMethod: {
-    id: number;
-    name: string;
-    code: string;
-    isActive: boolean;
-    description: string;
-  };
-  createdBy: {
-    id: number;
-    name: string;
-  };
-}
+import { OrderPayment } from "@/utils/types";
 
 interface PaymentsTableProps {
-  payments: Payment[];
+  payments: OrderPayment[];
 }
 
 export function PaymentsTable({ payments }: PaymentsTableProps) {
-  const renderPaymentRow = (payment: Payment) => (
+  const renderPaymentRow = (payment: OrderPayment) => (
     <TableRow key={payment.id}>
       <TableCell className="font-medium">{payment.paymentNumber}</TableCell>
       <TableCell className="font-medium">
@@ -96,7 +76,7 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
           <TableHead>Date</TableHead>
           <TableHead>Method</TableHead>
           <TableHead>Reference</TableHead>
-          <TableHead>Paid By</TableHead>
+          <TableHead>Updated By</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>

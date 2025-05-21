@@ -2,6 +2,7 @@ import OrdersTable from "@/components/admin/dashboard/orders-table";
 import { StatsCard } from "@/components/admin/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  formatCurrencyEnglish,
   getTopBrandByProductCount,
   getTopCategoryByProductCount,
 } from "@/lib/utils";
@@ -49,7 +50,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <StatsCard
           title="Total Sales"
-          value={totalSales.toString()}
+          value={formatCurrencyEnglish(totalSales)}
           description="+20.1% from last month"
           trend="up"
           icon={DollarSign}

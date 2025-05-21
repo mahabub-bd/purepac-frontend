@@ -182,7 +182,6 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
       return;
     }
 
- 
     if (!formData.name || !formData.email || !formData.phone) {
       toast.error("Please fill in all required customer information");
       return;
@@ -248,10 +247,10 @@ export default function CheckoutPage({ user }: { user?: UserType }) {
       };
 
       const response = await postData("orders", orderData);
-
-      await clearCart();
       clearLocalCoupon();
-
+      await clearCart();
+      serverRevalidate("/");
+      serverRevalidate("/checkout");
       toast.success("Order placed successfully!");
       router.push(`/order-confirmation/${response.data.id}`);
     } catch (error) {

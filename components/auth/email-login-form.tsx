@@ -1,20 +1,18 @@
 "use client";
 
-import { login } from "@/actions/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function EmailLoginForm({
-  onForgotPassword,
-}: {
-  onForgotPassword: () => void;
-}) {
+import { login } from "@/actions/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+
+export default function EmailLoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -95,15 +93,9 @@ export default function EmailLoginForm({
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <Label htmlFor="password">Password</Label>
-          <Button
-            type="button"
-            variant="link"
-            className="p-0 h-auto text-xs"
-            onClick={onForgotPassword}
-            disabled={isLoading}
-          >
+          <Link className="p-0 h-auto text-xs" href="/auth/forgot-password">
             Forgot password?
-          </Button>
+          </Link>
         </div>
         <div className="relative">
           <Input
@@ -136,7 +128,14 @@ export default function EmailLoginForm({
         </div>
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Signing In..." : "Sign In with Email"}
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Signing In...
+          </>
+        ) : (
+          "Sign In with Email"
+        )}
       </Button>
     </form>
   );

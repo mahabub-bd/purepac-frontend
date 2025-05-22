@@ -59,7 +59,7 @@ import type { Order } from "@/utils/types";
 import { CheckCircle, Truck, XCircle } from "lucide-react";
 import { Section } from "../helper";
 
-// Create strict schema for admin updates
+
 const orderUpdateSchema = z.object({
   orderStatus: z.union([
     z.literal("pending"),
@@ -109,7 +109,7 @@ export function OrderForm({ order }: OrderFormProps) {
     setIsSubmitting(true);
 
     try {
-      // Update order status
+   
       const orderStatusResponse = await patchData(
         `orders/${order.id}/order-status`,
         {

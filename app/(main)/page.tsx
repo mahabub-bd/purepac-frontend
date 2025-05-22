@@ -2,6 +2,7 @@ import { HeadingPrimary } from "@/components/common/heading-primary";
 import { AnimatedCarousel } from "@/components/homepage/banner/hero/animated-carousel";
 import BrandList from "@/components/homepage/brands/brand-list";
 import CategoriesList from "@/components/homepage/Category/categories-list";
+import { NewsletterSection } from "@/components/homepage/subscriber/newsletter";
 import ProductList from "@/components/products/product-list";
 
 export default function Home() {
@@ -71,6 +72,12 @@ export default function Home() {
               titleClassName="text-green-600"
             />
           </ProductList>
+        </div>
+      </section>
+      {/* Subscribe Section */}
+      <section className="md:py-10 py-5 ">
+        <div className="container mx-auto ">
+          <NewsletterSection />
         </div>
       </section>
     </main>

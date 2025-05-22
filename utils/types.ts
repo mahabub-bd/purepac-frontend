@@ -463,3 +463,9 @@ export interface OrderSummary {
   orderCount: number;
   totalValue: number;
 }
+
+export interface Subscriber {
+  id: string;
+  email: string;
+  createdAt?: string;
+}

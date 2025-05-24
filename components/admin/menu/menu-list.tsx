@@ -170,6 +170,7 @@ export function MenuList({
 
     try {
       await deleteData("menu", selectedMenuItem.id);
+
       fetchMenuItems();
       toast.success("Menu item deleted successfully");
     } catch (error) {
@@ -192,15 +193,12 @@ export function MenuList({
     setCurrentPage(1);
   };
 
-  // Get parent menu name by ID
   const getParentMenuName = (parentId: number | null) => {
     if (!parentId) return "None";
 
-    // First check in the current page items
     const parentInCurrentPage = menuItems.find((item) => item.id === parentId);
     if (parentInCurrentPage) return parentInCurrentPage.name;
 
-    // Then check in the separately fetched parent items
     const parentItem = parentMenuItems.find((item) => item.id === parentId);
     return parentItem ? parentItem.name : "Unknown";
   };

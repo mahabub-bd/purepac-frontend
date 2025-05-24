@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/utils";
 
-import { deleteData, fetchData } from "@/utils/api-utils";
+import { deleteData, fetchProtectedData } from "@/utils/api-utils";
 import { Coupon } from "@/utils/types";
 import { MoreHorizontal, Pencil, Plus, Tag, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -37,7 +37,7 @@ export function CouponList() {
   const fetchCoupons = async () => {
     setIsLoading(true);
     try {
-      const response = await fetchData("coupons");
+      const response = await fetchProtectedData("coupons");
       setCoupons(response as Coupon[]);
     } catch (error) {
       console.error("Error fetching coupons:", error);

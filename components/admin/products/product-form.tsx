@@ -94,7 +94,7 @@ export function ProductForm({
       sellingPrice: product?.sellingPrice || 0,
       purchasePrice: product?.purchasePrice || 0,
       stock: product?.stock || 0,
-      weight: product?.weight || 0,
+      weight: product?.weight || 0.01,
       unitId: product?.unit?.id || 0,
       productSku: product?.productSku || "",
       imageUrl: product?.attachment?.url || "",
@@ -263,7 +263,6 @@ export function ProductForm({
     try {
       if (!product?.gallery?.id) return;
 
-    
       await deleteData(
         `galleries/${product.gallery.id}/attachments`,
         attachmentId
@@ -863,8 +862,6 @@ export function ProductForm({
 
             <Section title="Product Gallery">
               <div className="space-y-4">
-                
-
                 <FormItem>
                   <FormLabel>Gallery Images</FormLabel>
                   <div className="flex flex-col gap-4">

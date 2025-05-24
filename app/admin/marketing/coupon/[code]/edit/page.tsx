@@ -4,7 +4,7 @@ import { CouponForm } from "@/components/admin/coupon/coupon-form";
 import { LoadingIndicator } from "@/components/admin/loading-indicator";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import { fetchData } from "@/utils/api-utils";
+import { fetchProtectedData } from "@/utils/api-utils";
 import { Coupon } from "@/utils/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ export default function EditCouponPage() {
   useEffect(() => {
     const fetchCouponData = async () => {
       try {
-        const couponData = await fetchData<Coupon>(`coupons/${code}`);
+        const couponData = await fetchProtectedData<Coupon>(`coupons/${code}`);
         setCoupon(couponData);
       } catch (error) {
         console.error("Error fetching coupon:", error);

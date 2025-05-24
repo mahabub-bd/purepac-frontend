@@ -96,7 +96,7 @@ const productSchema = z
     unitId: z.number().min(1, "Unit is required"),
     productSku: z.string().min(1, "SKU is required"),
     imageUrl: z.string().optional(),
-    weight: z.coerce.number().int(),
+    weight: z.coerce.number().optional(),
     isActive: z.boolean().default(true),
     isFeatured: z.boolean().default(false),
     brandId: z.number().min(1, "Brand is required"),

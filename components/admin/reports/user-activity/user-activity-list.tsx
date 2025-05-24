@@ -190,7 +190,7 @@ export function UserActivityList({
         <TableHeader>
           <TableRow>
             <TableHead>Date & Time</TableHead>
-            <TableHead>Module Name</TableHead>
+
             <TableHead className="hidden md:table-cell">Action</TableHead>
             <TableHead>Path</TableHead>
             <TableHead className="hidden md:table-cell">IP Address</TableHead>
@@ -199,17 +199,19 @@ export function UserActivityList({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {activities.map((activity) => (
+          {activities.map((activity: UserActivity) => (
             <TableRow key={activity.id}>
               <TableCell className="text-sm">
                 {formatDateTime(activity.createdAt)}
               </TableCell>
 
-              <TableCell className="font-medium">{activity.details}</TableCell>
               <TableCell className="hidden md:table-cell">
                 <Badge className={getActionColor(activity.action)}>
                   {activity.action}
                 </Badge>
+              </TableCell>
+              <TableCell className="hidden md:table-cell font-mono text-xs">
+                {activity.details || "N/A"}
               </TableCell>
               <TableCell className="hidden md:table-cell font-mono text-xs">
                 {activity.ipAddress || "N/A"}

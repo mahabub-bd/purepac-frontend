@@ -474,7 +474,6 @@ export interface UserActivity {
   id: number;
   action: string;
   details: string;
-  entityName: string;
   ipAddress: string | null;
   userAgent: string | null;
   createdAt: string;
